@@ -1,0 +1,27 @@
+# Complete list of options here: https://github.com/metabase/metabase/wiki/Metabase-Plugin-Manifest-Reference
+info:
+  name: Metabase Exasol Driver
+  version: 0.1.0
+  description: Allows Metabase to connect to Exasol databases.
+#dependencies:
+#  - class: com.exasol.jdbc.EXADriver
+driver:
+  name: exasol
+  display-name: Exasol
+  lazy-load: true
+  parent: sql-jdbc
+  # https://github.com/metabase/metabase/blob/master/src/metabase/driver/common.clj
+  connection-properties:
+    - host
+    - merge:
+        - port
+        - default: 8563
+    - user
+    - password
+    - ssl
+  connection-properties-include-tunnel-config: true
+init:
+  - step: load-namespace
+    namespace: metabase.driver.exasol
+#  - step: register-jdbc-driver
+#    class: com.exasol.jdbc.EXADriver
