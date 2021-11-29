@@ -16,10 +16,11 @@ driver:
     - merge:
         - port
         - default: 8563
+    - name: certificate-fingerprint
+      display-name: Certificate Fingerprint
     - user
     - password
-    - ssl
-  connection-properties-include-tunnel-config: true
+  connection-properties-include-tunnel-config: false
 init:
   - step: load-namespace
     namespace: metabase.driver.exasol

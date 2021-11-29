@@ -1,5 +1,6 @@
 (ns metabase.driver.exasol
-  (:require [clojure.tools.logging :as log]
+  (:require [clojure.java.jdbc :as jdbc]
+            [clojure.tools.logging :as log]
             [honeysql.core :as hsql]
             [honeysql.helpers :as h]
             [metabase.config :as config]
@@ -10,6 +11,7 @@
             [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
             [metabase.driver.sql-jdbc.execute :as sql-jdbc.execute]
             [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
+            [metabase.util.ssh :as ssh]
             [metabase.driver.sql.query-processor :as sql.qp]
             [metabase.driver.sql.util.unprepare :as unprepare]
             [metabase.mbql.util :as mbql.u]
@@ -19,26 +21,38 @@
 
 (driver/register! :exasol, :parent :sql-jdbc)
 
+(def ^:private database-type->base-type
+  (sql-jdbc.sync/pattern-based-database-type->base-type
+   [;; https://docs.exasol.com/sql_references/data_types/datatypesoverview.htm
+    [#"BOOLEAN"           :type/Boolean]
+    [#"CHAR"              :type/Text]
+    [#"DATE"              :type/Date]
+    [#"VARCHAR"           :type/Text]
+    [#"DOUBLE PRECISION"      :type/Float]
+    [#"DECIMAL"      :type/Decimal]
+    [#"INTERVAL"    :type/DateTime]
+    [#"GEOMETRY"    :type/*]
+    [#"TIMESTAMP"   :type/DateTime]]))
+
+(defmethod sql-jdbc.sync/database-type->base-type :exasol
+  [_ column-type]
+  (database-type->base-type column-type))
+
 (defmethod driver/display-name :exasol [_]
   "Exasol")
 
-
 (defmethod sql-jdbc.conn/connection-details->spec :exasol
-  [_ {:keys [user password host port]
-      :or   {user "dbuser", password "dbpassword", host "localhost"}
+  [_ {:keys [user password host port certificate-fingerprint]
+      :or   {user "dbuser", password "dbpassword", host "localhost", port 8563}
       :as   details}]
-  (-> {;;:applicationName    config/mb-version-and-process-identifier
+  (-> {:clientname         "Metabase"
+       :clientversion      config/mb-version-string
+       :classname          "com.exasol.jdbc.EXADriver"
        :subprotocol        "exa"
-       ;; it looks like the only thing that actually needs to be passed as the `subname` is the host; everything else
-       ;; can be passed as part of the Properties
-       :subname            (str "//" host ":"  port)
-       ;; everything else gets passed as `java.util.Properties` to the JDBC connection.  (passing these as Properties
-       ;; instead of part of the `:subname` is preferable because they support things like passwords with special
-       ;; characters)
+       :subname            (str host ":" port)
        :password           password
-       ;; Wait up to 10 seconds for connection success. If we get no response by then, consider the connection failed
-       :loginTimeout       10
        :user               user
-       ;;:encrypt            (boolean ssl)
-       }
+       :fingerprint        certificate-fingerprint
+       :additional-options ""}
+
       (sql-jdbc.common/handle-additional-options details, :seperator-style :semicolon)))

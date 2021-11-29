@@ -2,20 +2,10 @@
 
 An Exasol driver for [Metabase](https://www.metabase.com).
 
-## Development
+## Information for Users
 
-Required build tools:
+* [User Guide](doc/user_guide/user_guide.md)
 
-* node.js, yarn
-* clojure, Leiningen
+## Information for Developers
 
-```shell
-git clone https://github.com/exasol/metabase-driver.git
-git clone https://github.com/metabase/metabase.git
-cd metabase
-yarn build
-# Build
-./bin/build
-# Run
-clojure -M:run
-```
+* [Developer Guide](doc/developer_guide/developer_guide.md)
