@@ -21,23 +21,6 @@
 
 (driver/register! :exasol, :parent :sql-jdbc)
 
-(def ^:private database-type->base-type
-  (sql-jdbc.sync/pattern-based-database-type->base-type
-   [;; https://docs.exasol.com/sql_references/data_types/datatypesoverview.htm
-    [#"BOOLEAN"           :type/Boolean]
-    [#"CHAR"              :type/Text]
-    [#"DATE"              :type/Date]
-    [#"VARCHAR"           :type/Text]
-    [#"DOUBLE PRECISION"      :type/Float]
-    [#"DECIMAL"      :type/Decimal]
-    [#"INTERVAL"    :type/DateTime]
-    [#"GEOMETRY"    :type/*]
-    [#"TIMESTAMP"   :type/DateTime]]))
-
-(defmethod sql-jdbc.sync/database-type->base-type :exasol
-  [_ column-type]
-  (database-type->base-type column-type))
-
 (defmethod driver/display-name :exasol [_]
   "Exasol")
 
@@ -56,3 +39,38 @@
        :additional-options ""}
 
       (sql-jdbc.common/handle-additional-options details, :seperator-style :semicolon)))
+
+
+(def ^:private database-type->base-type
+  (sql-jdbc.sync/pattern-based-database-type->base-type
+   [;; https://docs.exasol.com/sql_references/data_types/datatypesoverview.htm
+
+    [#"^BOOLEAN$"          :type/Boolean]
+
+    [#"^CHAR$"             :type/Text]
+    [#"^VARCHAR$"          :type/Text]
+    [#"^HASHTYPE$"         :type/Text]
+
+    [#"^BIGINT$"           :type/BigInteger]
+    [#"^DECIMAL$"          :type/Decimal]
+    [#"^DOUBLE PRECISION$" :type/Decimal]
+    [#"^DATE$"             :type/Date]
+    [#"^TIMESTAMP$"        :type/DateTime]
+    [#"^TIMESTAMP WITH LOCAL TIME ZONE$"  :type/DateTime]
+    [#"^INTERVAL DAY TO SECOND$"        :type/Text]
+    [#"^INTERVAL YEAR TO MONTH$"        :type/Text]
+    [#"^GEOMETRY$"         :type/Text]]))
+
+ (defmethod sql-jdbc.sync/database-type->base-type :exasol
+   [_ column-type]
+   (database-type->base-type column-type))
+
+(defmethod sql-jdbc.execute/read-column-thunk [:exasol java.sql.Types/DATE]
+  [_ ^java.sql.ResultSet rs _ ^Integer i]
+  (fn []
+    (.getDate rs i)))
+
+(defmethod sql-jdbc.execute/read-column-thunk [:exasol java.sql.Types/TIMESTAMP]
+  [_ ^java.sql.ResultSet rs _ ^Integer i]
+  (fn []
+    (.getTimestamp rs i)))
