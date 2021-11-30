@@ -10,14 +10,7 @@
             [metabase.driver.sql-jdbc.common :as sql-jdbc.common]
             [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
             [metabase.driver.sql-jdbc.execute :as sql-jdbc.execute]
-            [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
-            [metabase.util.ssh :as ssh]
-            [metabase.driver.sql.query-processor :as sql.qp]
-            [metabase.driver.sql.util.unprepare :as unprepare]
-            [metabase.mbql.util :as mbql.u]
-            [metabase.query-processor.interface :as qp.i]
-            [metabase.util.honeysql-extensions :as hx]
-            [metabase.util.i18n :refer [trs]]))
+            [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]))
 
 (driver/register! :exasol, :parent :sql-jdbc)
 
@@ -61,9 +54,9 @@
     [#"^INTERVAL YEAR TO MONTH$"        :type/Text]
     [#"^GEOMETRY$"         :type/Text]]))
 
- (defmethod sql-jdbc.sync/database-type->base-type :exasol
-   [_ column-type]
-   (database-type->base-type column-type))
+(defmethod sql-jdbc.sync/database-type->base-type :exasol
+  [_ column-type]
+  (database-type->base-type column-type))
 
 (defmethod sql-jdbc.execute/read-column-thunk [:exasol java.sql.Types/DATE]
   [_ ^java.sql.ResultSet rs _ ^Integer i]

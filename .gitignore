@@ -3,3 +3,5 @@
 /.lsp/
 /target/
 /.calva/
+/maven_repository/
+/.lein-failures

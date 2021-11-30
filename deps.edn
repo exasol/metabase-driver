@@ -10,6 +10,6 @@
   {:extra-deps {metabase/metabase-core {:local/root "../metabase"}
                 metabase/build-drivers {:local/root "../metabase/bin/build-drivers"}}
    :exec-fn    build-drivers.build-driver/build-driver!
-   :exec-args  {:driver      :sudoku
+   :exec-args  {:driver      :exasol
                 :project-dir "."
                 :target-dir  "./target"}}}}
