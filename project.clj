@@ -3,11 +3,7 @@
   :url "https://github.com/exasol/metabase-driver/"
   :min-lein-version "2.9.7"
 
-  :repositories {"Exasol driver" "https://maven.exasol.com/artifactory/exasol-releases"
-                 "Local Metabase" "file:maven_repository"}
-
-  :dependencies
-  [[com.exasol/exasol-jdbc "7.1.3"]]
+  :repositories {"Local Metabase" "file:maven_repository"}
 
   :aliases
   {"test"       ["with-profile" "+unit_tests" "test"]}
@@ -15,7 +11,7 @@
   :profiles
   {:provided
    {:dependencies [[org.clojure/clojure "1.10.0"]
-                   [metabase "0.42.0-SNAPSHOT"]]}
+                   [metabase "0.41.2"]]}
 
    :unit_tests
    {:test-paths     ^:replace ["test_unit"]}
