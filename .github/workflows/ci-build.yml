@@ -43,7 +43,7 @@ jobs:
           cli: latest
           lein: latest
 
-      - name: Log Clojure versions
+      - name: Log versions
         run: |
           java --version
           clojure --version

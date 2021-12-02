@@ -42,6 +42,7 @@ if ! echo "$metabase_sha256  $temp_file" | shasum --strict --check --algorithm 2
 fi
 
 mvn deploy:deploy-file -Dfile="$temp_file" -Durl="file:$local_maven_repo" \
-  -DgroupId=metabase -DartifactId=metabase -Dversion="$metabase_version" -Dpackaging=jar 
+  -DgroupId=metabase -DartifactId=metabase -Dversion="$metabase_version" -Dpackaging=jar \
+  -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
 rm -f "$temp_file"
