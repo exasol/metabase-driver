@@ -3,8 +3,12 @@ info:
   name: Metabase Exasol Driver
   version: 0.1.0
   description: Allows Metabase to connect to Exasol databases.
-#dependencies:
-#  - class: com.exasol.jdbc.EXADriver
+dependencies:
+  - class: com.exasol.jdbc.EXADriver
+    message: >
+      Metabase requires the Exasol JDBC driver in order to connect to Exasol databases, but we can't ship it as part
+      of the driver due to licensing restrictions. See
+      https://github.com/exasol/metabase-driver for more details.
 driver:
   name: exasol
   display-name: Exasol
