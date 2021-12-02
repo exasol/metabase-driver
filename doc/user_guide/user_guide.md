@@ -29,3 +29,14 @@ After you have installed the driver, create a new connection to your Exasol data
   * Password: Password of the database user
     ![Create Exasol Database](images/add_exasol_database.png "Create Exasol Database")
 4. Click the "Save" button at the bottom of the page to verify and save the database connection.
+
+## Troubleshooting
+
+### Metabase Startup fails with `ClassNotFoundException: com.exasol.jdbc.EXADriver`
+
+```
+Job DEFAULT.metabase.task.sync-and-analyze.job threw an unhandled Exception: 
+java.lang.ClassNotFoundException: com.exasol.jdbc.EXADriver
+```
+
+Please download the latest Exasol JDBC driver from the [Exasol download page](https://www.exasol.com/portal/display/DOWNLOAD/) and copy `exajdbc.jar` to `$METABASE_DIR/plugins`.
