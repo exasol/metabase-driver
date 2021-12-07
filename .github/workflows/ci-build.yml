@@ -55,6 +55,9 @@ jobs:
       - name: Run tests
         run: lein test
 
+      - name: Run linter
+        run: lein eastwood
+
       - name: Build jar
         run: DEBUG=1 lein uberjar
 

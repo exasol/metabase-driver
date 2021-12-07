@@ -5,3 +5,4 @@
 /.calva/
 /maven_repository/
 /.lein-failures
+/.eastwood

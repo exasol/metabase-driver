@@ -1,4 +1,4 @@
-(defproject metabase/exasol-driver "0.0.1"
+(defproject metabase/exasol-driver "0.1.0"
   :description "An Exasol driver for Metabase"
   :url "https://github.com/exasol/metabase-driver/"
   :min-lein-version "2.9.7"
@@ -15,6 +15,8 @@
 
    :unit_tests
    {:test-paths     ^:replace ["test_unit"]}
+
+   :user {:plugins [[jonase/eastwood "0.9.9"]]}
 
    :uberjar
    {:auto-clean    true
