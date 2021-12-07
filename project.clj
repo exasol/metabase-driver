@@ -6,7 +6,9 @@
   :repositories {"Local Metabase" "file:maven_repository"}
 
   :aliases
-  {"test"       ["with-profile" "+unit_tests" "test"]}
+  {"test"           ["with-profile" "+unit_tests" "test"]
+   "clj-kondo-deps" ["clj-kondo" "--copy-configs" "--dependencies" "--lint" "$classpath"]
+   "clj-kondo"      ["do" ["clj-kondo-deps"] ["clj-kondo" "--lint" "src" "test"]]}
 
   :profiles
   {:provided
@@ -16,7 +18,7 @@
    :unit_tests
    {:test-paths     ^:replace ["test_unit"]}
 
-   :user {:plugins [[jonase/eastwood "0.9.9"]]}
+   :user {:plugins [[com.github.clj-kondo/lein-clj-kondo "0.1.3"]]}
 
    :uberjar
    {:auto-clean    true
