@@ -6,7 +6,7 @@ We assume that you installed Metabase at `$METABASE_DIR`.
 
 ## Installing the Driver
 
-1. Download and install the latest Exasol JDBC driver for your operating system from the [Exasol download page](https://www.exasol.com/portal/display/DOWNLOAD/).
+1. Download the latest Exasol JDBC driver for your operating system from the [Exasol download page](https://www.exasol.com/portal/display/DOWNLOAD/).
 2. Copy the Exasol JDBC driver `exajdbc.jar` to `$METABASE_DIR/plugins`.
 3. Download the latest driver from the [GitHub release page](https://github.com/exasol/metabase-driver/releases).
 4. Copy the driver `exasol.metabase-driver.jar` to `$METABASE_DIR/plugins`.
