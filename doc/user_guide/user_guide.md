@@ -32,11 +32,12 @@ After you have installed the driver, create a new connection to your Exasol data
 
 ## Troubleshooting
 
-### Metabase Startup fails with `ClassNotFoundException: com.exasol.jdbc.EXADriver`
+### Exasol Driver Not Available
+
+If Database Type "Exasol" is not availabe in the "Add Database" dialog and Metabase logs the following message at startup, the Exasol JDBC driver is not available.
 
 ```
-Job DEFAULT.metabase.task.sync-and-analyze.job threw an unhandled Exception: 
-java.lang.ClassNotFoundException: com.exasol.jdbc.EXADriver
-```
+INFO plugins.dependencies :: Metabase cannot initialize plugin Metabase Exasol Driver due to required dependencies. Metabase requires the Exasol JDBC driver in order to connect to Exasol databases, but we can't ship it as part of the driver due to licensing restrictions. See https://github.com/exasol/metabase-driver for more details.
+````
 
 Please download the latest Exasol JDBC driver from the [Exasol download page](https://www.exasol.com/portal/display/DOWNLOAD/) and copy `exajdbc.jar` to `$METABASE_DIR/plugins`.

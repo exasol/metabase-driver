@@ -14,20 +14,19 @@ Clojure CLI version 1.10.3.1020
 
 ## Setup Development Environment
 
-1. Checkout Metabase at `$HOME/git/metabase` (= `$METABASE_DIR`)
+1. Checkout Metabase at `$HOME/git/metabase` (= `$METABASE_DIR`) and build it:
 
     ```bash
     cd $HOME/git
     git clone https://github.com/metabase/metabase.git
     cd metabase
-    yarn build
     # Build
     ./bin/build
     # Run
     clojure -M:run
     ```
 
-2. Download the Exasol JDBC driver from the [Download Portal](https://www.exasol.com/portal/display/DOWNLOAD/) and install it
+2. Download the Exasol JDBC driver from the [Download Portal](https://www.exasol.com/portal/display/DOWNLOAD/) and install it:
 
     ```bash
     cp exajdbc.jar "$METABASE_DIR/plugins"
@@ -40,6 +39,13 @@ Clojure CLI version 1.10.3.1020
     cd metabase-driver
     ```
 
+## Run Driver Unit Tests
+
+```bash
+./scripts/install-metabase-jar.sh
+lein test
+```
+
 ## Start Metabase With the Exasol Driver
 
 To start Metabase with the Exasol driver from source:
@@ -51,21 +57,25 @@ cd $METABASE_DIR
 clojure -Sdeps '{:deps {metabase/exasol-driver {:local/root "'"$METABASE_EXASOL_DRIVER"'"}}}' -J-Dmb.dev.additional.driver.manifest.paths=$METABASE_EXASOL_DRIVER/resources/metabase-plugin.yaml -M:run
 ```
 
-After startup is complete (log message: `Metabase Initialization COMPLETE`) you can access it at [http://localhost:3000/](http://localhost:3000/).
+After startup is complete (log message: `Metabase Initialization COMPLETE`) you can access Metabase at [http://localhost:3000/](http://localhost:3000/).
 
 ## Build and Install Exasol Driver
 
+To start Metabase with the built Exasol driver:
+
 ```bash
-# Download Metabase jar and install to local maven repo
+export METABASE_DIR="$HOME/git/metabase"
+export METABASE_EXASOL_DRIVER="$HOME/git/metabase-driver"
+cd $METABASE_EXASOL_DRIVER
+
+# Install dependencies
 ./scripts/install-metabase-jar.sh
 
-# Build driver jar
+# Build driver
 DEBUG=1 lein uberjar
 
-export METABASE_DIR="$HOME/git/metabase"
-
 # Install driver
-cp -v target/uberjar/exasol.metabase-driver.jar $METABASE_DIR/plugins/
+cp -v "$METABASE_EXASOL_DRIVER/target/uberjar/exasol.metabase-driver.jar" "$METABASE_DIR/plugins/"
 
 # Run Metabase
 cd $METABASE_DIR
