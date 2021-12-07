@@ -56,7 +56,7 @@ jobs:
         run: lein test
 
       - name: Build jar
-        run: DEBUG=1 lein uberjar 
+        run: DEBUG=1 lein uberjar
 
       - name: Upload jar
         uses: actions/upload-artifact@v2
