@@ -2,14 +2,24 @@
 
 ## Required Build Tools
 
-* node.js, yarn
-* clojure, Leiningen
+For building and testing the driver you will need
+* [Clojure](https://clojure.org/)
+* [Leiningen](https://leiningen.org/)
 
-You will need Clojure 1.10.3.905 or later. Run the following command to check your current version:
+To build Metabase itself you will need
+* [Node.js](https://nodejs.org/en/)
+* [Yarn](https://yarnpkg.com/)
+
+On Unbuntu you can install the dependencies by running
 
 ```shell
-% clojure --version
-Clojure CLI version 1.10.3.1020
+sudo apt install nodejs yarnpkg clojure leiningen
+```
+
+You will need Clojure 1.10.3 or later. Run the following command to check your current version:
+
+```shell
+clojure --eval "(clojure-version)"
 ```
 
 ## Setup Development Environment
