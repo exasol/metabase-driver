@@ -37,6 +37,14 @@ jobs:
           restore-keys: |
             local-maven-
 
+      - name: Cache clj-kondo
+        uses: actions/cache@v2
+        with:
+          path: .clj-kondo/.cache
+          key: clj-kondo-cache
+          restore-keys: |
+            clj-kondo-cache
+
       - name: Install dependencies
         run: |
           sudo apt install clojure leiningen -y
@@ -54,7 +62,9 @@ jobs:
         run: lein test
 
       - name: Run linter
-        run: lein clj-kondo
+        run: |
+          mkdir -p .clj-kondo/.cache
+          lein lint
 
       - name: Build jar
         run: DEBUG=1 lein uberjar

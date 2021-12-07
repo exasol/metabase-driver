@@ -7,8 +7,9 @@
 
   :aliases
   {"test"           ["with-profile" "+unit_tests" "test"]
-   "clj-kondo-deps" ["clj-kondo" "--copy-configs" "--dependencies" "--lint" "$classpath"]
-   "clj-kondo"      ["do" ["clj-kondo-deps"] ["clj-kondo" "--lint" "src" "test"]]}
+   "clj-kondo-deps" ["clj-kondo" "--copy-configs" "--dependencies" "--lint" "$classpath" "--cache-dir" ".clj-kondo/.cache"]
+   "lint"           ["do" ["clj-kondo-deps"] ["clj-kondo" "--lint" "src" "test" "--cache-dir" ".clj-kondo/.cache"]]
+   }
 
   :profiles
   {:provided
