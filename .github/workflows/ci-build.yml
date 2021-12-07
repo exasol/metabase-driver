@@ -37,11 +37,9 @@ jobs:
           restore-keys: |
             local-maven-
 
-      - name: Install clojure tools
-        uses: DeLaGuardo/setup-clojure@3.5
-        with:
-          cli: latest
-          lein: latest
+      - name: Install dependencies
+        run: |
+          sudo apt install clojure leiningen -y
 
       - name: Log versions
         run: |
