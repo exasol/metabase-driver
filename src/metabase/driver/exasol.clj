@@ -1,12 +1,6 @@
 (ns metabase.driver.exasol
-  (:require [clojure.java.jdbc :as jdbc]
-            [clojure.tools.logging :as log]
-            [honeysql.core :as hsql]
-            [honeysql.helpers :as h]
-            [metabase.config :as config]
+  (:require [metabase.config :as config]
             [metabase.driver :as driver]
-            [metabase.driver.common :as driver.common]
-            [metabase.driver.sql :as sql]
             [metabase.driver.sql-jdbc.common :as sql-jdbc.common]
             [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
             [metabase.driver.sql-jdbc.execute :as sql-jdbc.execute]
