@@ -57,6 +57,7 @@ cd $METABASE_DIR
 clojure -Sdeps '{:deps {metabase/exasol-driver {:local/root "'"$METABASE_EXASOL_DRIVER"'"}}}' -J-Dmb.dev.additional.driver.manifest.paths=$METABASE_EXASOL_DRIVER/resources/metabase-plugin.yaml -M:run
 ```
 
+<!-- markdown-link-check-disable-next-line -->
 After startup is complete (log message: `Metabase Initialization COMPLETE`) you can access Metabase at [http://localhost:3000/](http://localhost:3000/).
 
 ## Build and Install Exasol Driver
