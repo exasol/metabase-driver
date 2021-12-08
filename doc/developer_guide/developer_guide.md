@@ -95,6 +95,14 @@ clojure -M:run
 
 ## Running the Integration Tests
 
+You need to have metabase checked out next to this repository.
+
+```shell
+./scripts/run-integration-tests.sh
+```
+
+This script builds and installs the driver before running the integration tests. The driver must be installed to `$METABASE_DIR/plugins/` for running the integration tests.
+
 ### Configure Logging
 
 To increase the log level for integration tests, edit file `$METABASE_DIR/test_config/log4j2-test.xml`.
