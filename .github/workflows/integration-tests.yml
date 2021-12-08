@@ -55,7 +55,8 @@ jobs:
       - name: Log versions
         run: |
           java --version
-          echo Clojure: $(clojure --eval "(clojure-version)")
+          echo Clojure: $(clojure -M --eval "(clojure-version)")
+          clojure --version
           echo Leiningen: $(lein --version)
 
       - name: Prepare Metabase
@@ -64,5 +65,5 @@ jobs:
           source "./bin/prep.sh"
           prep_deps
 
-      - name: Run tests
+      - name: Run integration tests
         run: $GITHUB_WORKSPACE/metabase-driver/scripts/run-integration-tests.sh

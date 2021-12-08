@@ -30,17 +30,22 @@ else
     echo "Dependency already added to $metabase_deps"
 fi
 
+
+#"$exasol_driver_dir/scripts/install-metabase-jar.sh"
 echo "Building exasol driver..."
 cd "$exasol_driver_dir"
 DEBUG=1 lein uberjar
 
 metabase_plugin_dir="$metabase_dir/plugins/"
+driver_jar="$exasol_driver_dir/target/uberjar/exasol.metabase-driver.jar"
 if [ ! -d "$metabase_plugin_dir" ]; then
     echo "Creating $metabase_plugin_dir"
     mkdir -p "$metabase_plugin_dir"
 fi
-echo "Copy driver to $metabase_plugin_dir"
-cp "$exasol_driver_dir/target/uberjar/exasol.metabase-driver.jar" "$metabase_plugin_dir"
+ls -lha "$driver_jar"
+echo "Copy driver $driver_jar to $metabase_plugin_dir"
+cp "$driver_jar" "$metabase_plugin_dir"
+ls -lah "$metabase_plugin_dir"
 
 cd "$metabase_dir"
 echo "Starting integration tests..."

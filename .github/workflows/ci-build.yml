@@ -54,7 +54,8 @@ jobs:
       - name: Log versions
         run: |
           java --version
-          echo Clojure: $(clojure --eval "(clojure-version)")
+          echo Clojure: $(clojure -M --eval "(clojure-version)")
+          clojure --version
           echo Leiningen: $(lein --version)
 
       - name: Install Metabase
