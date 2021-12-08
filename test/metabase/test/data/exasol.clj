@@ -2,8 +2,6 @@
   (:require [clojure.java.jdbc :as jdbc]
             [clojure.set :as set]
             [clojure.string :as str]
-            [honeysql.format :as hformat]
-            [medley.core :as m]
             [metabase.db :as mdb]
             [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
             [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
@@ -14,16 +12,13 @@
             [metabase.test.data.sql-jdbc :as sql-jdbc.tx]
             [metabase.test.data.sql-jdbc.execute :as execute]
             [metabase.test.data.sql-jdbc.load-data :as load-data]
-            [metabase.test.data.sql.ddl :as ddl]
             [metabase.util :as u]
             [toucan.db :as db]))
 
-;(sql-jdbc.tx/register-test-extensions! :exasol)
 (sql-jdbc.tx/add-test-extensions! :exasol)
 
 (defonce ^:private session-schema-number (rand-int 200))
 (defonce           session-schema        (str "CAM_" session-schema-number))
-;; Session password is only used when creating session user, not anywhere else
 
 (defn- connection-details []
   (let [details* {:host     (tx/db-test-env-var-or-throw :exasol :host)
