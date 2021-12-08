@@ -39,6 +39,8 @@
                               :type/Temporal               "TIMESTAMP"
                               :type/DateTime               "TIMESTAMP"
                               :type/DateTimeWithTZ         "TIMESTAMP"
+                              :type/DateTimeWithZoneOffset "TIMESTAMP"
+                              :type/DateTimeWithZoneID     "TIMESTAMP"
                               :type/DateTimeWithLocalTZ    "TIMESTAMP WITH LOCAL TIME ZONE"
                               :type/Decimal                "DECIMAL"
                               :type/Float                  "DOUBLE PRECISION"
@@ -46,13 +48,11 @@
                               :type/Text                   "VARCHAR(4000)"}]
   (defmethod sql.tx/field-base-type->sql-type [:exasol base-type] [_ _] sql-type))
 
-(doseq [base-type [:type/BigInteger
-                   :type/Time
-                   :type/DateTimeWithZoneOffset
-                   :type/DateTimeWithZoneID
-                   :type/DateTimeWithLocalTZ]]
-  (defmethod sql.tx/field-base-type->sql-type [:exasol base-type] [_ base-type]
-    (throw (UnsupportedOperationException. (format "Exasol does not have a %s data type." base-type)))))
+;(doseq [base-type [;;:type/Time
+;                   :type/DateTimeWithZoneOffset
+;                   :type/DateTimeWithZoneID]]
+;  (defmethod sql.tx/field-base-type->sql-type [:exasol base-type] [_ base-type]
+;    (throw (UnsupportedOperationException. (format "Exasol does not have a %s data type." base-type)))))
 
 (defmethod sql.tx/drop-table-if-exists-sql :exasol
   [_ {:keys [database-name]} {:keys [table-name]}]
@@ -110,23 +110,6 @@
 
 (defmethod tx/has-questionable-timezone-support? :exasol [_] true)
 
-
-;(defmethod ddl/insert-rows-honeysql-form :exasol
-;  [driver table-identifier row-or-rows]
-;  (reify hformat/ToSql
-;    (to-sql [_]
-;      (format
-;       "INSERT ALL %s SELECT * FROM dual"
-;       (str/join
-;        " "
-;        (for [row  (u/one-or-many row-or-rows)
-;              :let [columns (keys row)]]
-;          (str/replace
-;           (hformat/to-sql
-;            ((get-method ddl/insert-rows-honeysql-form :sql/test-extensions) driver table-identifier row))
-;           #"INSERT INTO"
-;           "INTO")))))))
-
 (defn- dbspec [& _]
   (sql-jdbc.conn/connection-details->spec :exasol (connection-details)))
 
@@ -143,8 +126,6 @@
   [driver]
   (set/union
    (original-excluded-schemas driver)
-   ;; This is similar hack we do for Redshift, see the explanation there we just want to ignore all the test
-   ;; "session schemas" that don't match the current test
    (non-session-schemas)))
 
 
