@@ -30,9 +30,15 @@ else
     echo "Dependency already added to $metabase_deps"
 fi
 
-cd "$metabase_dir"
+echo "Building exasol driver..."
+cd "$exasol_driver_dir"
+DEBUG=1 lein uberjar
 
-MB_EXASOL_TEST_HOST=localhost \
+echo "Copy driver to $metabase_dir/plugins"
+cp "$exasol_driver_dir/target/uberjar/exasol.metabase-driver.jar" "$metabase_dir/plugins"
+
+cd "$metabase_dir"
+echo "Starting integration tests..."
   MB_EXASOL_TEST_PORT=8563 \
   MB_EXASOL_TEST_USER=sys \
   MB_EXASOL_TEST_PASSWORD=exasol \
