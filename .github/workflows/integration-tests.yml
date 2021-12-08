@@ -58,5 +58,11 @@ jobs:
           echo Clojure: $(clojure --eval "(clojure-version)")
           echo Leiningen: $(lein --version)
 
+      - name: Prepare Metabase
+        run: |
+          cd "$GITHUB_WORKSPACE/metabase"
+          source "./bin/prep.sh"
+          prep_deps
+
       - name: Run tests
         run: $GITHUB_WORKSPACE/metabase-driver/scripts/run-integration-tests.sh
