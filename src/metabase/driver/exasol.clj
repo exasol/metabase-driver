@@ -1,12 +1,15 @@
 (ns metabase.driver.exasol
-  (:require [metabase.config :as config]
+  (:require [clojure.tools.logging :as log]
+            [metabase.config :as config]
             [metabase.driver :as driver]
             [metabase.driver.sql-jdbc.common :as sql-jdbc.common]
             [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
             [metabase.driver.sql-jdbc.execute :as sql-jdbc.execute]
             [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
-            [metabase.query-processor.timezone :as qp.timezone]
-            [java-time :as t]))
+            [metabase.util.date-2 :as u.date]
+            [metabase.util.i18n :refer [trs]]
+            [java-time :as t])
+  (:import))
 
 (driver/register! :exasol, :parent :sql-jdbc)
 
@@ -57,33 +60,49 @@
 (defmethod sql-jdbc.execute/read-column-thunk [:exasol java.sql.Types/DATE]
   [_ ^java.sql.ResultSet rs _ ^Integer i]
   (fn []
-    (.getDate rs i)))
+    (when-let [s (.getString rs i)]
+      (let [t (u.date/parse s)]
+        (log/tracef "(.getString rs i) [DATE] -> %s -> %s" (pr-str s) (pr-str t))
+        t))))
 
 (defmethod sql-jdbc.execute/read-column-thunk [:exasol java.sql.Types/TIMESTAMP]
   [_ ^java.sql.ResultSet rs _ ^Integer i]
   (fn []
     (.getTimestamp rs i)))
 
-;;(defmethod sql-jdbc.execute/set-parameter [:exasol java.time.OffsetDateTime]
-;;  [driver ps i t]
-;;  (println "###### set param exasol")
-;;  (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp (t/with-offset-same-instant t (t/zone-offset 0)))))
-
-
 (defmethod sql-jdbc.execute/set-parameter [:exasol java.time.OffsetDateTime]
-  [driver ^java.sql.PreparedStatement ps ^Integer i t]
-  (let [zone   (t/zone-id (qp.timezone/results-timezone-id))
-        offset (.. zone getRules (getOffset (t/instant t)))
-        t      (t/local-date-time (t/with-offset-same-instant t offset))]
-    (println "###### set param exasol" t)
-    (sql-jdbc.execute/set-parameter driver ps i t)))
+  [driver ps i t]
+  (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp (t/with-offset-same-instant t (t/zone-offset 0)))))
 
-;;(defmethod sql-jdbc.execute/set-parameter [:exasol java.time.ZonedDateTime]
-;;  [driver ps i t]
-;;  (sql-jdbc.execute/set-parameter driver ps i (t/offset-date-time t)))
+(defmethod sql-jdbc.execute/set-parameter [:exasol java.time.LocalDate]
+  [driver ps i t]
+  (sql-jdbc.execute/set-parameter driver ps i (t/sql-date t)))
 
-;(defmethod sql-jdbc.execute/set-parameter [:exasol java.time.ZonedDateTime]
-;  [driver ps i t]
-;  (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp (t/with-zone-same-instant t (t/zone-id "UTC")))))
+(defmethod sql-jdbc.execute/set-parameter [:exasol java.time.LocalDateTime]
+  [driver ps i t]
+  (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp t)))
 
-(println "######## Exasol driver loaded")
+;; TODO: is this ok?
+(defmethod sql-jdbc.execute/set-parameter [:exasol java.time.LocalTime]
+  [driver ps i t]
+  (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp t)))
+
+;; Same as default implementation but without calling the unsupported setHoldability() method
+(defmethod sql-jdbc.execute/connection-with-timezone :exasol
+  [driver database ^String timezone-id]
+  (let [conn (.getConnection (sql-jdbc.execute/datasource-with-diagnostic-info! driver database))]
+    (try
+      (sql-jdbc.execute/set-best-transaction-level! driver conn)
+      (sql-jdbc.execute/set-time-zone-if-supported! driver conn timezone-id)
+      (try
+        (.setReadOnly conn true)
+        (catch Throwable e
+          (log/debug e (trs "Error setting connection to read-only"))))
+      (try
+        (.setAutoCommit conn false)
+        (catch Throwable e
+          (log/debug e (trs "Error setting connection to autoCommit false"))))
+      conn
+      (catch Throwable e
+        (.close conn)
+        (throw e)))))
