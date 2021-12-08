@@ -26,6 +26,13 @@ jobs:
           path: 'metabase'
           ref: ${{ env.METABASE_TAG }}
 
+      - name: Checkout integration test docker environment
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+          repository: 'exasol/integration-test-docker-environment'
+          path: 'integration-test-docker-environment'
+
       - run: |
           pwd
           ls -lha
@@ -64,6 +71,12 @@ jobs:
           cd "$GITHUB_WORKSPACE/metabase"
           source "./bin/prep.sh"
           prep_deps
+
+      - name: Spawn Exasol environemnt
+        run: |
+          ./start-test-env spawn-test-environment --help
+          ./start-test-env spawn-test-environment --environment-name test --database-port-forward 8563
+        working-directory: $GITHUB_WORKSPACE/integration-test-docker-environment
 
       - name: Run integration tests
         run: $GITHUB_WORKSPACE/metabase-driver/scripts/run-integration-tests.sh
