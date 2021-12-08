@@ -87,12 +87,17 @@
   [driver ps i t]
   (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp t)))
 
+(defmethod sql-jdbc.execute/set-parameter [:exasol java.time.OffsetTime]
+  [driver ps i t]
+  (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp t)))
+
 ;; Same as default implementation but without calling the unsupported setHoldability() method
 (defmethod sql-jdbc.execute/connection-with-timezone :exasol
   [driver database ^String timezone-id]
   (let [conn (.getConnection (sql-jdbc.execute/datasource-with-diagnostic-info! driver database))]
     (try
       (sql-jdbc.execute/set-best-transaction-level! driver conn)
+      #_{:clj-kondo/ignore [:deprecated-var]} ; Function is deprecated
       (sql-jdbc.execute/set-time-zone-if-supported! driver conn timezone-id)
       (try
         (.setReadOnly conn true)
