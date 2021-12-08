@@ -34,14 +34,20 @@ echo "Building exasol driver..."
 cd "$exasol_driver_dir"
 DEBUG=1 lein uberjar
 
-echo "Copy driver to $metabase_dir/plugins"
-cp "$exasol_driver_dir/target/uberjar/exasol.metabase-driver.jar" "$metabase_dir/plugins"
+metabase_plugin_dir="$metabase_dir/plugins/"
+if [ ! -d "$metabase_plugin_dir" ]; then
+    echo "Creating $metabase_plugin_dir"
+    mkdir -p "$metabase_plugin_dir"
+fi
+echo "Copy driver to $metabase_plugin_dir"
+cp "$exasol_driver_dir/target/uberjar/exasol.metabase-driver.jar" "$metabase_plugin_dir"
 
 cd "$metabase_dir"
 echo "Starting integration tests..."
+MB_EXASOL_TEST_HOST=192.168.56.5 \
   MB_EXASOL_TEST_PORT=8563 \
   MB_EXASOL_TEST_USER=sys \
   MB_EXASOL_TEST_PASSWORD=exasol \
-  MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=ABC \
+  MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=15F9CA9BC95E14F1F913FC449A26723841C118CFB644957866ABB73C1399A7FF \
   DRIVERS=exasol \
   clojure -X:dev:ci:drivers:drivers-dev:test
