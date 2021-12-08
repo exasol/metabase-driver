@@ -55,7 +55,7 @@ ls -lah "$metabase_plugin_dir"
 
 cd "$metabase_dir"
 echo "Starting integration tests in $metabase_dir..."
-MB_EXASOL_TEST_HOST=192.168.56.5 \
+MB_EXASOL_TEST_HOST=localhost \
   MB_EXASOL_TEST_PORT=8563 \
   MB_EXASOL_TEST_USER=sys \
   MB_EXASOL_TEST_PASSWORD=exasol \
