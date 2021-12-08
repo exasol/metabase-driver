@@ -92,3 +92,9 @@ cp -v "$METABASE_EXASOL_DRIVER/target/uberjar/exasol.metabase-driver.jar" "$META
 cd $METABASE_DIR
 clojure -M:run
 ```
+
+## Running the Integration Tests
+
+### Configure Logging
+
+To increase the log level for integration tests, edit file `$METABASE_DIR/test_config/log4j2-test.xml`.

@@ -4,7 +4,9 @@
             [metabase.driver.sql-jdbc.common :as sql-jdbc.common]
             [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
             [metabase.driver.sql-jdbc.execute :as sql-jdbc.execute]
-            [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]))
+            [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
+            [metabase.query-processor.timezone :as qp.timezone]
+            [java-time :as t]))
 
 (driver/register! :exasol, :parent :sql-jdbc)
 
@@ -61,3 +63,27 @@
   [_ ^java.sql.ResultSet rs _ ^Integer i]
   (fn []
     (.getTimestamp rs i)))
+
+;;(defmethod sql-jdbc.execute/set-parameter [:exasol java.time.OffsetDateTime]
+;;  [driver ps i t]
+;;  (println "###### set param exasol")
+;;  (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp (t/with-offset-same-instant t (t/zone-offset 0)))))
+
+
+(defmethod sql-jdbc.execute/set-parameter [:exasol java.time.OffsetDateTime]
+  [driver ^java.sql.PreparedStatement ps ^Integer i t]
+  (let [zone   (t/zone-id (qp.timezone/results-timezone-id))
+        offset (.. zone getRules (getOffset (t/instant t)))
+        t      (t/local-date-time (t/with-offset-same-instant t offset))]
+    (println "###### set param exasol" t)
+    (sql-jdbc.execute/set-parameter driver ps i t)))
+
+;;(defmethod sql-jdbc.execute/set-parameter [:exasol java.time.ZonedDateTime]
+;;  [driver ps i t]
+;;  (sql-jdbc.execute/set-parameter driver ps i (t/offset-date-time t)))
+
+;(defmethod sql-jdbc.execute/set-parameter [:exasol java.time.ZonedDateTime]
+;  [driver ps i t]
+;  (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp (t/with-zone-same-instant t (t/zone-id "UTC")))))
+
+(println "######## Exasol driver loaded")
