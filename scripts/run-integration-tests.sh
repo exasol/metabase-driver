@@ -4,9 +4,10 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-
+jdbc_driver_version=7.1.3
 exasol_driver_dir="$( cd "$(dirname "$0")/.." >/dev/null 2>&1 ; pwd -P )"
 metabase_dir="$exasol_driver_dir/../metabase"
+metabase_plugin_dir="$metabase_dir/plugins/"
 
 if [ ! -d "$metabase_dir" ]; then
     echo "Metabase does not exist at $metabase_dir. Clone repo https://github.com/metabase/metabase"
@@ -30,13 +31,11 @@ else
     echo "Dependency already added to $metabase_deps"
 fi
 
-
-#"$exasol_driver_dir/scripts/install-metabase-jar.sh"
 echo "Building exasol driver..."
 cd "$exasol_driver_dir"
 DEBUG=1 lein uberjar
 
-metabase_plugin_dir="$metabase_dir/plugins/"
+
 driver_jar="$exasol_driver_dir/target/uberjar/exasol.metabase-driver.jar"
 if [ ! -d "$metabase_plugin_dir" ]; then
     echo "Creating $metabase_plugin_dir"
@@ -45,10 +44,17 @@ fi
 ls -lha "$driver_jar"
 echo "Copy driver $driver_jar to $metabase_plugin_dir"
 cp "$driver_jar" "$metabase_plugin_dir"
+
+mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get \
+  -DremoteRepositories=https://maven.exasol.com/artifactory/exasol-releases \
+  -Dartifact=com.exasol:exasol-jdbc:$jdbc_driver_version
+
+cp -v "$HOME/.m2/repository/com/exasol/exasol-jdbc/$jdbc_driver_version/exasol-jdbc-$jdbc_driver_version.jar" "$metabase_plugin_dir"
+
 ls -lah "$metabase_plugin_dir"
 
 cd "$metabase_dir"
-echo "Starting integration tests..."
+echo "Starting integration tests in $metabase_dir..."
 MB_EXASOL_TEST_HOST=192.168.56.5 \
   MB_EXASOL_TEST_PORT=8563 \
   MB_EXASOL_TEST_USER=sys \
