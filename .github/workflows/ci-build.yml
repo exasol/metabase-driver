@@ -21,6 +21,12 @@ jobs:
           distribution: 'temurin'
           java-version: 11
 
+      - name: Install clojure tools
+        uses: DeLaGuardo/setup-clojure@3.6
+        with:
+          cli: latest
+          lein: latest
+
       - name: Cache Maven repository
         uses: actions/cache@v2
         with:
@@ -44,10 +50,6 @@ jobs:
           key: clj-kondo-cache
           restore-keys: |
             clj-kondo-cache
-
-      - name: Install dependencies
-        run: |
-          sudo apt install clojure leiningen -y
 
       - name: Log versions
         run: |
