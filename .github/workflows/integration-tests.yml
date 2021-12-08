@@ -72,11 +72,11 @@ jobs:
           source "./bin/prep.sh"
           prep_deps
 
-      - name: Spawn Exasol environemnt
-        run: |
-          ./start-test-env spawn-test-environment --help
-          ./start-test-env spawn-test-environment --environment-name test --database-port-forward 8563
-        working-directory: ${{ env.GITHUB_WORKSPACE }}/integration-test-docker-environment
-
-      - name: Run integration tests
-        run: $GITHUB_WORKSPACE/metabase-driver/scripts/run-integration-tests.sh
+#      - name: Spawn Exasol environemnt
+#        run: |
+#          ./start-test-env spawn-test-environment --help
+#          ./start-test-env spawn-test-environment --environment-name test --database-port-forward 8563
+#        working-directory: integration-test-docker-environment
+#
+#      - name: Run integration tests
+#        run: $GITHUB_WORKSPACE/metabase-driver/scripts/run-integration-tests.sh
