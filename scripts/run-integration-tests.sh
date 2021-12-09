@@ -76,4 +76,4 @@ MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_EXASOL_TEST_PASSWORD=exasol \
   MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=$fingerprint \
   DRIVERS=exasol \
-  clojure -X:dev:ci:drivers:drivers-dev:test
+  clojure -X:dev:ci:drivers:drivers-dev:test || true
