@@ -45,7 +45,8 @@ if [ ! -f "$metabase_plugin_dir/exasol-jdbc.jar" ]; then
     echo "Installing Exasol JDBC driver..."
     mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get \
       -DremoteRepositories=https://maven.exasol.com/artifactory/exasol-releases \
-      -Dartifact=com.exasol:exasol-jdbc:$jdbc_driver_version
+      -Dartifact=com.exasol:exasol-jdbc:$jdbc_driver_version \
+      -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
     cp -v "$HOME/.m2/repository/com/exasol/exasol-jdbc/$jdbc_driver_version/exasol-jdbc-$jdbc_driver_version.jar" "$metabase_plugin_dir/exasol-jdbc.jar"
 else
     echo "Exasol JDBC driver already exists in $metabase_plugin_dir"
@@ -64,11 +65,16 @@ cp "$driver_jar" "$metabase_plugin_dir"
 ls -lh "$metabase_plugin_dir"
 
 cd "$metabase_dir"
+
+fingerprint="${EXASOL_CERT_FINGERPRINT:-}"
+
+echo "Using Exasol database $EXASOL_HOST:$EXASOL_PORT with certificate fingerprint '$fingerprint'"
+
 echo "Starting integration tests in $metabase_dir..."
 MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_EXASOL_TEST_PORT=$EXASOL_PORT \
   MB_EXASOL_TEST_USER=sys \
   MB_EXASOL_TEST_PASSWORD=exasol \
-  MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=15F9CA9BC95E14F1F913FC449A26723841C118CFB644957866ABB73C1399A7FF \
+  MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=$fingerprint \
   DRIVERS=exasol \
   clojure -X:dev:ci:drivers:drivers-dev:test
