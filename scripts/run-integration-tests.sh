@@ -43,10 +43,9 @@ fi
 
 if [ ! -f "$metabase_plugin_dir/exasol-jdbc.jar" ]; then
     echo "Installing Exasol JDBC driver..."
-    mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get \
+    mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get --batch-mode \
       -DremoteRepositories=https://maven.exasol.com/artifactory/exasol-releases \
-      -Dartifact=com.exasol:exasol-jdbc:$jdbc_driver_version \
-      -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      -Dartifact=com.exasol:exasol-jdbc:$jdbc_driver_version
     cp -v "$HOME/.m2/repository/com/exasol/exasol-jdbc/$jdbc_driver_version/exasol-jdbc-$jdbc_driver_version.jar" "$metabase_plugin_dir/exasol-jdbc.jar"
 else
     echo "Exasol JDBC driver already exists in $metabase_plugin_dir"
