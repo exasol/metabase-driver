@@ -1,12 +1,13 @@
 name: Broken Links Checker
 
 on:
-  schedule:
-    - cron: "0 5 * * *"
   push:
     branches:
       - main
-  pull_request:
+# Disabled until project is public
+#  schedule:
+#    - cron: "0 5 * * *"
+#  pull_request:
 
 jobs:
   linkChecker:
