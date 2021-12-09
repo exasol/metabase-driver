@@ -62,15 +62,15 @@ ls -lha "$driver_jar"
 echo "Copy driver $driver_jar to $metabase_plugin_dir"
 cp "$driver_jar" "$metabase_plugin_dir"
 
-ls -lh "$metabase_plugin_dir"
-
-cd "$metabase_dir"
-
-fingerprint="${EXASOL_CERT_FINGERPRINT:-}"
+fingerprint=$(openssl s_client -connect "$EXASOL_HOST:$EXASOL_PORT" < /dev/null 2>/dev/null \
+            | openssl x509 -fingerprint -sha256 -noout -in /dev/stdin \
+            | sed 's/SHA256 Fingerprint=//' \
+            | sed 's/://g') || true
 
 echo "Using Exasol database $EXASOL_HOST:$EXASOL_PORT with certificate fingerprint '$fingerprint'"
 
 echo "Starting integration tests in $metabase_dir..."
+cd "$metabase_dir"
 MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_EXASOL_TEST_PORT=$EXASOL_PORT \
   MB_EXASOL_TEST_USER=sys \

@@ -106,13 +106,7 @@ clojure -M:run
 You need to have metabase checked out next to this repository.
 
 ```shell
-export EXASOL_HOST=192.168.56.5
-export EXASOL_PORT=8563
-export EXASOL_CERT_FINGERPRINT=$(openssl s_client -connect $EXASOL_HOST:$EXASOL_PORT < /dev/null 2>/dev/null \
-                               | openssl x509 -fingerprint -sha256 -noout -in /dev/stdin \
-                               | sed 's/SHA256 Fingerprint=//' \
-                               | sed 's/://g')
-./scripts/run-integration-tests.sh
+EXASOL_HOST=192.168.56.5 EXASOL_PORT=8563 ./scripts/run-integration-tests.sh
 ```
 
 This script builds and installs the driver before running the integration tests. The driver must be installed to `$METABASE_DIR/plugins/` for running the integration tests.
