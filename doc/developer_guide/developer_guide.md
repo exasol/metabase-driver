@@ -114,3 +114,12 @@ This script builds and installs the driver before running the integration tests.
 ### Configure Logging
 
 To increase the log level for integration tests, edit file `$METABASE_DIR/test_config/log4j2-test.xml`.
+
+### Unsupported Datasets
+
+The Exasol driver does not the support loading the following datasets from the Metabase integration tests:
+
+* test-data-with-time
+* attempted-murders
+
+That's why we exclude certain tests by patching the metabase sources with `scripts/exclude_tests.diff`.

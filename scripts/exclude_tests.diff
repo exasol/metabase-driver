@@ -1,0 +1,77 @@
+diff --git a/test/metabase/api/table_test.clj b/test/metabase/api/table_test.clj
+index c43870df48..d1994f3fec 100644
+--- a/test/metabase/api/table_test.clj
++++ b/test/metabase/api/table_test.clj
+@@ -706,7 +706,7 @@
+                    (dimension-options-for-field response "timestamp"))))))
+ 
+       (testing "time columns"
+-        (mt/test-drivers (mt/normal-drivers-except #{:sparksql :mongo :oracle :redshift})
++        (mt/test-drivers (mt/normal-drivers-except #{:sparksql :mongo :oracle :exasol :redshift})
+           (mt/dataset test-data-with-time
+             (let [response (mt/user-http-request :rasta :get 200 (format "table/%d/query_metadata" (mt/id :users)))]
+               (is (= []
+diff --git a/test/metabase/driver/sql_jdbc_test.clj b/test/metabase/driver/sql_jdbc_test.clj
+index 5e8c012138..b47b53622e 100644
+--- a/test/metabase/driver/sql_jdbc_test.clj
++++ b/test/metabase/driver/sql_jdbc_test.clj
+@@ -195,7 +195,7 @@
+                  (spliced-count-of :checkins [:= $date "2014-03-05"]))))))
+ 
+     ;; Oracle, Redshift, and SparkSQL don't have 'Time' types
+-    (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :oracle :redshift :sparksql)
++    (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :oracle :exasol :redshift :sparksql)
+       (testing "splicing a time"
+         (is (= 2
+                (mt/dataset test-data-with-time
+diff --git a/test/metabase/query_processor/middleware/format_rows_test.clj b/test/metabase/query_processor/middleware/format_rows_test.clj
+index 5608a9b374..044e42a2d2 100644
+--- a/test/metabase/query_processor/middleware/format_rows_test.clj
++++ b/test/metabase/query_processor/middleware/format_rows_test.clj
+@@ -14,7 +14,7 @@
+ (def ^:private dbs-exempt-from-format-rows-tests
+   "DBs to skip the tests below for. TIMEZONE FIXME — why are so many databases not running these tests? Most of these
+   should be able to pass with a few tweaks."
+-  #{:oracle :mongo :redshift :presto :sparksql :snowflake})
++  #{:oracle :exasol :mongo :redshift :presto :sparksql :snowflake})
+ 
+ (deftest format-rows-test
+   (mt/test-drivers (mt/normal-drivers-except dbs-exempt-from-format-rows-tests)
+diff --git a/test/metabase/query_processor_test/parameters_test.clj b/test/metabase/query_processor_test/parameters_test.clj
+index f1de41d12e..4d1adbb3f2 100644
+--- a/test/metabase/query_processor_test/parameters_test.clj
++++ b/test/metabase/query_processor_test/parameters_test.clj
+@@ -114,7 +114,7 @@
+         ;; TIMEZONE FIXME — The excluded drivers below don't have TIME types, so the `attempted-murders` dataset doesn't
+         ;; currently work. We should use the closest equivalent types (e.g. `DATETIME` or `TIMESTAMP` so we can still
+         ;; load the dataset and run tests using this dataset such as these, which doesn't even use the TIME type.
+-        (when-not (#{:oracle :presto :redshift :sparksql :snowflake} driver/*driver*)
++        (when-not (#{:oracle :exasol :presto :redshift :sparksql :snowflake} driver/*driver*)
+           (mt/dataset attempted-murders
+             (doseq [field
+                     [:datetime
+diff --git a/test/metabase/query_processor_test/time_field_test.clj b/test/metabase/query_processor_test/time_field_test.clj
+index e8b2743998..fdfc7e6e28 100644
+--- a/test/metabase/query_processor_test/time_field_test.clj
++++ b/test/metabase/query_processor_test/time_field_test.clj
+@@ -14,7 +14,7 @@
+ 
+ ;; TIMEZONE FIXME
+ (def ^:private skip-time-test-drivers
+-  #{:oracle :mongo :redshift :sparksql})
++  #{:oracle :exasol :mongo :redshift :sparksql})
+ 
+ (deftest basic-test
+   (mt/test-drivers (mt/normal-drivers-except skip-time-test-drivers)
+diff --git a/test/metabase/query_processor_test/timezones_test.clj b/test/metabase/query_processor_test/timezones_test.clj
+index 0eb62eed08..3312cb3d79 100644
+--- a/test/metabase/query_processor_test/timezones_test.clj
++++ b/test/metabase/query_processor_test/timezones_test.clj
+@@ -18,6 +18,7 @@
+   https://circleci.com/workflow-run/856f6dd0-3d95-4732-a56e-1af59e3ae4ba. The goal is to gradually remove these
+   one-by-one as they are fixed."
+   #{:oracle
++    :exasol
+     :presto
+     :redshift
+     :snowflake

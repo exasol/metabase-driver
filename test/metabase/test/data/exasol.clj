@@ -48,11 +48,9 @@
                               :type/Text                   "VARCHAR(4000)"}]
   (defmethod sql.tx/field-base-type->sql-type [:exasol base-type] [_ _] sql-type))
 
-;(doseq [base-type [;;:type/Time
-;                   :type/DateTimeWithZoneOffset
-;                   :type/DateTimeWithZoneID]]
-;  (defmethod sql.tx/field-base-type->sql-type [:exasol base-type] [_ base-type]
-;    (throw (UnsupportedOperationException. (format "Exasol does not have a %s data type." base-type)))))
+(doseq [base-type [:type/Time]]
+  (defmethod sql.tx/field-base-type->sql-type [:exasol base-type] [_ base-type]
+    (throw (UnsupportedOperationException. (format "Exasol does not have a %s data type." base-type)))))
 
 (defmethod sql.tx/drop-table-if-exists-sql :exasol
   [_ {:keys [database-name]} {:keys [table-name]}]
