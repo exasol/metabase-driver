@@ -125,11 +125,14 @@ build_and_install_driver() {
 }
 
 get_exasol_certificate_fingerprint() {
+    local certificate
     local fingerprint
-    fingerprint=$(openssl s_client -connect "$EXASOL_HOST:$EXASOL_PORT" < /dev/null 2>/dev/null \
+    # Adding '|| true' is necessary as openssl returns exit code 1 and logs "poll error".
+    certificate=$(openssl s_client -connect "$EXASOL_HOST:$EXASOL_PORT" < /dev/null 2>/dev/null) || true
+    fingerprint=$(echo "$certificate" \
                 | openssl x509 -fingerprint -sha256 -noout -in /dev/stdin \
                 | sed 's/SHA256 Fingerprint=//' \
-                | sed 's/://g') || true
+                | sed 's/://g')
     echo "$fingerprint"
 }
 
@@ -143,7 +146,7 @@ install_jdbc_driver
 build_and_install_driver
 fingerprint=$(get_exasol_certificate_fingerprint)
 
-log_info "Using Exasol database $EXASOL_HOST:$EXASOL_PORT with certificate fingerprint $fingerprint"
+log_info "Using Exasol database $EXASOL_HOST:$EXASOL_PORT with certificate fingerprint '$fingerprint'"
 log_info "Starting integration tests in $metabase_dir..."
 cd "$metabase_dir"
 MB_EXASOL_TEST_HOST=$EXASOL_HOST \
