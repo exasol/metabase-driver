@@ -79,4 +79,9 @@ jobs:
         working-directory: integration-test-docker-environment
 
       - name: Run integration tests
-        run: $GITHUB_WORKSPACE/metabase-driver/scripts/run-integration-tests.sh
+        run: |
+          cat $GITHUB_WORKSPACE/integration-test-docker-environment/.build_output/cache/environments/test/environment_info.sh
+          source $GITHUB_WORKSPACE/integration-test-docker-environment/.build_output/cache/environments/test/environment_info.sh
+          EXASOL_HOST=$ENVIRONMENT_DATABASE_HOST \
+            EXASOL_PORT=$ENVIRONMENT_DATABASE_DB_PORT \
+            $GITHUB_WORKSPACE/metabase-driver/scripts/run-integration-tests.sh

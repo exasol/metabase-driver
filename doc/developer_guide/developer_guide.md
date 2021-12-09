@@ -16,6 +16,14 @@ On Unbuntu you can install the dependencies by running
 sudo apt install nodejs yarnpkg clojure leiningen
 ```
 
+On macOS you additionally need GNU `sed` from `coreutils`:
+
+```shell
+brew install nodejs yarnpkg clojure leiningen coreutils
+# Then add gnubin to your PATH:
+# export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+```
+
 You will need Clojure 1.10.3 or later. Run the following command to check your current version:
 
 ```shell
