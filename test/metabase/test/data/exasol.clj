@@ -33,7 +33,11 @@
 
 ;(defmethod tx/sorts-nil-first? :exasol [_ _] false)
 
-(doseq [[base-type sql-type] {:type/BigInteger             "DECIMAL(18,0)"
+(doseq [[base-type sql-type] {:type/Text                   "VARCHAR(4000)"
+                              :type/BigInteger             "DECIMAL(36,0)"
+                              :type/Integer                "DECIMAL(18,0)"
+                              :type/Decimal                "DECIMAL(18,0)"
+                              :type/Float                  "DOUBLE PRECISION"
                               :type/Boolean                "BOOLEAN"
                               :type/Date                   "DATE"
                               :type/Temporal               "TIMESTAMP"
@@ -41,11 +45,7 @@
                               :type/DateTimeWithTZ         "TIMESTAMP"
                               :type/DateTimeWithZoneOffset "TIMESTAMP"
                               :type/DateTimeWithZoneID     "TIMESTAMP"
-                              :type/DateTimeWithLocalTZ    "TIMESTAMP WITH LOCAL TIME ZONE"
-                              :type/Decimal                "DECIMAL"
-                              :type/Float                  "DOUBLE PRECISION"
-                              :type/Integer                "INTEGER"
-                              :type/Text                   "VARCHAR(4000)"}]
+                              :type/DateTimeWithLocalTZ    "TIMESTAMP WITH LOCAL TIME ZONE"}]
   (defmethod sql.tx/field-base-type->sql-type [:exasol base-type] [_ _] sql-type))
 
 (doseq [base-type [:type/Time]]

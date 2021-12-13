@@ -111,6 +111,34 @@ EXASOL_HOST=192.168.56.5 EXASOL_PORT=8563 ./scripts/run-integration-tests.sh
 
 This script builds and installs the driver before running the integration tests. The driver must be installed to `$METABASE_DIR/plugins/` for running the integration tests.
 
+### Running Tests in a REPL
+
+```shell
+export MB_EXASOL_TEST_HOST=192.168.56.5
+export MB_EXASOL_TEST_PORT=8563
+export MB_EXASOL_TEST_USER=sys
+export MB_EXASOL_TEST_PASSWORD=exasol
+export MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=15F9CA9BC95E14F1F913FC449A26723841C118CFB644957866ABB73C1399A7FF
+export DRIVER=exasol
+
+# Network REPL:
+clojure -M:dev:drivers:drivers-dev:nrepl
+# -> Connect with editor
+
+clojure -A:dev:drivers:drivers-dev:test
+```
+
+```clojure
+(require 'dev)
+(dev/start!)
+
+(clojure.test/test-vars [#'metabase.driver.sql-jdbc-test/splice-parameters-native-test])
+
+```
+
+
+
+
 ### Configure Logging
 
 To increase the log level for integration tests, edit file `$METABASE_DIR/test_config/log4j2-test.xml`.
