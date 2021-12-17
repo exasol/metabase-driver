@@ -62,9 +62,10 @@ jobs:
           echo Leiningen: $(lein --version)
 
       - name: Install Metabase
-        run: METABASE_VERSION=${{ env.METABASE_VERSION}} \
-             METABASE_SHA256=${{ env.METABASE_SHA256 }} \
-             ./scripts/install-metabase-jar.sh
+        run: ./scripts/install-metabase-jar.sh
+        env:
+          METABASE_VERSION: ${{ env.METABASE_VERSION}}
+          METABASE_SHA256: ${{ env.METABASE_SHA256 }}
 
       - name: Run tests
         run: lein test
