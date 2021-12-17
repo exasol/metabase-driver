@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      METABASE_VERSION: 0.41.5
+      METABASE_SHA256: 0c7d71cb571354334d5f238869ac861f33a2e20d19ba434515b663b9f63e5cb9
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
@@ -59,7 +62,9 @@ jobs:
           echo Leiningen: $(lein --version)
 
       - name: Install Metabase
-        run: ./scripts/install-metabase-jar.sh
+        run: METABASE_VERSION=${{ env.METABASE_VERSION}} \
+             METABASE_SHA256=${{ env.METABASE_SHA256 }} \
+             ./scripts/install-metabase-jar.sh
 
       - name: Run tests
         run: lein test

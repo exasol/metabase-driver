@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      METABASE_TAG: v0.41.3.1
+      METABASE_VERSION: 0.41.5
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 1
           repository: 'metabase/metabase'
           path: 'metabase'
-          ref: ${{ env.METABASE_TAG }}
+          ref: v${{ env.METABASE_VERSION }}
 
       - name: Checkout integration test docker environment
         uses: actions/checkout@v2

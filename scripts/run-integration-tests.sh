@@ -144,6 +144,7 @@ patch_metabase_deps
 patch_excluded_tests
 install_jdbc_driver
 build_and_install_driver
+log_info "Getting certificate fingerprint..."
 fingerprint=$(get_exasol_certificate_fingerprint)
 
 log_info "Using Exasol database $EXASOL_HOST:$EXASOL_PORT with certificate fingerprint '$fingerprint'"
