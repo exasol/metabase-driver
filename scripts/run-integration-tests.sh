@@ -121,6 +121,10 @@ install_jdbc_driver() {
     fi
 }
 
+install_metabase_jar() {
+    "$exasol_driver_dir/scripts/install-metabase-jar.sh"
+}
+
 build_and_install_driver() {
     local driver_jar="$exasol_driver_dir/target/uberjar/exasol.metabase-driver.jar"
     log_info "Building exasol driver..."
@@ -149,6 +153,7 @@ symlink_driver
 patch_metabase_deps
 patch_excluded_tests
 install_jdbc_driver
+install_metabase_jar
 build_and_install_driver
 log_info "Getting certificate fingerprint from $EXASOL_HOST:$EXASOL_PORT..."
 fingerprint=$(get_exasol_certificate_fingerprint)
