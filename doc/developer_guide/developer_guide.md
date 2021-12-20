@@ -3,8 +3,8 @@
 ## Required Build Tools
 
 For building and testing the driver you will need
-* [Clojure](https://clojure.org/)
-* [Leiningen](https://leiningen.org/)
+* [Clojure](https://clojure.org/) version 1.10.3 or later
+* [Leiningen](https://leiningen.org/) version 2.9.8 or later
 
 To build Metabase itself you will need
 * [Node.js](https://nodejs.org/en/)
@@ -16,18 +16,20 @@ On Unbuntu you can install the dependencies by running
 sudo apt install nodejs yarnpkg clojure leiningen
 ```
 
-On macOS you additionally need GNU `gnu-sed`:
+On macOS you additionally need `gnu-sed`:
 
 ```shell
-brew install nodejs yarnpkg clojure leiningen coreutils
+brew install nodejs yarnpkg clojure leiningen gnu-sed
 # Then add gnubin to your PATH:
 # export PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
 ```
 
-You will need Clojure 1.10.3 or later. Run the following command to check your current version:
+Run the following commands to check the current versions:
 
 ```shell
-clojure --eval "(clojure-version)"
+clojure -M --eval "(clojure-version)"
+clojure --version
+lein --version
 ```
 
 ## Setup Development Environment
@@ -122,21 +124,37 @@ export MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=15F9CA9BC95E14F1F913FC449A26723841
 export DRIVER=exasol
 
 # Network REPL:
-clojure -M:dev:drivers:drivers-dev:nrepl
+clojure -M:dev:drivers:drivers-dev:test:nrepl
 # -> Connect with editor
 
 clojure -A:dev:drivers:drivers-dev:test
 ```
 
 ```clojure
-(require 'dev)
+(require 'dev) ; this will take some seconds
+
 (dev/start!)
 
-(clojure.test/test-vars [#'metabase.driver.sql-jdbc-test/splice-parameters-native-test])
+;; Run SQL query:
+(dev/query-jdbc-db :exasol "SELECT 1")
+(dev/query-jdbc-db [:exasol 'test-data] "SELECT * from CAM_179.\"test_data_users\"")
 
+
+(require 'metabase.driver.sql-jdbc-test)
+(clojure.test/test-vars [#'metabase.driver.sql-jdbc-test/splice-parameters-native-test])
+(clojure.test/test-vars [#'splice-parameters-native-test])
+
+
+(require 'metabase.driver.sql-jdbc-test/splice-parameters-native-test :reload-all)
+(require 'metabase.driver.sql-jdbc-test :reload-all)
+(run-tests 'metabase.driver.sql-jdbc-test/splice-parameters-native-test)
+(run-tests 'splice-parameters-native-test)
 ```
 
+### Useful files
 
+* `$METABASE_DIR/test/data/dataset_definitions.clj`: Test data sets
+  * `$METABASE_DIR/test/metabase/test/data/dataset_definitions/*.edn`: Definitions of test data sets
 
 
 ### Configure Logging

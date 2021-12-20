@@ -144,7 +144,7 @@ patch_metabase_deps
 patch_excluded_tests
 install_jdbc_driver
 build_and_install_driver
-log_info "Getting certificate fingerprint..."
+log_info "Getting certificate fingerprint from $EXASOL_HOST:$EXASOL_PORT..."
 fingerprint=$(get_exasol_certificate_fingerprint)
 
 log_info "Using Exasol database $EXASOL_HOST:$EXASOL_PORT with certificate fingerprint '$fingerprint'"
@@ -156,4 +156,12 @@ MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_EXASOL_TEST_PASSWORD=exasol \
   MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=$fingerprint \
   DRIVERS=exasol \
-  clojure -X:dev:ci:drivers:drivers-dev:test
+  MB_CUSTOM_FORMATTING='{"type/Number":{"number_separators":[".",","]}}' \
+  clojure -J-Duser.language=en -J-Duser.country=US -X:dev:ci:drivers:drivers-dev:test
+  
+  
+#-J-Duser.language=en -J-Duser.country=US
+
+#  MB_SITE_LOCALE=en_US \
+#  MB_SITE_LOCALE=en \
+#  LANG=en_US \

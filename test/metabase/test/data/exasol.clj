@@ -31,7 +31,7 @@
 (defmethod tx/dbdef->connection-details :exasol [& _]
   (connection-details))
 
-;(defmethod tx/sorts-nil-first? :exasol [_ _] false)
+(defmethod tx/sorts-nil-first? :exasol [_ _] false)
 
 (doseq [[base-type sql-type] {:type/Text                   "VARCHAR(4000)"
                               :type/BigInteger             "DECIMAL(36,0)"

@@ -28,7 +28,7 @@ temp_file="$local_maven_repo/metabase_$metabase_version.jar"
 if [ -f "$temp_file" ]; then
     echo "Metabase $metabase_version already downloaded to $temp_file"
 else
-    echo "Downloading Metabase $metabase_version to $temp_file..."
+    echo "Downloading Metabase $metabase_version from $metabase_download_url to $temp_file..."
     http_code=$(curl "$metabase_download_url" --silent --output "$temp_file" --write-out "%{http_code}" "$@")
     if [[ ${http_code} -lt 200 || ${http_code} -gt 299 ]] ; then
         echo "Download of $metabase_download_url failed with status $http_code"
