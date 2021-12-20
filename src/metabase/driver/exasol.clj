@@ -2,6 +2,7 @@
   (:require [clojure.string :as str]
             [clojure.tools.logging :as log]
             [honeysql.core :as hsql]
+            [honeysql.format :as hformat]
             [metabase.config :as config]
             [metabase.driver :as driver]
             [metabase.driver.common :as driver.common]
@@ -77,7 +78,7 @@
 (defmethod sql-jdbc.execute/read-column-thunk [:exasol java.sql.Types/TIMESTAMP]
   [_ ^java.sql.ResultSet rs _ ^Integer i]
   (fn []
-    (.toInstant (.getTimestamp rs i))))
+    (java.time.LocalDateTime/ofInstant (.toInstant (.getTimestamp rs i)) (java.time.ZoneId/of "UTC"))))
 
 (defmethod sql-jdbc.execute/set-parameter [:exasol java.time.OffsetDateTime]
   [driver ps i t]
@@ -131,13 +132,13 @@
   "Extract a date. See also this 
       (extract :minute v) -> EXTRACT(MINUTE FROM v)"
   [param v]
-  (hsql/call :extract param :from v))
+  (hsql/call :extract param v))
 
 (defn- extract-from-timestamp
   "Extract a date. See also this 
       (extract :minute v) -> EXTRACT(MINUTE FROM v)"
   [param v]
-  (hsql/call :extract param :from (hx/->timestamp v)))
+  (hsql/call :extract param (hx/->timestamp v)))
 
 (defmethod sql.qp/date [:exasol :minute]         [_ _ v] (trunc :mi v))
 (defmethod sql.qp/date [:exasol :minute-of-hour] [_ _ v] (extract-from-timestamp :minute v))
@@ -181,18 +182,6 @@
 
 (defmethod sql.qp/current-datetime-honeysql-form :exasol [_] now)
 
-(defmethod sql.qp/->honeysql [:exasol :substring]
-  [driver [_ arg start length]]
-  (if length
-    (hsql/call :substr (sql.qp/->honeysql driver arg) (sql.qp/->honeysql driver start) (sql.qp/->honeysql driver length))
-    (hsql/call :substr (sql.qp/->honeysql driver arg) (sql.qp/->honeysql driver start))))
-
-(defmethod sql.qp/->honeysql [:exasol :concat]
-  [driver [_ & args]]
-  (->> args
-       (map (partial sql.qp/->honeysql driver))
-       (reduce (partial hsql/call :concat))))
-
 (defmethod sql.qp/->honeysql [:exasol :regex-match-first]
   [driver [_ arg pattern]]
   (hsql/call :regexp_substr (sql.qp/->honeysql driver arg) (sql.qp/->honeysql driver pattern)))
@@ -212,9 +201,9 @@
      :year    (num-to-ym-interval :year   amount))))
 
 (defmethod sql.qp/unix-timestamp->honeysql [:exasol :seconds]
-  [_ _ field-or-value]
-  (hx/+ (hsql/raw "timestamp '1970-01-01 00:00:00'")
-        (num-to-ds-interval :second field-or-value)))
+  [_ _ expr]
+  (hsql/call :from_posix_time expr))
+
 
 (defmethod sql.qp/cast-temporal-string [:exasol :Coercion/ISO8601->DateTime]
   [_driver _coercion-strategy expr]
@@ -250,7 +239,8 @@
 
 (defmethod unprepare/unprepare-value [:exasol java.time.OffsetDateTime]
   [_ t]
-  (let [s (-> (t/format "yyyy-MM-dd HH:mm:ss.SSS ZZZZZ" t)
-              (str/replace #" UTC$" ""))]
-    (format "timestamp '%s'" s)))
+  (format "timestamp '%s'" (t/format "yyyy-MM-dd HH:mm:ss.SSS" t)))
 
+(defmethod unprepare/unprepare-value [:exasol java.time.ZonedDateTime]
+  [_ t]
+  (format "timestamp '%s'" (t/format "yyyy-MM-dd HH:mm:ss.SSS" t)))

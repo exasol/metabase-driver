@@ -40,7 +40,9 @@ lein --version
     cd $HOME/git
     git clone https://github.com/metabase/metabase.git
     cd metabase
-    # Build
+    git fetch --all --tags
+    git checkout tags/v0.41.5 -b v0.41.5-branch
+    # Build (this will take ~15min)
     ./bin/build
     # Run
     clojure -M:run
@@ -169,3 +171,9 @@ The Exasol driver does not the support loading the following datasets from the M
 * attempted-murders
 
 That's why we exclude certain tests by patching the metabase sources with `scripts/exclude_tests.diff`.
+
+# Troubleshooting
+
+## `FileNotFoundException: Could not locate metabase/test/data/exasol__init.class, metabase/test/data/exasol.clj or metabase/test/data/exasol.cljc on classpath.`
+
+Verify that `$METABASE_DIR/modules/drivers/exasol` is a symlink to the `metabase-driver` directory.

@@ -25,7 +25,9 @@
                   :port     (Integer/parseInt (tx/db-test-env-var-or-throw :exasol :port "8563"))
                   :user     (tx/db-test-env-var-or-throw :exasol :user)
                   :password (tx/db-test-env-var-or-throw :exasol :password)
-                  :certificate-fingerprint (tx/db-test-env-var-or-throw :exasol :certificate-fingerprint)}]
+                  :certificate-fingerprint (tx/db-test-env-var-or-throw :exasol :certificate-fingerprint)
+                  :dbname   "exasol-db" ; Required by test metabase.driver.sql-jdbc.connection-test/c3p0-datasource-name-test
+                  }]
     details*))
 
 (defmethod tx/dbdef->connection-details :exasol [& _]

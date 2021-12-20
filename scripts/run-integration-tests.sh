@@ -51,21 +51,27 @@ check_preconditions() {
         exit 1
     fi
 
-    if [[ -z "${EXASOL_HOST+x}" || -z "${EXASOL_PORT+x}" ]]; then
-        log_error "Environment variables 'EXASOL_HOST' and 'EXASOL_PORT' must be defined:"
-        log_error "EXASOL_HOST=localhost EXASOL_PORT=8563 $0"
+    if [[ -z "${EXASOL_HOST+x}" || -z "${EXASOL_PORT+x}" || -z "${EXASOL_USER+x}" || -z "${EXASOL_PASSWORD+x}" ]]; then
+        log_error "Environment variables 'EXASOL_HOST', 'EXASOL_PORT', 'EXASOL_USER' and 'EXASOL_PASSWORD' must be defined:"
+        log_error "EXASOL_HOST=localhost EXASOL_PORT=8563 EXASOL_USER=sys EXASOL_PASSWORD=exasol $0"
         exit 1
     fi
 }
 
 symlink_driver() {
     local symlink_target="$metabase_dir/modules/drivers/exasol"
-    if [ ! -d "$symlink_target" ]; then
+    if [[ -L "$symlink_target" && -d "$symlink_target" ]]; then
+        log_trace "Symlink already exists at $symlink_target"
+        return 0
+    fi
+    if [[ ! -d "$symlink_target" && ! -f "$symlink_target" ]]; then
         log_info "Creating symlink to $symlink_target -> $exasol_driver_dir"
         ln -s "$exasol_driver_dir" "$symlink_target"
-    else
-        log_trace "Symlink already exists at $symlink_target"
+        return 0
     fi
+
+    log_error "A file or directory already exists at $symlink_target. Please delete it and try again."
+    exit 1
 }
 
 patch_metabase_deps() {
@@ -156,11 +162,26 @@ MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_EXASOL_TEST_PASSWORD=exasol \
   MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=$fingerprint \
   DRIVERS=exasol \
-  MB_CUSTOM_FORMATTING='{"type/Number":{"number_separators":[".",","]}}' \
-  clojure -J-Duser.language=en -J-Duser.country=US -X:dev:ci:drivers:drivers-dev:test
+  clojure -X:dev:ci:drivers:drivers-dev:test #\
+  #:only
   
   
+# Broken tests
+# - metabase.query-processor-test.breakout-test/internal-remapping-test
+  
+  #  metabase.driver.sql-jdbc.sync.describe-table-test/database-types-fallback-test
+
+
+  #metabase.pulse.render.body-test/scalar-test
+  #metabase.driver.sql-jdbc.connection-test/c3p0-datasource-name-test
+  #metabase.public-settings-test/query-caching-max-kb-test
+  #metabase.driver.sql-jdbc.sync.describe-table-test/database-types-fallback-test
+  #:only metabase.query-processor-test.date-bucketing-test/group-by-hour-of-day-test
+  
+
+
 #-J-Duser.language=en -J-Duser.country=US
+#  MB_CUSTOM_FORMATTING='{"type/Number":{"number_separators":[".",","]}}' \
 
 #  MB_SITE_LOCALE=en_US \
 #  MB_SITE_LOCALE=en \
