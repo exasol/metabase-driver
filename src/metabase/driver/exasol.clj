@@ -146,6 +146,7 @@
 (defmethod sql.qp/date [:exasol :day-of-month]   [_ _ v] (extract :day v))
 (defmethod sql.qp/date [:exasol :month]          [_ _ v] (trunc :month v))
 (defmethod sql.qp/date [:exasol :month-of-year]  [_ _ v] (extract :month v))
+(defmethod sql.qp/date [:exasol :week-of-year]   [_ _ v] (hsql/call :week v))
 (defmethod sql.qp/date [:exasol :quarter]        [_ _ v] (trunc :q v))
 (defmethod sql.qp/date [:exasol :year]           [_ _ v] (trunc :year v))
 
@@ -153,9 +154,13 @@
   [driver _ v]
   (sql.qp/adjust-start-of-week driver (partial trunc :day) v))
 
+(defn- to-date
+  [v]
+  (hsql/call :to_date v))
+
 (defmethod sql.qp/date [:exasol :day-of-year]
-  [driver _ v]
-  (hx/inc (hx/- (sql.qp/date driver :day v) (trunc :year v))))
+  [_ _ v]
+  (hx/inc  (hx/- (to-date (trunc :dd v)) (to-date (trunc :year v)))))
 
 (defmethod sql.qp/date [:exasol :quarter-of-year]
   [driver _ v]
@@ -171,10 +176,15 @@
    (driver.common/start-of-week-offset driver)
    (partial hsql/call (u/qualified-name ::mod))))
 
+;; Exasol mod is a function like mod(x, y) rather than an operator like x mod y
+;; https://docs.exasol.com/sql_references/functions/alphabeticallistfunctions/mod.htm
+(defmethod hformat/fn-handler (u/qualified-name ::mod)
+  [_ x y]
+  (format "mod(%s, %s)" (hformat/to-sql x) (hformat/to-sql y)))
 
 ;;;;
 
-(def ^:private now (hsql/raw "SYSDATE"))
+(def ^:private now (hsql/raw "SYSTIMESTAMP"))
 (defn- num-to-ds-interval [unit v] (hsql/call :numtodsinterval v (hx/literal unit)))
 (defn- num-to-ym-interval [unit v] (hsql/call :numtoyminterval v (hx/literal unit)))
 
