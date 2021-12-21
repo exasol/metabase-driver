@@ -10,10 +10,16 @@ To build Metabase itself you will need
 * [Node.js](https://nodejs.org/en/)
 * [Yarn](https://yarnpkg.com/)
 
-On Unbuntu you can install the dependencies by running
+On Ubuntu you can install the dependencies by running
 
 ```shell
-sudo apt install nodejs yarnpkg clojure leiningen
+sudo apt install nodejs yarnpkg
+```
+
+Fedora:
+
+```shell
+yum install perl-Digest-SHA nodejs yarnpkg
 ```
 
 On macOS you additionally need `gnu-sed`:
