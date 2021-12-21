@@ -24,6 +24,10 @@
 (defmethod driver/display-name :exasol [_]
   "Exasol")
 
+(doseq [[feature supported?] {:set-timezone            true}]
+  #_{:clj-kondo/ignore [:deprecated-var]} ; Function is deprecated
+  (defmethod driver/supports? [:exasol feature] [_ _] supported?))
+
 (defmethod sql-jdbc.conn/connection-details->spec :exasol
   [_ {:keys [user password host port certificate-fingerprint]
       :or   {user "dbuser", password "dbpassword", host "localhost", port 8563}
@@ -99,22 +103,36 @@
   [driver ps i t]
   (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp t)))
 
+(defn- create-set-timezone-sql
+  "Creates the SQL statement required for setting the session timezone"
+  [timezone-id]
+  (format "ALTER SESSION SET TIME_ZONE='%s'" timezone-id))
+
+(defn- set-time-zone!
+  "Set the session timezone for the given connection"
+  [conn timezone-id]
+  (when timezone-id
+    (let [set-timezone-sql (create-set-timezone-sql timezone-id)]
+      (with-open [stmt (.createStatement conn)]
+        (.execute stmt set-timezone-sql)
+        (log/tracef "Successfully set timezone for Exasol to %s using statement %s" timezone-id set-timezone-sql)))))
+
+
 ;; Same as default implementation but without calling the unsupported setHoldability() method
 (defmethod sql-jdbc.execute/connection-with-timezone :exasol
   [driver database ^String timezone-id]
   (let [conn (.getConnection (sql-jdbc.execute/datasource-with-diagnostic-info! driver database))]
     (try
       (sql-jdbc.execute/set-best-transaction-level! driver conn)
-      #_{:clj-kondo/ignore [:deprecated-var]} ; Function is deprecated
-      (sql-jdbc.execute/set-time-zone-if-supported! driver conn timezone-id)
+      (set-time-zone! conn timezone-id)
       (try
         (.setReadOnly conn true)
         (catch Throwable e
-          (log/debug e (trs "Error setting connection to read-only"))))
+          (log/warn e (trs "Error setting connection to read-only"))))
       (try
         (.setAutoCommit conn false)
         (catch Throwable e
-          (log/debug e (trs "Error setting connection to autoCommit false"))))
+          (log/warn e (trs "Error setting connection to autoCommit false"))))
       conn
       (catch Throwable e
         (.close conn)
@@ -146,9 +164,9 @@
 (defmethod sql.qp/date [:exasol :day-of-month]   [_ _ v] (extract :day v))
 (defmethod sql.qp/date [:exasol :month]          [_ _ v] (trunc :month v))
 (defmethod sql.qp/date [:exasol :month-of-year]  [_ _ v] (extract :month v))
-(defmethod sql.qp/date [:exasol :week-of-year]   [_ _ v] (hsql/call :week v))
 (defmethod sql.qp/date [:exasol :quarter]        [_ _ v] (trunc :q v))
 (defmethod sql.qp/date [:exasol :year]           [_ _ v] (trunc :year v))
+; Default implementation for :week-of-year is OK
 
 (defmethod sql.qp/date [:exasol :week]
   [driver _ v]
@@ -211,7 +229,6 @@
 (defmethod sql.qp/unix-timestamp->honeysql [:exasol :seconds]
   [_ _ expr]
   (hsql/call :from_posix_time expr))
-
 
 (defmethod sql.qp/cast-temporal-string [:exasol :Coercion/ISO8601->DateTime]
   [_driver _coercion-strategy expr]
