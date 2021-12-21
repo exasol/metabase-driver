@@ -139,6 +139,13 @@ get_exasol_certificate_fingerprint() {
     local fingerprint
     # Adding '|| true' is necessary as openssl returns exit code 1 and logs "poll error".
     certificate=$(openssl s_client -connect "$EXASOL_HOST:$EXASOL_PORT" < /dev/null 2>/dev/null) || true
+
+    if [ -z "${certificate}" ]; then
+        >&2 log_error "Error connecting to Exasol database at $EXASOL_HOST:$EXASOL_PORT"
+        openssl s_client -connect "$EXASOL_HOST:$EXASOL_PORT" < /dev/null
+        exit 1
+    fi
+
     fingerprint=$(echo "$certificate" \
                 | openssl x509 -fingerprint -sha256 -noout -in /dev/stdin \
                 | sed 's/SHA256 Fingerprint=//' \
@@ -154,9 +161,9 @@ patch_metabase_deps
 patch_excluded_tests
 install_jdbc_driver
 install_metabase_jar
-build_and_install_driver
 log_info "Getting certificate fingerprint from $EXASOL_HOST:$EXASOL_PORT..."
 fingerprint=$(get_exasol_certificate_fingerprint)
+build_and_install_driver
 
 log_info "Using Exasol database $EXASOL_HOST:$EXASOL_PORT with certificate fingerprint '$fingerprint'"
 log_info "Starting integration tests in $metabase_dir..."
