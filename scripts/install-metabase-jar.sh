@@ -11,13 +11,27 @@ metabase_download_url="https://downloads.metabase.com/v$metabase_version/metabas
 
 exasol_driver_dir="$( cd "$(dirname "$0")/.." >/dev/null 2>&1 ; pwd -P )"
 local_maven_repo="$exasol_driver_dir/maven_repository"
+installed_metabase_jar="$local_maven_repo/metabase/metabase/$metabase_version/metabase-$metabase_version.jar"
+
+verify_checksum() {
+    local file=$1
+    local checksum=$2
+    echo "Verifying checksum of $file..."
+    if ! echo "$checksum  $file" | sha256sum --strict --check ; then
+        shasum_output=($(sha256sum --binary "$file"))
+        actual_sha256=${shasum_output[0]}
+        echo "Checksum verification failed for $file. Expected $checksum but was $actual_sha256"
+        exit 1
+    fi
+}
 
 if [ ! -d "$local_maven_repo" ]; then
     mkdir -p "$local_maven_repo"
 fi
 
-if [ -d "$local_maven_repo/metabase/metabase/$metabase_version" ]; then
-    echo "Metabase $metabase_version already installed in $local_maven_repo"
+if [ -f "$installed_metabase_jar" ]; then
+    echo "Metabase $metabase_version already installed in $installed_metabase_jar"
+    verify_checksum "$installed_metabase_jar" "$metabase_sha256"
     exit 0
 fi
 
@@ -38,12 +52,7 @@ fi
 
 echo "Verifying checksum..."
 
-if ! echo "$metabase_sha256  $temp_file" | shasum --strict --check --algorithm 256 ; then
-    shasum_output=($(shasum --algorithm 256 "$temp_file"))
-    actual_sha256=${shasum_output[0]}
-    echo "Checksum verification failed for $temp_file. Expected $metabase_sha256 but was $actual_sha256"
-    exit 1
-fi
+verify_checksum "$temp_file" "$metabase_sha256"
 
 mvn deploy:deploy-file -Dfile="$temp_file" -Durl="file:$local_maven_repo" \
   -DgroupId=metabase -DartifactId=metabase -Dversion="$metabase_version" -Dpackaging=jar \
