@@ -159,10 +159,11 @@ clojure -A:dev:drivers:drivers-dev:test
 (run-tests 'splice-parameters-native-test)
 ```
 
-### Useful files
+### Useful Files in Metabase
 
 * `$METABASE_DIR/test/data/dataset_definitions.clj`: Test data sets
   * `$METABASE_DIR/test/metabase/test/data/dataset_definitions/*.edn`: Definitions of test data sets
+* `$METABASE_DIR//test/metabase/test_runner.clj`: Functions for running tests
 
 
 ### Configure Logging
@@ -183,3 +184,19 @@ That's why we exclude certain tests by patching the metabase sources with `scrip
 ## `FileNotFoundException: Could not locate metabase/test/data/exasol__init.class, metabase/test/data/exasol.clj or metabase/test/data/exasol.cljc on classpath.`
 
 Verify that `$METABASE_DIR/modules/drivers/exasol` is a symlink to the `metabase-driver` directory.
+
+## Failing Integration Tests
+
+### Different Decimal Point
+
+Tests expect numbers with a `.` as decimal point (e.g. `1000.0 µs`) but get a `,` (e.g. `1000,0 µs`):
+
+```
+expected: (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           #"Timed out after 1000\.0 µs\."
+           (if (instance? Throwable result) (throw result) result))
+  actual: #<clojure.lang.ExceptionInfo@141971c7 clojure.lang.ExceptionInfo: Timed out after 1000,0 µs. {:status :timed-out, :type :timed-out}>
+```
+
+???

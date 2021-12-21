@@ -170,8 +170,8 @@ log_info "Starting integration tests in $metabase_dir..."
 cd "$metabase_dir"
 MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_EXASOL_TEST_PORT=$EXASOL_PORT \
-  MB_EXASOL_TEST_USER=sys \
-  MB_EXASOL_TEST_PASSWORD=exasol \
   MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=$fingerprint \
+  MB_EXASOL_TEST_USER=$EXASOL_USER \
+  MB_EXASOL_TEST_PASSWORD=$EXASOL_PASSWORD \
   DRIVERS=exasol \
-  clojure -X:dev:ci:drivers:drivers-dev:test
+  clojure -X:dev:ci:drivers:drivers-dev:test :only metabase.public-settings-test/query-caching-max-kb-test
