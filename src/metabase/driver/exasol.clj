@@ -24,7 +24,8 @@
 (defmethod driver/display-name :exasol [_]
   "Exasol")
 
-(doseq [[feature supported?] {:set-timezone            true}]
+(doseq [[feature supported?] {:set-timezone            true
+                              :foreign-keys   true}]
   #_{:clj-kondo/ignore [:deprecated-var]} ; Function is deprecated
   (defmethod driver/supports? [:exasol feature] [_ _] supported?))
 
@@ -201,6 +202,19 @@
   (format "mod(%s, %s)" (hformat/to-sql x) (hformat/to-sql y)))
 
 ;;;;
+
+
+(defmethod sql.qp/->honeysql [:exasol metabase.util.honeysql_extensions.Identifier]
+  [_ identifier]
+  (let [field-identifier (last (:components identifier))
+        identifier-type (:identifier-type identifier)]
+    (if (= :table-alias identifier-type)
+      (update identifier :components (fn [components]
+                                       (concat (butlast components)
+                                               [(str field-identifier "_table_alias")])))
+      identifier)))
+
+;;;
 
 (def ^:private now (hsql/raw "SYSTIMESTAMP"))
 (defn- num-to-ds-interval [unit v] (hsql/call :numtodsinterval v (hx/literal unit)))
