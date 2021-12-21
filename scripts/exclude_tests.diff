@@ -96,6 +96,19 @@ index f1de41d12e..4d1adbb3f2 100644
            (mt/dataset attempted-murders
              (doseq [field
                      [:datetime
+diff --git a/test/metabase/query_processor_test/remapping_test.clj b/test/metabase/query_processor_test/remapping_test.clj
+index 70b172130f..64d4df2e53 100644
+--- a/test/metabase/query_processor_test/remapping_test.clj
++++ b/test/metabase/query_processor_test/remapping_test.clj
+@@ -170,7 +170,7 @@
+   ;;
+   ;; Having a self-referencing FK is currently broken with the Redshift and Oracle backends. The issue related to fix
+   ;; this is https://github.com/metabase/metabase/issues/8510
+-  (mt/test-drivers (disj (mt/normal-drivers-with-feature :foreign-keys) :redshift :oracle :vertica)
++  (mt/test-drivers (disj (mt/normal-drivers-with-feature :foreign-keys) :redshift :oracle :vertica :exasol) ; Fails with an exception, related to https://github.com/metabase/metabase/issues/18580
+     (mt/dataset test-data-self-referencing-user
+       (mt/with-column-remappings [users.created_by users.name]
+         (db/update! Field (mt/id :users :created_by)
 diff --git a/test/metabase/query_processor_test/time_field_test.clj b/test/metabase/query_processor_test/time_field_test.clj
 index e8b2743998..fdfc7e6e28 100644
 --- a/test/metabase/query_processor_test/time_field_test.clj
