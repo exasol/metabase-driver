@@ -14,8 +14,7 @@
   :profiles
   {:provided
    {:dependencies [[org.clojure/clojure "1.10.0"]
-                   [metabase "0.41.5"]
-                   [honeysql "1.0.461"]]}
+                   [metabase "0.41.5"]]}
 
    :unit_tests
    {:test-paths     ^:replace ["test_unit"]}
