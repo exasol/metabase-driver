@@ -170,14 +170,24 @@ clojure -A:dev:drivers:drivers-dev:test
 
 To increase the log level for integration tests, edit file `$METABASE_DIR/test_config/log4j2-test.xml`.
 
-### Unsupported Datasets
+### Unsupported Datasets / Excluded Tests
 
 The Exasol driver does not the support loading the following datasets from the Metabase integration tests:
 
-* test-data-with-time
-* attempted-murders
+* `test-data-with-time`
+* `attempted-murders`
 
-That's why we exclude certain tests by patching the metabase sources with `scripts/exclude_tests.diff`.
+That's why we exclude certain tests by patching the metabase sources with patch `scripts/exclude_tests.diff`.
+
+Script `run-integration-tests.sh` automatically applies this patch when file `$METABASE_DIR/target/patch_excluded_test_applied` does not exist.
+
+When the patch file has changed or you updated to a new Metabase release, do the following and re-run the integration tests with `run-integration-tests.sh`.
+
+```shell
+cd $METABASE_DIR
+git reset --hard
+rm -vf $METABASE_DIR/target/patch_excluded_test_applied
+```
 
 # Troubleshooting
 
