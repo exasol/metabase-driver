@@ -174,4 +174,4 @@ MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_EXASOL_TEST_USER=$EXASOL_USER \
   MB_EXASOL_TEST_PASSWORD=$EXASOL_PASSWORD \
   DRIVERS=exasol \
-  clojure -X:dev:ci:drivers:drivers-dev:test :only metabase.public-settings-test/query-caching-max-kb-test
+  clojure -X:dev:ci:drivers:drivers-dev:test
