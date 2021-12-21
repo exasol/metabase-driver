@@ -167,27 +167,4 @@ MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_EXASOL_TEST_PASSWORD=exasol \
   MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=$fingerprint \
   DRIVERS=exasol \
-  clojure -X:dev:ci:drivers:drivers-dev:test #\
-  #:only
-  
-  
-# Broken tests
-# - metabase.query-processor-test.breakout-test/internal-remapping-test
-  
-  #  metabase.driver.sql-jdbc.sync.describe-table-test/database-types-fallback-test
-
-
-  #metabase.pulse.render.body-test/scalar-test
-  #metabase.driver.sql-jdbc.connection-test/c3p0-datasource-name-test
-  #metabase.public-settings-test/query-caching-max-kb-test
-  #metabase.driver.sql-jdbc.sync.describe-table-test/database-types-fallback-test
-  #:only metabase.query-processor-test.date-bucketing-test/group-by-hour-of-day-test
-  
-
-
-#-J-Duser.language=en -J-Duser.country=US
-#  MB_CUSTOM_FORMATTING='{"type/Number":{"number_separators":[".",","]}}' \
-
-#  MB_SITE_LOCALE=en_US \
-#  MB_SITE_LOCALE=en \
-#  LANG=en_US \
+  clojure -X:dev:ci:drivers:drivers-dev:test
