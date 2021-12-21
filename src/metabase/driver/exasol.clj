@@ -1,6 +1,5 @@
 (ns metabase.driver.exasol
-  (:require [clojure.string :as str]
-            [clojure.tools.logging :as log]
+  (:require [clojure.tools.logging :as log]
             [honeysql.core :as hsql]
             [honeysql.format :as hformat]
             [metabase.config :as config]

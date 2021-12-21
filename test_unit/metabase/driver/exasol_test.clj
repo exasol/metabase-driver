@@ -17,8 +17,8 @@
              :subprotocol "exa"
              :subname     "exasoldb.example.com:8563"}
             {:host         "exasoldb.example.com"}]]]
-    (let [actual-spec (sql-jdbc.conn/connection-details->spec :exasol details)
-          expected-spec-with-default-values (merge {:user "dbuser" :password "dbpassword"
+    (let [expected-spec-with-default-values (merge {:user "dbuser" :password "dbpassword"
                                                     :clientname "Metabase" :clientversion config/mb-version-string
-                                                    :fingerprint nil} expected-spec)]
-      (is (= expected-spec-with-default-values actual-spec) message))))
+                                                    :fingerprint nil :feedbackinterval "1"} expected-spec)]
+      (is (= expected-spec-with-default-values
+             (sql-jdbc.conn/connection-details->spec :exasol details)) message))))
