@@ -8,24 +8,26 @@
 (deftest connection-details->spec-test
   (doseq [[^String message expected-spec details]
           [["You should be able to connect with an custom port"
-            {:classname   "com.exasol.jdbc.EXADriver"
-             :subprotocol "exa"
-             :subname     "exasoldb.example.com:1234"}
-            {:host "exasoldb.example.com"
+            {:subname     "exasoldb.example.com:1234"}
+            {:host        "exasoldb.example.com"
              :port 1234}]
            ["You should be able to omit the port"
-            {:classname   "com.exasol.jdbc.EXADriver"
-             :subprotocol "exa"
-             :subname     "exasoldb.example.com:8563"}
-            {:host         "exasoldb.example.com"}]]]
-    (let [expected-spec-with-default-values (merge {:user "dbuser" :password "dbpassword"
+            {:subname     "exasoldb.example.com:8563"}
+            {:host        "exasoldb.example.com"}]
+           ["You should be able to specify a fingerprint"
+            {:subname     "exasoldb.example.com:8563"
+             :fingerprint "myfingerprint"}
+            {:host        "exasoldb.example.com"
+             :certificate-fingerprint "myfingerprint"}]]]
+    (let [expected-spec-with-default-values (merge {:classname   "com.exasol.jdbc.EXADriver" :subprotocol "exa"
+                                                    :user "dbuser" :password "dbpassword"
                                                     :clientname "Metabase" :clientversion config/mb-version-string
                                                     :fingerprint nil :feedbackinterval "1"} expected-spec)]
       (is (= expected-spec-with-default-values
              (sql-jdbc.conn/connection-details->spec :exasol details)) message))))
 
 
-(def unsupported-features [:nested-fields])
+(def ^:private unsupported-features [:nested-fields])
 
 (deftest database-supports?-test
   (testing "Supported features"

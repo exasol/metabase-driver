@@ -128,7 +128,6 @@
    (original-excluded-schemas driver)
    (non-session-schemas)))
 
-
 ;;; Clear out the session schema before and after tests run
 (defn- execute! [format-string & args]
   (let [sql (apply format format-string args)]

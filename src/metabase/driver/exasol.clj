@@ -24,9 +24,6 @@
   "Exasol")
 
 (doseq [[feature supported?] {:set-timezone   true
-                              :binning        true
-                              :nested-queries true
-                              :foreign-keys   true
                               :nested-fields  false}]
   #_{:clj-kondo/ignore [:deprecated-var]} ; Function is deprecated but no replacement is available
   (defmethod driver/supports? [:exasol feature] [_ _] supported?))
