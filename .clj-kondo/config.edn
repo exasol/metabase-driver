@@ -1,3 +1,4 @@
-{:linters {
-           :unresolved-var {:exclude [honeysql.core/call
+{:linters {:unresolved-var {
+                            ; False positive
+                            :exclude [honeysql.core/call
                                       honeysql.core/raw]}}}
