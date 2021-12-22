@@ -83,6 +83,37 @@ index f21aca9a7c..b8ce90f1c1 100644
            (is (= 1
                   (count (mt/rows (mt/dataset string-times
                                     (mt/run-mbql-query times
+diff --git a/test/metabase/query_processor_test/date_bucketing_test.clj b/test/metabase/query_processor_test/date_bucketing_test.clj
+index 116f05dba3..be843509a0 100644
+--- a/test/metabase/query_processor_test/date_bucketing_test.clj
++++ b/test/metabase/query_processor_test/date_bucketing_test.clj
+@@ -272,7 +272,7 @@
+   ;; timezone
+   ;;
+   ;; TIMEZONE FIXME
+-  (mt/test-drivers (mt/normal-drivers-except #{:h2 :sqlserver :redshift :sparksql :mongo})
++  (mt/test-drivers (mt/normal-drivers-except #{:h2 :sqlserver :redshift :sparksql :mongo :exasol}) ; https://github.com/exasol/metabase-driver/issues/9
+     (testing "Change JVM timezone from UTC to Pacific"
+       (is (= (cond
+                (= :sqlite driver/*driver*)
+@@ -524,7 +524,7 @@
+     ;; timezone
+     ;;
+     ;; TIMEZONE FIXME
+-    (mt/test-drivers (mt/normal-drivers-except #{:h2 :sqlserver :redshift :sparksql :mongo :vertica})
++    (mt/test-drivers (mt/normal-drivers-except #{:h2 :sqlserver :redshift :sparksql :mongo :vertica :exasol}) ; https://github.com/exasol/metabase-driver/issues/9
+       (is (= (cond
+                (= :sqlite driver/*driver*)
+                (results-by-day u.date/parse date-without-time-format-fn [6 10 4 9 9 8 8 9 7 9])
+@@ -694,7 +694,7 @@
+   ;; timezone (TIMEZONE FIXME)
+   (testing "JVM timezone set to Pacific"
+     (mt/test-drivers (mt/normal-drivers-except #{:h2 :sqlserver :redshift :sparksql :mongo :bigquery
+-                                                 :bigquery-cloud-sdk})
++                                                 :bigquery-cloud-sdk :exasol}) ; https://github.com/exasol/metabase-driver/issues/9
+       (is (= (cond
+                (= :sqlite driver/*driver*)
+                (results-by-week u.date/parse
 diff --git a/test/metabase/query_processor_test/parameters_test.clj b/test/metabase/query_processor_test/parameters_test.clj
 index f1de41d12e..4d1adbb3f2 100644
 --- a/test/metabase/query_processor_test/parameters_test.clj
