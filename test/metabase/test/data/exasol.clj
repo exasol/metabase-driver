@@ -35,6 +35,8 @@
 
 (defmethod tx/sorts-nil-first? :exasol [_ _] false)
 
+(defmethod tx/has-questionable-timezone-support? :exasol [_] true)
+
 (doseq [[base-type sql-type] {:type/Text                   "VARCHAR(4000)"
                               :type/BigInteger             "DECIMAL(36,0)"
                               :type/Integer                "DECIMAL(18,0)"
@@ -107,8 +109,6 @@
 (defmethod load-data/load-data! :exasol
   [driver dbdef tabledef]
   (load-data/load-data-add-ids-chunked! driver dbdef tabledef))
-
-(defmethod tx/has-questionable-timezone-support? :exasol [_] true)
 
 (defn- dbspec [& _]
   (sql-jdbc.conn/connection-details->spec :exasol (connection-details)))

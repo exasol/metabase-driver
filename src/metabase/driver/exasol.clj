@@ -20,12 +20,14 @@
 
 (driver/register! :exasol, :parent #{:sql-jdbc ::sql.qp.empty-string-is-null/empty-string-is-null})
 
-(defmethod driver/display-name :exasol [_] "Exasol")
+(defmethod driver/display-name :exasol [_]
+  "Exasol")
 
 (doseq [[feature supported?] {:set-timezone   true
                               :binning        true
                               :nested-queries true
-                              :foreign-keys   true}]
+                              :foreign-keys   true
+                              :nested-fields  false}]
   #_{:clj-kondo/ignore [:deprecated-var]} ; Function is deprecated but no replacement is available
   (defmethod driver/supports? [:exasol feature] [_ _] supported?))
 
