@@ -46,7 +46,7 @@ index f21aca9a7c..423d0e7bb5 100644
  
  (deftest microseconds-test
 -  (mt/test-drivers (disj (mt/normal-drivers) :sqlite)
-+  (mt/test-drivers (disj (mt/normal-drivers) :sqlite :exasol) ; https://github.com/exasol/metabase-driver/issues/11
++  (mt/test-drivers (disj (mt/normal-drivers) :sqlite :exasol) ; https://github.com/exasol/metabase-driver/issues/9
      (let [results (get {:sqlite #{[1 4 "2015-06-06 10:40:00"] [2 0 "2015-06-10 19:51:00"]}
                          :oracle #{[1M 4M "2015-06-06T10:40:00Z"] [2M 0M "2015-06-10T19:51:00Z"]}}
                         driver/*driver*
@@ -201,7 +201,7 @@ index 0eb62eed08..3312cb3d79 100644
    https://circleci.com/workflow-run/856f6dd0-3d95-4732-a56e-1af59e3ae4ba. The goal is to gradually remove these
    one-by-one as they are fixed."
    #{:oracle
-+    :exasol ; https://github.com/exasol/metabase-driver/issues/11
++    :exasol ; https://github.com/exasol/metabase-driver/issues/9
      :presto
      :redshift
      :snowflake

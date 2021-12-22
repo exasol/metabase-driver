@@ -128,7 +128,7 @@ To run only a single tests or only tests in a namespace add arguments:
 ./scripts/run-integration-tests.sh :only name.space
 ```
 
-### Running Tests in a REPL
+### Using the REPL
 
 ```shell
 export MB_EXASOL_TEST_HOST=192.168.56.5
@@ -138,40 +138,31 @@ export MB_EXASOL_TEST_PASSWORD=exasol
 export MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=15F9CA9BC95E14F1F913FC449A26723841C118CFB644957866ABB73C1399A7FF
 export DRIVER=exasol
 
-# Network REPL:
-clojure -M:dev:drivers:drivers-dev:test:nrepl
-# -> Connect with editor
-
+# Command line REPL:
 clojure -A:dev:drivers:drivers-dev:test
+
+# Network REPL:
+clojure -M:dev:drivers:drivers-dev:test:nrepl # -> Connect with editor
 ```
+
+In the REPL you can use the following commands:
 
 ```clojure
 (require 'dev) ; this will take some seconds
-
 (dev/start!)
 
-;; Run SQL query:
+; Run SQL query:
 (dev/query-jdbc-db :exasol "SELECT 1")
 (dev/query-jdbc-db [:exasol 'test-data] "SELECT * from CAM_179.\"test_data_users\"")
-
-
-(require 'metabase.driver.sql-jdbc-test)
-(clojure.test/test-vars [#'metabase.driver.sql-jdbc-test/splice-parameters-native-test])
-(clojure.test/test-vars [#'splice-parameters-native-test])
-
-
-(require 'metabase.driver.sql-jdbc-test/splice-parameters-native-test :reload-all)
-(require 'metabase.driver.sql-jdbc-test :reload-all)
-(run-tests 'metabase.driver.sql-jdbc-test/splice-parameters-native-test)
-(run-tests 'splice-parameters-native-test)
 ```
 
-### Useful Files in Metabase
+### Helfpul Files in Metabase
 
-* `$METABASE_DIR/test/data/dataset_definitions.clj`: Test data sets
-  * `$METABASE_DIR/test/metabase/test/data/dataset_definitions/*.edn`: Definitions of test data sets
-* `$METABASE_DIR//test/metabase/test_runner.clj`: Functions for running tests
-
+* [deps.edn](https://github.com/metabase/metabase/blob/master/deps.edn): Dependencies and comments with useful commands for building and testing
+* [`dev/src/dev.clj`](https://github.com/metabase/metabase/blob/master/dev/src/dev.clj): Functions for developing with the REPL
+* [`test/metabase/test_runner.clj`](https://github.com/metabase/metabase/blob/master/test/metabase/test_runner.clj): Functions for running tests in REPL
+* [`test/metabase/test/data/dataset_definitions.clj`](https://github.com/metabase/metabase/blob/master/test/metabase/test/data/dataset_definitions.clj): Available test data sets
+  * [`test/metabase/test/data/dataset_definitions/*.edn`](https://github.com/metabase/metabase/tree/master/test/metabase/test/data/dataset_definitions): Definitions of test data sets
 
 ### Configure Logging
 
@@ -179,12 +170,12 @@ To increase the log level for integration tests, edit file `$METABASE_DIR/test_c
 
 ### Unsupported Datasets / Excluded Tests
 
-The Exasol driver does not the support loading the following datasets from the Metabase integration tests:
+Exasol does not support the `TIME` data type. That is why we can't load the following datasets from the Metabase integration tests:
 
 * `test-data-with-time`
 * `attempted-murders`
 
-That's why we exclude certain tests by patching the metabase sources with patch `scripts/exclude_tests.diff`.
+We exclude `TIME` related and other broken tests by patching the metabase sources with patch `scripts/exclude_tests.diff`.
 
 Script `run-integration-tests.sh` automatically applies this patch when file `$METABASE_DIR/target/patch_excluded_test_applied` does not exist.
 
@@ -206,7 +197,7 @@ Verify that `$METABASE_DIR/modules/drivers/exasol` is a symlink to the `metabase
 
 ### Different Decimal Point
 
-Tests expect numbers with a `.` as decimal point (e.g. `1000.0 µs`) but get a `,` (e.g. `1000,0 µs`):
+Tests fail on macOS because they expect numbers with a `.` as decimal point (e.g. `1000.0 µs`) but get a `,` (e.g. `1000,0 µs`), e.g.:
 
 ```
 expected: (thrown-with-msg?
@@ -216,4 +207,4 @@ expected: (thrown-with-msg?
   actual: #<clojure.lang.ExceptionInfo@141971c7 clojure.lang.ExceptionInfo: Timed out after 1000,0 µs. {:status :timed-out, :type :timed-out}>
 ```
 
-???
+Solution: run tests under Linux with English locale.

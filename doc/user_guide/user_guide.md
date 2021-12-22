@@ -30,6 +30,22 @@ After you have installed the driver, create a new connection to your Exasol data
     ![Create Exasol Database](images/add_exasol_database.png "Create Exasol Database")
 4. Click the "Save" button at the bottom of the page to verify and save the database connection.
 
+## Known Issues
+
+### Using Tables with Self-Referencing Foreign Keys
+
+When selecting data from a table with a self-referencing foreign key the query may fail with an error similar to
+
+```
+java.sql.SQLException: identifier <table>.<column> is ambiguous.
+```
+
+This is a known issue in Metabase. See [this ticket](https://github.com/exasol/metabase-driver/issues/12) for details.
+
+### Timestamp and Timezone
+
+Queries involving `TIMESTAMP WITH TIMEZONE` columns my return wrong results depending on the timezone set for the session. See [this ticket](https://github.com/exasol/metabase-driver/issues/9) for details.
+
 ## Troubleshooting
 
 ### Exasol Driver Not Available
