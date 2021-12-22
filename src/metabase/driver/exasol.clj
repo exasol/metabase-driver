@@ -10,6 +10,7 @@
             [metabase.driver.sql-jdbc.execute :as sql-jdbc.execute]
             [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
             [metabase.driver.sql.query-processor :as sql.qp]
+            [metabase.driver.sql.query-processor.empty-string-is-null :as sql.qp.empty-string-is-null]
             [metabase.driver.sql.util.unprepare :as unprepare]
             [metabase.util :as u]
             [metabase.util.date-2 :as u.date]
@@ -18,7 +19,7 @@
             [java-time :as t])
   (:import))
 
-(driver/register! :exasol, :parent :sql-jdbc)
+(driver/register! :exasol, :parent #{:sql-jdbc ::sql.qp.empty-string-is-null/empty-string-is-null})
 
 (defmethod driver/display-name :exasol [_]
   "Exasol")
