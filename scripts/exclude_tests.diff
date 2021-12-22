@@ -83,6 +83,19 @@ index f21aca9a7c..b8ce90f1c1 100644
            (is (= 1
                   (count (mt/rows (mt/dataset string-times
                                     (mt/run-mbql-query times
+diff --git a/test/metabase/query_processor_test/breakout_test.clj b/test/metabase/query_processor_test/breakout_test.clj
+index 015ff7fdd3..db03598e12 100644
+--- a/test/metabase/query_processor_test/breakout_test.clj
++++ b/test/metabase/query_processor_test/breakout_test.clj
+@@ -65,7 +65,7 @@
+                         :limit       10}))))))))))
+ 
+ (deftest internal-remapping-test
+-  (mt/test-drivers (mt/normal-drivers)
++  (mt/test-drivers (disj (mt/normal-drivers) :exasol) ; https://github.com/exasol/metabase-driver/issues/10
+     (mt/with-column-remappings [venues.category_id (values-of categories.name)]
+       (let [{:keys [rows cols]} (qp.test/rows-and-cols
+                                  (mt/format-rows-by [int int str]
 diff --git a/test/metabase/query_processor_test/date_bucketing_test.clj b/test/metabase/query_processor_test/date_bucketing_test.clj
 index 116f05dba3..be843509a0 100644
 --- a/test/metabase/query_processor_test/date_bucketing_test.clj
