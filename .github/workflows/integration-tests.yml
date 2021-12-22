@@ -85,7 +85,7 @@ jobs:
           cd "$GITHUB_WORKSPACE/metabase"
           yarn build-static-viz
 
-      - name: Spawn Exasol environemnt
+      - name: Spawn Exasol environment
         run: |
           ./start-test-env spawn-test-environment --environment-name test --database-port-forward 8563
         working-directory: integration-test-docker-environment
