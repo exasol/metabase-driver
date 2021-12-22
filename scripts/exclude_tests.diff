@@ -150,9 +150,27 @@ index f1de41d12e..4d1adbb3f2 100644
              (doseq [field
                      [:datetime
 diff --git a/test/metabase/query_processor_test/remapping_test.clj b/test/metabase/query_processor_test/remapping_test.clj
-index 70b172130f..64d4df2e53 100644
+index 70b172130f..5f1ed24e89 100644
 --- a/test/metabase/query_processor_test/remapping_test.clj
 +++ b/test/metabase/query_processor_test/remapping_test.clj
+@@ -9,7 +9,7 @@
+             [toucan.db :as db]))
+ 
+ (deftest basic-remapping-test
+-  (mt/test-drivers (mt/normal-drivers)
++  (mt/test-drivers (disj (mt/normal-drivers) :exasol) ; https://github.com/exasol/metabase-driver/issues/10
+     (mt/with-column-remappings [venues.category_id (values-of categories.name)]
+       (is (= {:rows [["20th Century Cafe"               12 "Café"]
+                      ["25°"                             11 "Burger"]
+@@ -54,7 +54,7 @@
+                                  [(dissoc c1 :source_alias) c2 (dissoc agg :base_type :effective_type)]))))))))
+ 
+ (deftest nested-remapping-test
+-  (mt/test-drivers (mt/normal-drivers-with-feature :nested-queries)
++  (mt/test-drivers (disj (mt/normal-drivers-with-feature :nested-queries) :exasol) ; https://github.com/exasol/metabase-driver/issues/10
+     (mt/with-column-remappings [venues.category_id (values-of categories.name)]
+       (is (= {:rows [["20th Century Cafe"               12 "Café"]
+                      ["25°"                             11 "Burger"]
 @@ -170,7 +170,7 @@
    ;;
    ;; Having a self-referencing FK is currently broken with the Redshift and Oracle backends. The issue related to fix
