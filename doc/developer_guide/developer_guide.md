@@ -193,7 +193,7 @@ When the patch file has changed or you updated to a new Metabase release, do the
 ```shell
 cd $METABASE_DIR
 git reset --hard
-rm -vf $METABASE_DIR/target/patch_excluded_test_applied
+rm -vf target/patch_excluded_test_applied
 ```
 
 # Troubleshooting

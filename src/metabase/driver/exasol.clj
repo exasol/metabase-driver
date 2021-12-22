@@ -21,10 +21,9 @@
 
 (driver/register! :exasol, :parent #{:sql-jdbc ::sql.qp.empty-string-is-null/empty-string-is-null})
 
-(defmethod driver/display-name :exasol [_]
-  "Exasol")
+(defmethod driver/display-name :exasol [_] "Exasol")
 
-(doseq [[feature supported?] {:set-timezone            true
+(doseq [[feature supported?] {:set-timezone   true
                               :foreign-keys   true}]
   #_{:clj-kondo/ignore [:deprecated-var]} ; Function is deprecated
   (defmethod driver/supports? [:exasol feature] [_ _] supported?))
@@ -117,7 +116,6 @@
       (with-open [stmt (.createStatement conn)]
         (.execute stmt set-timezone-sql)
         (log/tracef "Successfully set timezone for Exasol to %s using statement %s" timezone-id set-timezone-sql)))))
-
 
 ;; Same as default implementation but without calling the unsupported setHoldability() method
 (defmethod sql-jdbc.execute/connection-with-timezone :exasol
