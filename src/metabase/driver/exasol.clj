@@ -16,8 +16,7 @@
             [metabase.util.date-2 :as u.date]
             [metabase.util.honeysql-extensions :as hx]
             [metabase.util.i18n :refer [trs]]
-            [java-time :as t])
-  (:import))
+            [java-time :as t]))
 
 (driver/register! :exasol, :parent #{:sql-jdbc ::sql.qp.empty-string-is-null/empty-string-is-null})
 
@@ -27,7 +26,7 @@
                               :binning        true
                               :nested-queries true
                               :foreign-keys   true}]
-  #_{:clj-kondo/ignore [:deprecated-var]} ; Function is deprecated
+  #_{:clj-kondo/ignore [:deprecated-var]} ; Function is deprecated but no replacement is available
   (defmethod driver/supports? [:exasol feature] [_ _] supported?))
 
 (defmethod sql-jdbc.conn/connection-details->spec :exasol

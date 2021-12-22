@@ -5,7 +5,7 @@
             [metabase.db :as mdb]
             [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
             [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
-            [metabase.models :refer [Database Table]]
+            [metabase.models :as model]
             [metabase.test.data.impl :as data.impl]
             [metabase.test.data.interface :as tx]
             [metabase.test.data.sql :as sql.tx]
@@ -68,9 +68,9 @@
     (locking exasol-test-dbs-created-by-this-instance
       (when-not (contains? @exasol-test-dbs-created-by-this-instance database-name)
         (mdb/setup-db!)                 ; if not already setup
-        (when-let [existing-db (db/select-one Database :engine "exasol", :name database-name)]
+        (when-let [existing-db (db/select-one model/Database :engine "exasol", :name database-name)]
           (let [existing-db-id (u/the-id existing-db)
-                all-schemas    (db/select-field :schema Table :db_id existing-db-id)]
+                all-schemas    (db/select-field :schema model/Table :db_id existing-db-id)]
             (when-not (= all-schemas #{session-schema})
               (println (u/format-color 'yellow
                                        (str "[exasol] At least one table's schema for the existing '%s' Database"
@@ -80,7 +80,7 @@
                                        existing-db-id
                                        (str/join "," all-schemas)
                                        session-schema))
-              (db/delete! Database :id existing-db-id))))
+              (db/delete! model/Database :id existing-db-id))))
         (swap! exasol-test-dbs-created-by-this-instance conj database-name)))))
 
 (defmethod data.impl/get-or-create-database! :exasol
