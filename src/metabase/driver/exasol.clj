@@ -49,7 +49,6 @@
 (def ^:private database-type->base-type
   (sql-jdbc.sync/pattern-based-database-type->base-type
    [;; https://docs.exasol.com/sql_references/data_types/datatypesoverview.htm
-
     [#"^BOOLEAN$"                         :type/Boolean]
     [#"^CHAR$"                            :type/Text]
     [#"^VARCHAR$"                         :type/Text]
@@ -67,7 +66,9 @@
 
 (defmethod sql-jdbc.sync/database-type->base-type :exasol
   [_ column-type]
-  (database-type->base-type column-type))
+  (if (nil? column-type)
+    nil
+    (database-type->base-type column-type)))
 
 (defmethod sql-jdbc.execute/read-column-thunk [:exasol java.sql.Types/DATE]
   [_ ^java.sql.ResultSet rs _ ^Integer i]
@@ -94,7 +95,6 @@
   [driver ps i t]
   (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp t)))
 
-;; TODO: is this ok?
 (defmethod sql-jdbc.execute/set-parameter [:exasol java.time.LocalTime]
   [driver ps i t]
   (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp t)))
@@ -103,7 +103,7 @@
   [driver ps i t]
   (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp t)))
 
-(defn- create-set-timezone-sql
+(defn create-set-timezone-sql
   "Creates the SQL statement required for setting the session timezone"
   [timezone-id]
   (format "ALTER SESSION SET TIME_ZONE='%s'" timezone-id))
@@ -202,14 +202,15 @@
 ;;;;
 
 (def ^:private now (hsql/raw "SYSTIMESTAMP"))
-(defn- num-to-ds-interval [unit v] (hsql/call :numtodsinterval v (hx/literal unit)))
-(defn- num-to-ym-interval [unit v] (hsql/call :numtoyminterval v (hx/literal unit)))
 
 (defmethod sql.qp/current-datetime-honeysql-form :exasol [_] now)
 
 (defmethod sql.qp/->honeysql [:exasol :regex-match-first]
   [driver [_ arg pattern]]
   (hsql/call :regexp_substr (sql.qp/->honeysql driver arg) (sql.qp/->honeysql driver pattern)))
+
+(defn- num-to-ds-interval [unit v] (hsql/call :numtodsinterval v (hx/literal unit)))
+(defn- num-to-ym-interval [unit v] (hsql/call :numtoyminterval v (hx/literal unit)))
 
 (defmethod sql.qp/add-interval-honeysql-form :exasol
   [_ hsql-form amount unit]
@@ -225,21 +226,21 @@
      :quarter (num-to-ym-interval :month  (hx/* amount (hsql/raw 3)))
      :year    (num-to-ym-interval :year   amount))))
 
-(defmethod sql.qp/unix-timestamp->honeysql [:exasol :seconds]
-  [_ _ expr]
-  (hsql/call :from_posix_time expr))
-
 (defmethod sql.qp/cast-temporal-string [:exasol :Coercion/ISO8601->DateTime]
-  [_driver _coercion-strategy expr]
+  [_ _ expr]
   (hsql/call :to_timestamp expr "YYYY-MM-DD HH:mi:SS"))
 
 (defmethod sql.qp/cast-temporal-string [:exasol :Coercion/ISO8601->Date]
-  [_driver _coercion-strategy expr]
+  [_ _ expr]
   (hsql/call :to_date expr "YYYY-MM-DD"))
 
 (defmethod sql.qp/cast-temporal-string [:exasol :Coercion/YYYYMMDDHHMMSSString->Temporal]
-  [_driver _coercion-strategy expr]
+  [_ _ expr]
   (hsql/call :to_timestamp expr "YYYYMMDDHH24miSS"))
+
+(defmethod sql.qp/unix-timestamp->honeysql [:exasol :seconds]
+  [_ _ expr]
+  (hsql/call :from_posix_time expr))
 
 (defmethod sql.qp/unix-timestamp->honeysql [:exasol :milliseconds]
   [driver _ field-or-value]

@@ -1,4 +1,5 @@
 {:linters {:unresolved-var {
                             ; False positive
                             :exclude [honeysql.core/call
-                                      honeysql.core/raw]}}}
+                                      honeysql.core/raw
+                                      metabase.util.honeysql-extensions/with-type-info]}}}
