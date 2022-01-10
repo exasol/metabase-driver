@@ -116,7 +116,7 @@ clojure -M:run
 You need to have metabase checked out next to this repository.
 
 ```shell
-EXASOL_HOST=192.168.56.5 EXASOL_PORT=8563 EXASOL_USER=sys EXASOL_PASSWORD=exasol ./scripts/run-integration-tests.sh
+EXASOL_HOST=<hostname> EXASOL_PORT=8563 EXASOL_USER=sys EXASOL_PASSWORD=exasol ./scripts/run-integration-tests.sh
 ```
 
 This script builds and installs the driver before running the integration tests. The driver must be installed to `$METABASE_DIR/plugins/` for running the integration tests.
@@ -131,11 +131,11 @@ To run only a single tests or only tests in a namespace add arguments:
 ### Using the REPL
 
 ```shell
-export MB_EXASOL_TEST_HOST=192.168.56.5
+export MB_EXASOL_TEST_HOST=<hostname>
 export MB_EXASOL_TEST_PORT=8563
 export MB_EXASOL_TEST_USER=sys
 export MB_EXASOL_TEST_PASSWORD=exasol
-export MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=15F9CA9BC95E14F1F913FC449A26723841C118CFB644957866ABB73C1399A7FF
+export MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=<fingerprint>
 export DRIVER=exasol
 
 # Command line REPL:

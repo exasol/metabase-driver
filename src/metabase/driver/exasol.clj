@@ -139,57 +139,57 @@
 
 (defn- trunc
   "Truncate a date. See also this 
-      (trunc :day v) -> TRUNC(v, 'day')"
-  [format-template v]
-  (hsql/call :truncate v (hx/literal format-template)))
+      (trunc :day date) -> TRUNC(date, 'day')"
+  [format-template date]
+  (hsql/call :truncate date (hx/literal format-template)))
 
 (defn- extract
   "Extract a date. See also this 
-      (extract :minute v) -> EXTRACT(MINUTE FROM v)"
-  [param v]
-  (hsql/call :extract param v))
+      (extract :minute date) -> EXTRACT(MINUTE FROM date)"
+  [unit date]
+  (hsql/call :extract unit date))
 
 (defn- extract-from-timestamp
   "Extract a date. See also this 
-      (extract :minute v) -> EXTRACT(MINUTE FROM v)"
-  [param v]
-  (hsql/call :extract param (hx/->timestamp v)))
+      (extract :minute timestamp) -> EXTRACT(MINUTE FROM timestamp)"
+  [unit timestamp]
+  (hsql/call :extract unit (hx/->timestamp timestamp)))
 
-(defmethod sql.qp/date [:exasol :minute]         [_ _ v] (trunc :mi v))
-(defmethod sql.qp/date [:exasol :minute-of-hour] [_ _ v] (extract-from-timestamp :minute v))
-(defmethod sql.qp/date [:exasol :hour]           [_ _ v] (trunc :hh v))
-(defmethod sql.qp/date [:exasol :hour-of-day]    [_ _ v] (extract-from-timestamp :hour v))
-(defmethod sql.qp/date [:exasol :day]            [_ _ v] (trunc :dd v))
-(defmethod sql.qp/date [:exasol :day-of-month]   [_ _ v] (extract :day v))
-(defmethod sql.qp/date [:exasol :month]          [_ _ v] (trunc :month v))
-(defmethod sql.qp/date [:exasol :month-of-year]  [_ _ v] (extract :month v))
-(defmethod sql.qp/date [:exasol :quarter]        [_ _ v] (trunc :q v))
-(defmethod sql.qp/date [:exasol :year]           [_ _ v] (trunc :year v))
+(defmethod sql.qp/date [:exasol :minute]         [_ _ date] (trunc :mi date))
+(defmethod sql.qp/date [:exasol :minute-of-hour] [_ _ date] (extract-from-timestamp :minute date))
+(defmethod sql.qp/date [:exasol :hour]           [_ _ date] (trunc :hh date))
+(defmethod sql.qp/date [:exasol :hour-of-day]    [_ _ date] (extract-from-timestamp :hour date))
+(defmethod sql.qp/date [:exasol :day]            [_ _ date] (trunc :dd date))
+(defmethod sql.qp/date [:exasol :day-of-month]   [_ _ date] (extract :day date))
+(defmethod sql.qp/date [:exasol :month]          [_ _ date] (trunc :month date))
+(defmethod sql.qp/date [:exasol :month-of-year]  [_ _ date] (extract :month date))
+(defmethod sql.qp/date [:exasol :quarter]        [_ _ date] (trunc :q date))
+(defmethod sql.qp/date [:exasol :year]           [_ _ date] (trunc :year date))
 ; Default implementation for :week-of-year is OK
 
 (defmethod sql.qp/date [:exasol :week]
-  [driver _ v]
-  (sql.qp/adjust-start-of-week driver (partial trunc :day) v))
+  [driver _ date]
+  (sql.qp/adjust-start-of-week driver (partial trunc :day) date))
 
 (defn- to-date
-  [v]
-  (hsql/call :to_date v))
+  [value]
+  (hsql/call :to_date value))
 
 (defmethod sql.qp/date [:exasol :day-of-year]
-  [_ _ v]
-  (hx/inc  (hx/- (to-date (trunc :dd v)) (to-date (trunc :year v)))))
+  [_ _ date]
+  (hx/inc  (hx/- (to-date (trunc :dd date)) (to-date (trunc :year date)))))
 
 (defmethod sql.qp/date [:exasol :quarter-of-year]
-  [driver _ v]
-  (hx// (hx/+ (sql.qp/date driver :month-of-year (sql.qp/date driver :quarter v))
+  [driver _ date]
+  (hx// (hx/+ (sql.qp/date driver :month-of-year (sql.qp/date driver :quarter date))
               2)
         3))
 
 (defmethod sql.qp/date [:exasol :day-of-week]
-  [driver _ v]
+  [driver _ date]
   (sql.qp/adjust-day-of-week
    driver
-   (hx/->integer (hsql/call :to_char v (hx/literal :d)))
+   (hx/->integer (hsql/call :to_char date (hx/literal :d)))
    (driver.common/start-of-week-offset driver)
    (partial hsql/call (u/qualified-name ::mod))))
 
@@ -209,8 +209,8 @@
   [driver [_ arg pattern]]
   (hsql/call :regexp_substr (sql.qp/->honeysql driver arg) (sql.qp/->honeysql driver pattern)))
 
-(defn- num-to-ds-interval [unit v] (hsql/call :numtodsinterval v (hx/literal unit)))
-(defn- num-to-ym-interval [unit v] (hsql/call :numtoyminterval v (hx/literal unit)))
+(defn- num-to-ds-interval [unit value] (hsql/call :numtodsinterval value (hx/literal unit)))
+(defn- num-to-ym-interval [unit value] (hsql/call :numtoyminterval value (hx/literal unit)))
 
 (defmethod sql.qp/add-interval-honeysql-form :exasol
   [_ hsql-form amount unit]
