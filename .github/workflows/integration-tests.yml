@@ -1,0 +1,101 @@
+name: Integration tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      METABASE_VERSION: 0.41.5
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+          path: 'metabase-driver'
+
+      - name: Checkout the Metabase repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+          repository: 'metabase/metabase'
+          path: 'metabase'
+          ref: v${{ env.METABASE_VERSION }}
+
+      - name: Checkout integration test docker environment
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+          repository: 'exasol/integration-test-docker-environment'
+          path: 'integration-test-docker-environment'
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 11
+
+      - name: Install clojure tools
+        uses: DeLaGuardo/setup-clojure@3.6
+        with:
+          cli: latest
+          lein: latest
+
+      - name: Cache Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('metabase-driver/project.clj', 'metabase-driver/scripts/run-integration-tests.sh', 'metabase-driver/scripts/install-metabase-jar.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: maven_repository
+          key: local-maven-${{ hashFiles('metabase-driver/scripts/install-metabase-jar.sh') }}
+          restore-keys: |
+            local-maven-
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-modules-
+
+      - name: Log versions
+        run: |
+          java --version
+          echo Clojure: $(clojure -M --eval "(clojure-version)")
+          clojure --version
+          echo Leiningen: $(lein --version)
+
+      - name: Prepare Metabase deps
+        run: |
+          cd "$GITHUB_WORKSPACE/metabase"
+          source "./bin/prep.sh"
+          prep_deps
+      
+      - name: Build Metabase static viz
+        run: |
+          cd "$GITHUB_WORKSPACE/metabase"
+          yarn build-static-viz
+
+      - name: Spawn Exasol environment
+        run: |
+          ./start-test-env spawn-test-environment --environment-name test --database-port-forward 8563
+        working-directory: integration-test-docker-environment
+
+      - name: Run integration tests
+        run: |
+          source $GITHUB_WORKSPACE/integration-test-docker-environment/.build_output/cache/environments/test/environment_info.sh
+            EXASOL_HOST=$ENVIRONMENT_DATABASE_HOST \
+            EXASOL_PORT=$ENVIRONMENT_DATABASE_DB_PORT \
+            EXASOL_USER=sys EXASOL_PASSWORD=exasol \
+            $GITHUB_WORKSPACE/metabase-driver/scripts/run-integration-tests.sh

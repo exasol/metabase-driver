@@ -9,6 +9,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # See available versions and checksums at https://github.com/metabase/metabase/releases/
+      METABASE_VERSION: 0.41.5
+      METABASE_SHA256: 0c7d71cb571354334d5f238869ac861f33a2e20d19ba434515b663b9f63e5cb9
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
@@ -21,11 +25,17 @@ jobs:
           distribution: 'temurin'
           java-version: 11
 
+      - name: Install clojure tools
+        uses: DeLaGuardo/setup-clojure@3.6
+        with:
+          cli: latest
+          lein: latest
+
       - name: Cache Maven repository
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('project.clj') }}
+          key: ${{ runner.os }}-maven-${{ hashFiles('project.clj', 'scripts/install-metabase-jar.sh') }}
           restore-keys: |
             ${{ runner.os }}-maven-
 
@@ -45,18 +55,18 @@ jobs:
           restore-keys: |
             clj-kondo-cache
 
-      - name: Install dependencies
-        run: |
-          sudo apt install clojure leiningen -y
-
       - name: Log versions
         run: |
           java --version
-          echo Clojure: $(clojure --eval "(clojure-version)")
+          echo Clojure: $(clojure -M --eval "(clojure-version)")
+          clojure --version
           echo Leiningen: $(lein --version)
 
       - name: Install Metabase
         run: ./scripts/install-metabase-jar.sh
+        env:
+          METABASE_VERSION: ${{ env.METABASE_VERSION}}
+          METABASE_SHA256: ${{ env.METABASE_SHA256 }}
 
       - name: Run tests
         run: lein test
