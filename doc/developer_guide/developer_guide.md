@@ -208,3 +208,7 @@ expected: (thrown-with-msg?
 ```
 
 Solution: run tests under Linux with English locale.
+
+### Time Dependent Tests
+
+Some Metabase integration tests depend on the current timestamp and will fail when the year changes. See [issue #14](https://github.com/exasol/metabase-driver/issues/14) for details.
