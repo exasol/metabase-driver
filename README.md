@@ -15,6 +15,7 @@ The Exasol Driver for Metabase is an adapter, that allows you to query data from
 ## Information for Users
 
 * [User Guide](doc/user_guide/user_guide.md)
+* [Changelog](doc/changes/changelog.md)
 
 ## Information for Developers
 
@@ -24,6 +25,6 @@ The Exasol Driver for Metabase is an adapter, that allows you to query data from
 
 ## Runtime Dependencies
 
-To use the Exasol Driver, you need Metabase Version 0.41.2 or later.
+To use the Exasol Driver, you need Metabase Version 0.41.5 or later.
 
 Follow the [Metabase installation guide](https://www.metabase.com/docs/latest/operations-guide/installing-metabase.html) to download and install Metabase.
