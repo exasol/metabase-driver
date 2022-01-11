@@ -11,3 +11,12 @@ This is the initial release of the Exasol Metabase Driver. Basic features are wo
 * Proprietary Exasol data types like `INTERVAL` and `GEOMETRY` are not supported yet, see [#6](https://github.com/exasol/metabase-driver/issues/6).
 * Not all scalar functions are supported yet, see [#4](https://github.com/exasol/metabase-driver/issues/4).
 * Aggregate functions are not supported yet, see [#5](https://github.com/exasol/metabase-driver/issues/5).
+
+## Features
+
+* #1: Setup initial project
+* #7: Added unit and integration tests
+
+## Dependency Updates
+
+* Metabase version 0.41.5
