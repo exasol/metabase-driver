@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  build:
+  integration-test:
     runs-on: ubuntu-latest
     env:
       METABASE_VERSION: 0.41.5
