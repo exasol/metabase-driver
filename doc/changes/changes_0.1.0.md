@@ -2,6 +2,8 @@
 
 Code name: Initial release
 
+## Summary
+
 This is the initial release of the Exasol Metabase Driver. Basic features are working but there are some known issues that will be fixed in later versions:
 
 * Queries of tables with self-referencing foreign keys may not work, see [#12](https://github.com/exasol/metabase-driver/issues/12).
