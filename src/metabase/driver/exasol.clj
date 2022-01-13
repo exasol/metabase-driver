@@ -8,17 +8,17 @@
             [metabase.driver.sql-jdbc.common :as sql-jdbc.common]
             [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
             [metabase.driver.sql-jdbc.execute :as sql-jdbc.execute]
+            [metabase.driver.sql-jdbc.execute.legacy-impl :as legacy]
             [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
             [metabase.driver.sql.query-processor :as sql.qp]
             [metabase.driver.sql.query-processor.empty-string-is-null :as sql.qp.empty-string-is-null]
             [metabase.driver.sql.util.unprepare :as unprepare]
             [metabase.util :as u]
-            [metabase.util.date-2 :as u.date]
             [metabase.util.honeysql-extensions :as hx]
             [metabase.util.i18n :refer [trs]]
             [java-time :as t]))
 
-(driver/register! :exasol, :parent #{:sql-jdbc ::sql.qp.empty-string-is-null/empty-string-is-null})
+(driver/register! :exasol, :parent #{:sql-jdbc ::sql.qp.empty-string-is-null/empty-string-is-null ::legacy/use-legacy-classes-for-read-and-set})
 
 (defmethod driver/display-name :exasol [_]
   "Exasol")
@@ -45,7 +45,6 @@
 
       (sql-jdbc.common/handle-additional-options details, :seperator-style :semicolon)))
 
-
 (def ^:private database-type->base-type
   (sql-jdbc.sync/pattern-based-database-type->base-type
    [;; https://docs.exasol.com/sql_references/data_types/datatypesoverview.htm
@@ -69,47 +68,6 @@
   (if (nil? column-type)
     nil
     (database-type->base-type column-type)))
-
-(defmethod sql-jdbc.execute/read-column-thunk [:exasol java.sql.Types/DATE]
-  [_ ^java.sql.ResultSet rs _ ^Integer i]
-  (fn []
-    (when-let [s (.getString rs i)]
-      (let [t (u.date/parse s)]
-        (log/tracef "(.getString rs i) [DATE] -> %s -> %s" (pr-str s) (pr-str t))
-        t))))
-
-(defn sql-timestamp->localdatetime [^java.sql.Timestamp timestamp]
-  (when timestamp
-    (java.time.LocalDateTime/ofInstant (.toInstant timestamp) (java.time.ZoneId/of "UTC"))))
-
-(def utc-calendar (let [calendar (java.util.Calendar/getInstance)]
-                    (.setTimeZone calendar (java.util.TimeZone/getTimeZone "UTC"))
-                    calendar))
-
-(defmethod sql-jdbc.execute/read-column-thunk [:exasol java.sql.Types/TIMESTAMP]
-  [_ ^java.sql.ResultSet rs _ ^Integer i]
-  (fn []
-    (sql-timestamp->localdatetime (.getTimestamp rs i utc-calendar))))
-
-(defmethod sql-jdbc.execute/set-parameter [:exasol java.time.OffsetDateTime]
-  [driver ps i t]
-  (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp (t/with-offset-same-instant t (t/zone-offset 0)))))
-
-(defmethod sql-jdbc.execute/set-parameter [:exasol java.time.LocalDate]
-  [driver ps i t]
-  (sql-jdbc.execute/set-parameter driver ps i (t/sql-date t)))
-
-(defmethod sql-jdbc.execute/set-parameter [:exasol java.time.LocalDateTime]
-  [driver ps i t]
-  (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp t)))
-
-(defmethod sql-jdbc.execute/set-parameter [:exasol java.time.LocalTime]
-  [driver ps i t]
-  (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp t)))
-
-(defmethod sql-jdbc.execute/set-parameter [:exasol java.time.OffsetTime]
-  [driver ps i t]
-  (sql-jdbc.execute/set-parameter driver ps i (t/sql-timestamp t)))
 
 (defn create-set-timezone-sql
   "Creates the SQL statement required for setting the session timezone"
