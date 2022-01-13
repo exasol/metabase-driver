@@ -8,6 +8,7 @@ jdbc_driver_version=7.1.3
 exasol_driver_dir="$( cd "$(dirname "$0")/.." >/dev/null 2>&1 ; pwd -P )"
 metabase_dir=$(cd "$exasol_driver_dir/../metabase"; pwd)
 metabase_plugin_dir="$metabase_dir/plugins/"
+skip_build=${skip_build:-false}
 
 log_color() {
     local color="$1"
@@ -44,7 +45,7 @@ check_preconditions() {
     fi
 }
 
-symlink_driver() {
+symlink_driver_sources() {
     local symlink_target="$metabase_dir/modules/drivers/exasol"
     if [[ -L "$symlink_target" && -d "$symlink_target" ]]; then
         log_trace "Symlink already exists at $symlink_target"
@@ -136,20 +137,30 @@ get_exasol_certificate_fingerprint() {
                 | openssl x509 -fingerprint -sha256 -noout -in /dev/stdin \
                 | sed 's/SHA256 Fingerprint=//' \
                 | sed 's/://g')
+
+    if [ -z "${fingerprint}" ]; then
+        >&2 log_error "Error getting certificate from $EXASOL_HOST:$EXASOL_PORT"
+        exit 1
+    fi
     echo "$fingerprint"
 }
 
 ###
 
 check_preconditions
-symlink_driver
+symlink_driver_sources
 patch_metabase_deps
 patch_excluded_tests
 install_jdbc_driver
 install_metabase_jar
 log_info "Getting certificate fingerprint from $EXASOL_HOST:$EXASOL_PORT..."
 fingerprint=$(get_exasol_certificate_fingerprint)
-build_and_install_driver
+
+if [ "$skip_build" == "true" ]; then
+    log_error "Skipping driver build"
+else
+    build_and_install_driver
+fi
 
 log_info "Using Exasol database $EXASOL_HOST:$EXASOL_PORT with certificate fingerprint '$fingerprint'"
 log_info "Starting integration tests in $metabase_dir..."
