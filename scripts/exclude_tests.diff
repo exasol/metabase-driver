@@ -11,6 +11,19 @@ index a348540ca2..c81ac9b109 100644
            (mt/dataset test-data-with-time
              (let [response (mt/user-http-request :rasta :get 200 (format "table/%d/query_metadata" (mt/id :users)))]
                (is (= []
+diff --git a/test/metabase/driver/sql/parameters/substitute_test.clj b/test/metabase/driver/sql/parameters/substitute_test.clj
+index f70cd095e2..efff516904 100644
+--- a/test/metabase/driver/sql/parameters/substitute_test.clj
++++ b/test/metabase/driver/sql/parameters/substitute_test.clj
+@@ -614,7 +614,7 @@
+                                  :value  "2015-07-01"}]))))))))
+ 
+ (deftest e2e-parse-native-dates-test
+-  (mt/test-drivers (disj (sql-parameters-engines) :sqlite)
++  (mt/test-drivers (disj (sql-parameters-engines) :sqlite :exasol) ; https://github.com/exasol/metabase-driver/issues/9
+     (is (= [(cond
+               (= driver/*driver* :presto)
+               "2018-04-18"
 diff --git a/test/metabase/driver/sql_jdbc_test.clj b/test/metabase/driver/sql_jdbc_test.clj
 index 5e8c012138..b47b53622e 100644
 --- a/test/metabase/driver/sql_jdbc_test.clj
@@ -80,6 +93,15 @@ diff --git a/test/metabase/query_processor_test/alternative_date_test.clj b/test
 index f21aca9a7c..423d0e7bb5 100644
 --- a/test/metabase/query_processor_test/alternative_date_test.clj
 +++ b/test/metabase/query_processor_test/alternative_date_test.clj
+@@ -29,7 +29,7 @@
+      [0 1433965860000000]]]])
+ 
+ (deftest microseconds-test
+-  (mt/test-drivers (disj (mt/normal-drivers) :sqlite)
++  (mt/test-drivers (disj (mt/normal-drivers) :sqlite :exasol) ; https://github.com/exasol/metabase-driver/issues/9
+     (let [results (get {:sqlite #{[1 4 "2015-06-06 10:40:00"] [2 0 "2015-06-10 19:51:00"]}
+                         :oracle #{[1M 4M "2015-06-06T10:40:00Z"] [2M 0M "2015-06-10T19:51:00Z"]}}
+                        driver/*driver*
 @@ -174,7 +174,7 @@
  (deftest iso-8601-text-fields
    (testing "text fields with semantic_type :type/ISO8601DateTimeString"
