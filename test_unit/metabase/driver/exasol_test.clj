@@ -99,6 +99,25 @@
         (is (= expected (sql.qp/date :exasol type value)))))))
 
 
+(deftest utc-calendar
+  (testing "UTC Calendar has UTC time zone"
+    (is (= "UTC" (.getID (.getTimeZone exasol/utc-calendar))))))
+
+(defn- utc-timestamp [timestamp-string]
+  (let [original-timezone (java.util.TimeZone/getDefault)
+        utc-timezone (java.util.TimeZone/getTimeZone "UTC")]
+    (try
+      (java.util.TimeZone/setDefault utc-timezone)
+      (java.sql.Timestamp/valueOf timestamp-string)
+      (finally (java.util.TimeZone/setDefault original-timezone)))))
+
+(deftest sql-timestamp->localdatetime
+  (doseq [[timestamp expected] [[nil nil]
+                                [(utc-timestamp "2021-12-31 23:55:30.123") (java.time.LocalDateTime/parse "2021-12-31T23:55:30.123")]
+                                [(utc-timestamp "2007-12-03 10:15:30") (java.time.LocalDateTime/parse "2007-12-03T10:15:30")]]]
+    (testing (format "Sql Timestamp %s converted to LocalDateTime %s" timestamp expected)
+      (is (= expected (exasol/sql-timestamp->localdatetime timestamp))))))
+
 (deftest current-datetime-honeysql-form-test
   (is (= (hsql/raw "SYSTIMESTAMP") (sql.qp/current-datetime-honeysql-form :exasol))))
 

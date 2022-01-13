@@ -78,10 +78,18 @@
         (log/tracef "(.getString rs i) [DATE] -> %s -> %s" (pr-str s) (pr-str t))
         t))))
 
+(defn sql-timestamp->localdatetime [^java.sql.Timestamp timestamp]
+  (when timestamp
+    (java.time.LocalDateTime/ofInstant (.toInstant timestamp) (java.time.ZoneId/of "UTC"))))
+
+(def utc-calendar (let [calendar (java.util.Calendar/getInstance)]
+                    (.setTimeZone calendar (java.util.TimeZone/getTimeZone "UTC"))
+                    calendar))
+
 (defmethod sql-jdbc.execute/read-column-thunk [:exasol java.sql.Types/TIMESTAMP]
   [_ ^java.sql.ResultSet rs _ ^Integer i]
   (fn []
-    (java.time.LocalDateTime/ofInstant (.toInstant (.getTimestamp rs i)) (java.time.ZoneId/of "UTC"))))
+    (sql-timestamp->localdatetime (.getTimestamp rs i utc-calendar))))
 
 (defmethod sql-jdbc.execute/set-parameter [:exasol java.time.OffsetDateTime]
   [driver ps i t]
