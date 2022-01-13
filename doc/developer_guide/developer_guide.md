@@ -43,11 +43,12 @@ lein --version
 1. Checkout Metabase at `$HOME/git/metabase` (= `$METABASE_DIR`) and build it:
 
     ```bash
+    export METABASE_VERSION=0.41.5
     cd $HOME/git
     git clone https://github.com/metabase/metabase.git
     cd metabase
     git fetch --all --tags
-    git checkout tags/v0.41.5 -b v0.41.5-branch
+    git checkout "tags/v${METABASE_VERSION}" -b "v${METABASE_VERSION}-branch"
     # Build (this will take ~15min)
     ./bin/build
     # Run
