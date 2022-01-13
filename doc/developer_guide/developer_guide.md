@@ -208,7 +208,7 @@ expected: (thrown-with-msg?
   actual: #<clojure.lang.ExceptionInfo@141971c7 clojure.lang.ExceptionInfo: Timed out after 1000,0 µs. {:status :timed-out, :type :timed-out}>
 ```
 
-Solution: run tests under Linux with English locale.
+Solution: run tests under Linux with English locale or pass arguments `-J-Duser.country=US -J-Duser.language=en` to clojure when starting the tests (default in `run-integration-tests.sh`).
 
 ### Time Dependent Tests
 
