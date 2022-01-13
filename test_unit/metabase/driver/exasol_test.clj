@@ -98,7 +98,6 @@
       (testing (format "Date function %s" type)
         (is (= expected (sql.qp/date :exasol type value)))))))
 
-
 (deftest current-datetime-honeysql-form-test
   (is (= (hsql/raw "SYSTIMESTAMP") (sql.qp/current-datetime-honeysql-form :exasol))))
 

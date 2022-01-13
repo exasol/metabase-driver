@@ -43,11 +43,12 @@ lein --version
 1. Checkout Metabase at `$HOME/git/metabase` (= `$METABASE_DIR`) and build it:
 
     ```bash
+    export METABASE_VERSION=0.41.5
     cd $HOME/git
     git clone https://github.com/metabase/metabase.git
     cd metabase
     git fetch --all --tags
-    git checkout tags/v0.41.5 -b v0.41.5-branch
+    git checkout "tags/v${METABASE_VERSION}" -b "v${METABASE_VERSION}-branch"
     # Build (this will take ~15min)
     ./bin/build
     # Run
@@ -207,7 +208,7 @@ expected: (thrown-with-msg?
   actual: #<clojure.lang.ExceptionInfo@141971c7 clojure.lang.ExceptionInfo: Timed out after 1000,0 µs. {:status :timed-out, :type :timed-out}>
 ```
 
-Solution: run tests under Linux with English locale.
+Solution: run tests under Linux with English locale or pass arguments `-J-Duser.country=US -J-Duser.language=en` to clojure when starting the tests (default in `run-integration-tests.sh`).
 
 ### Time Dependent Tests
 
