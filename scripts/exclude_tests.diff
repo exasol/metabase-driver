@@ -80,15 +80,6 @@ diff --git a/test/metabase/query_processor_test/alternative_date_test.clj b/test
 index f21aca9a7c..423d0e7bb5 100644
 --- a/test/metabase/query_processor_test/alternative_date_test.clj
 +++ b/test/metabase/query_processor_test/alternative_date_test.clj
-@@ -29,7 +29,7 @@
-      [0 1433965860000000]]]])
- 
- (deftest microseconds-test
--  (mt/test-drivers (disj (mt/normal-drivers) :sqlite)
-+  (mt/test-drivers (disj (mt/normal-drivers) :sqlite :exasol) ; https://github.com/exasol/metabase-driver/issues/9
-     (let [results (get {:sqlite #{[1 4 "2015-06-06 10:40:00"] [2 0 "2015-06-10 19:51:00"]}
-                         :oracle #{[1M 4M "2015-06-06T10:40:00Z"] [2M 0M "2015-06-10T19:51:00Z"]}}
-                        driver/*driver*
 @@ -174,7 +174,7 @@
  (deftest iso-8601-text-fields
    (testing "text fields with semantic_type :type/ISO8601DateTimeString"
@@ -144,37 +135,6 @@ index 015ff7fdd3..db03598e12 100644
      (mt/with-column-remappings [venues.category_id (values-of categories.name)]
        (let [{:keys [rows cols]} (qp.test/rows-and-cols
                                   (mt/format-rows-by [int int str]
-diff --git a/test/metabase/query_processor_test/date_bucketing_test.clj b/test/metabase/query_processor_test/date_bucketing_test.clj
-index 116f05dba3..be843509a0 100644
---- a/test/metabase/query_processor_test/date_bucketing_test.clj
-+++ b/test/metabase/query_processor_test/date_bucketing_test.clj
-@@ -272,7 +272,7 @@
-   ;; timezone
-   ;;
-   ;; TIMEZONE FIXME
--  (mt/test-drivers (mt/normal-drivers-except #{:h2 :sqlserver :redshift :sparksql :mongo})
-+  (mt/test-drivers (mt/normal-drivers-except #{:h2 :sqlserver :redshift :sparksql :mongo :exasol}) ; https://github.com/exasol/metabase-driver/issues/9
-     (testing "Change JVM timezone from UTC to Pacific"
-       (is (= (cond
-                (= :sqlite driver/*driver*)
-@@ -524,7 +524,7 @@
-     ;; timezone
-     ;;
-     ;; TIMEZONE FIXME
--    (mt/test-drivers (mt/normal-drivers-except #{:h2 :sqlserver :redshift :sparksql :mongo :vertica})
-+    (mt/test-drivers (mt/normal-drivers-except #{:h2 :sqlserver :redshift :sparksql :mongo :vertica :exasol}) ; https://github.com/exasol/metabase-driver/issues/9
-       (is (= (cond
-                (= :sqlite driver/*driver*)
-                (results-by-day u.date/parse date-without-time-format-fn [6 10 4 9 9 8 8 9 7 9])
-@@ -694,7 +694,7 @@
-   ;; timezone (TIMEZONE FIXME)
-   (testing "JVM timezone set to Pacific"
-     (mt/test-drivers (mt/normal-drivers-except #{:h2 :sqlserver :redshift :sparksql :mongo :bigquery
--                                                 :bigquery-cloud-sdk})
-+                                                 :bigquery-cloud-sdk :exasol}) ; https://github.com/exasol/metabase-driver/issues/9
-       (is (= (cond
-                (= :sqlite driver/*driver*)
-                (results-by-week u.date/parse
 diff --git a/test/metabase/query_processor_test/implicit_joins_test.clj b/test/metabase/query_processor_test/implicit_joins_test.clj
 index 52f6103ab4..f01540a0e4 100644
 --- a/test/metabase/query_processor_test/implicit_joins_test.clj
@@ -257,3 +217,18 @@ index 0eb62eed08..3312cb3d79 100644
      :presto
      :redshift
      :snowflake
+@@ -217,13 +218,4 @@
+    (when (supports-datetime-with-zone-id?)
+      {:datetime_tz_id (t/zoned-date-time "2019-11-01T00:23:18.331-07:00[America/Los_Angeles]")})))
+ 
+-(deftest time-timezone-handling-test
+-  ;; Actual value : "2019-11-01T00:23:18.331-07:00[America/Los_Angeles]"
+-  ;; Oracle doesn't have a time type
+-  (mt/test-drivers (set-timezone-drivers)
+-    (mt/dataset attempted-murders
+-      (doseq [timezone [nil "US/Pacific" "US/Eastern" "Asia/Hong_Kong"]]
+-        (mt/with-temporary-setting-values [report-timezone timezone]
+-          (let [expected (expected-attempts)
+-                actual   (select-keys (attempts) (keys expected))]
+-            (is (= expected actual))))))))
++; time-timezone-handling-test: Exasol does not support TIME data type
