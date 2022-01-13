@@ -61,7 +61,11 @@
     [#"^TIMESTAMP WITH LOCAL TIME ZONE$"  :type/DateTime]
     [#"^INTERVAL DAY TO SECOND$"          :type/Text]
     [#"^INTERVAL YEAR TO MONTH$"          :type/Text]
-    [#"^GEOMETRY$"                        :type/Text]]))
+    [#"^GEOMETRY$"                        :type/Text]
+    [#"^HASHTYPE$"                        :type/Hashtype]
+    [#"^INTERVAL DAY TO SECOND$"          :type/IntervalDayToSecond]
+    [#"^INTERVAL YEAR TO MONTH$"          :type/IntervalYearToMonth]
+    [#"^GEOMETRY$"                        :type/Geometry]]))
 
 (defmethod sql-jdbc.sync/database-type->base-type :exasol
   [_ column-type]
