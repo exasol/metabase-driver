@@ -1,6 +1,6 @@
 # metabase-driver 0.1.1, released 2022-01-13
 
-Code name: Fix issues reading `TIMESTAMP` columns.
+Code name: Fixed issues reading `TIMESTAMP` columns.
 
 ## Summary
 
