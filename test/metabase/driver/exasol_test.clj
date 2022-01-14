@@ -22,13 +22,13 @@
                     (mt/dataset dataset/airports
                                 (is (= [1]
                                        (mt/first-row
-                                        (mt/run-mbql-query dataset/airport {:aggregation [:count], :filter [:= $code ""]}))))))))
+                                        (mt/run-mbql-query "airport" {:aggregation [:count], :filter [:= $code ""]}))))))))
 
 (deftest exasol-data-types
   (mt/test-driver :exasol
                   (td/dataset exasol-dataset/exasol-data-types
-                              (testing "row count"
+                              (is (= [["null-values"      nil                                nil      nil                nil]
+                                      ["non-null-values" "550e8400e29b11d4a716446655440000" "+05-03" "+02 12:50:10.123" "POINT (2 5)"]]
+                                     (mt/rows (mt/run-mbql-query "data_types" {:fields [$name $hash $interval_ytm $interval_dts $geo]
+                                                                               :order-by [[:asc $row_order]]})))))))
 
-                                (is (= [2]
-                                       (mt/first-row
-                                        (mt/run-mbql-query exasol-dataset/exasol-data-types {:aggregation [:count]}))))))))
