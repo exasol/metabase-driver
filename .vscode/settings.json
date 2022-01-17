@@ -1,6 +1,14 @@
 {
-    "search.exclude": {
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
         ".clj-kondo/.cache/": true,
+        ".cpcache/": true,
+        ".lsp/": true,
+        ".calva/": true,
+    },
+    "search.exclude": {
         "maven_repository/": true
     }
 }
