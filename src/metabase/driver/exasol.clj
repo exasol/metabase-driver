@@ -51,7 +51,6 @@
     [#"^BOOLEAN$"                         :type/Boolean]
     [#"^CHAR$"                            :type/Text]
     [#"^VARCHAR$"                         :type/Text]
-    [#"^HASHTYPE$"                        :type/Text]
     [#"^BIGINT$"                          :type/Decimal]
     [#"^DECIMAL$"                         :type/Decimal]
     [#"^DOUBLE PRECISION$"                :type/Float]
@@ -59,9 +58,10 @@
     [#"^DATE$"                            :type/Date]
     [#"^TIMESTAMP$"                       :type/DateTime]
     [#"^TIMESTAMP WITH LOCAL TIME ZONE$"  :type/DateTime]
-    [#"^INTERVAL DAY TO SECOND$"          :type/Text]
-    [#"^INTERVAL YEAR TO MONTH$"          :type/Text]
-    [#"^GEOMETRY$"                        :type/Text]]))
+    [#"^HASHTYPE$"                        :type/*]
+    [#"^INTERVAL DAY TO SECOND$"          :type/*]
+    [#"^INTERVAL YEAR TO MONTH$"          :type/*]
+    [#"^GEOMETRY$"                        :type/*]]))
 
 (defmethod sql-jdbc.sync/database-type->base-type :exasol
   [_ column-type]

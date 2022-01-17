@@ -89,7 +89,7 @@ jobs:
 
       - name: Spawn Exasol environment
         run: |
-          ./start-test-env spawn-test-environment --environment-name test --database-port-forward 8563
+          ./start-test-env spawn-test-environment --environment-name test --database-port-forward 8563 --deactivate-database-setup
         working-directory: integration-test-docker-environment
 
       - name: Run integration tests
