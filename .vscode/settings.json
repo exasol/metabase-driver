@@ -1,0 +1,6 @@
+{
+    "search.exclude": {
+        ".clj-kondo/.cache/": true,
+        "maven_repository/": true
+    }
+}

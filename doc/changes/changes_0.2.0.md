@@ -18,4 +18,4 @@ The release also adds support for Exasol specific data types `INTERVAL`, `GEOMET
 
 ## Dependency Updates
 
-(none)
+* Metabase version from 0.41.5 to 0.41.6
