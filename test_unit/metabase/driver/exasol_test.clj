@@ -57,7 +57,6 @@
     (doseq [[db-type expected-type] [["BOOLEAN"                         :type/Boolean]
                                      ["CHAR"                            :type/Text]
                                      ["VARCHAR"                         :type/Text]
-                                     ["HASHTYPE"                        :type/Text]
                                      ["BIGINT"                          :type/Decimal]
                                      ["DECIMAL"                         :type/Decimal]
                                      ["DOUBLE PRECISION"                :type/Float]
@@ -65,13 +64,14 @@
                                      ["DATE"                            :type/Date]
                                      ["TIMESTAMP"                       :type/DateTime]
                                      ["TIMESTAMP WITH LOCAL TIME ZONE"  :type/DateTime]
-                                     ["INTERVAL DAY TO SECOND"          :type/Text]
-                                     ["INTERVAL YEAR TO MONTH"          :type/Text]
-                                     ["GEOMETRY"                        :type/Text]]]
+                                     ["INTERVAL DAY TO SECOND"          :type/*]
+                                     ["INTERVAL YEAR TO MONTH"          :type/*]
+                                     ["GEOMETRY"                        :type/*]
+                                     ["HASHTYPE"                        :type/*]]]
       (is (= expected-type (sql-jdbc.sync/database-type->base-type :exasol db-type))
           (format "Database type %s returns %s" db-type expected-type))))
   (testing "Unknown types return nil"
-    (doseq [db-type ["unknown" "boolean" "" nil]]
+    (doseq [db-type ["unknown" "boolean" "" nil " CHAR" "CHAR " "INTERVAL"]]
       (is (= nil (sql-jdbc.sync/database-type->base-type :exasol db-type))
           (format "Database type %s returns nil" db-type)))))
 

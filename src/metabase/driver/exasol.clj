@@ -51,7 +51,6 @@
     [#"^BOOLEAN$"                         :type/Boolean]
     [#"^CHAR$"                            :type/Text]
     [#"^VARCHAR$"                         :type/Text]
-    [#"^HASHTYPE$"                        :type/Text]
     [#"^BIGINT$"                          :type/Decimal]
     [#"^DECIMAL$"                         :type/Decimal]
     [#"^DOUBLE PRECISION$"                :type/Float]
