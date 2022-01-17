@@ -49,12 +49,7 @@
                               :type/DateTimeWithTZ         "TIMESTAMP"
                               :type/DateTimeWithZoneOffset "TIMESTAMP"
                               :type/DateTimeWithZoneID     "TIMESTAMP"
-                              :type/DateTimeWithLocalTZ    "TIMESTAMP WITH LOCAL TIME ZONE"
-                              :type/Hashtype               "HASHTYPE"
-                              :type/IntervalDayToSecond    "INTERVAL DAY TO SECOND"
-                              :type/IntervalYearToMonth    "INTERVAL YEAR TO MONTH"
-                              :type/Geometry               "GEOMETRY"
-                              }]
+                              :type/DateTimeWithLocalTZ    "TIMESTAMP WITH LOCAL TIME ZONE"}]
   (defmethod sql.tx/field-base-type->sql-type [:exasol base-type] [_ _] sql-type))
 
 (doseq [base-type [:type/Time]]
