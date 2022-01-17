@@ -59,8 +59,6 @@
     [#"^DATE$"                            :type/Date]
     [#"^TIMESTAMP$"                       :type/DateTime]
     [#"^TIMESTAMP WITH LOCAL TIME ZONE$"  :type/DateTime]
-    [#"^INTERVAL DAY TO SECOND$"          :type/*]
-    [#"^INTERVAL YEAR TO MONTH$"          :type/*]
     [#"^HASHTYPE$"                        :type/*]
     [#"^INTERVAL DAY TO SECOND$"          :type/*]
     [#"^INTERVAL YEAR TO MONTH$"          :type/*]
