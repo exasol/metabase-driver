@@ -1,6 +1,6 @@
 # metabase-driver 0.2.0, released 2022-01-17
 
-Code name: Fixed issues reading `TIMESTAMP` columns and added support for Exasol specific data types.
+Code name: Exasol specific data types and fix for `TIMESTAMP` columns
 
 ## Summary
 
