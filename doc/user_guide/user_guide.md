@@ -46,6 +46,22 @@ This is a known issue in Metabase. See [this ticket](https://github.com/exasol/m
 
 Queries involving `TIMESTAMP WITH TIMEZONE` columns my return wrong results depending on the timezone set for the session. See [this ticket](https://github.com/exasol/metabase-driver/issues/9) for details.
 
+### Scanning field values logs an exception for `GEOMETRY` columns
+
+When Metabase scans field values of a table with a GEOMETRY column (e.g. when you click the "Re-scan field values now" button on the Database page) it logs the following exception:
+
+```
+2022-01-17 09:01:18,009 ERROR models.field-values :: Error fetching field values
+clojure.lang.ExceptionInfo: Error executing query {:sql "-- Metabase\nSELECT \"META\".\"DATA_TYPES\".\"GEO\" AS \"GEO\" FROM \"META\".\"DATA_TYPES\" GROUP BY \"META\".\"DATA_TYPES\".\"GEO\" ORDER BY \"META\".\"DATA_TYPES\".\"GEO\" ASC LIMIT 5000", :params nil, :type :invalid-query}
+...
+Caused by: java.sql.SQLException: Feature not supported: GEOMETRY type in GROUP BY (Session: 1722185677957169152)
+...
+```
+
+There seem to be no consequences of this error, everything seems to work fine.
+
+See issue [#20](https://github.com/exasol/metabase-driver/issues/20) for details and a workaround for avoiding this error message.
+
 ## Troubleshooting
 
 ### Exasol Driver Not Available
