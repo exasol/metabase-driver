@@ -1,15 +1,10 @@
 (ns metabase.driver.exasol-test
   (:require [clojure.test :refer [deftest testing is]]
-            [honeysql.core :as hsql]
-            [metabase.driver.sql.query-processor :as sql.qp]
-            [metabase.query-processor :as qp]
             [metabase.test :as mt]
-            [metabase.test.data.exasol :as exasol.tx]
             [metabase.test.util :as tu]
             [metabase.test.data :as td]
             [metabase.test.data.dataset-definitions :as dataset]
-            [metabase.test.data.exasol-dataset-definitions :as exasol-dataset]
-            [metabase.util.honeysql-extensions :as hx]))
+            [metabase.test.data.exasol-dataset-definitions :as exasol-dataset]))
 
 (deftest timezone-id-test
   (mt/test-driver :exasol
