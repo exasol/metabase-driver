@@ -29,10 +29,10 @@
   ([resource]
    (when-let [url ^java.net.URL (io/resource resource)]
      (with-open [stream (.openStream url)]
-       (let [p (java.util.Properties.)]
+       (let [properties (java.util.Properties.)]
          (try
-           (.load p stream)
-           (.getProperty p "version")
+           (.load properties stream)
+           (.getProperty properties "version")
            (catch Exception _)))))))
 
 (defn- log-driver-version []
