@@ -11,6 +11,10 @@ This release fixes two issues when reading `TIMESTAMP` columns:
 
 The release also adds support for Exasol specific data types `INTERVAL`, `GEOMETRY` and `HASHTYPE`. As Metabase does not support these types, they are returned as strings of Metabase type `:type/*`. There is an issue with scanning values of `GEOMETRY` columns, see [issue #20](https://github.com/exasol/metabase-driver/issues/20) and [user guide](../user_guide/user_guide.md#scanning-field-values-logs-an-exception-for-geometry-columns) for details.
 
+## Features
+
+* #16: Added a log message containing driver version and JDBC driver version when Metabase loads the Exasol driver
+
 ## Bugfixes
 
 * #17: Fixed reading `TIMESTAMP` columns

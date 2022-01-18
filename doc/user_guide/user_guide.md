@@ -64,6 +64,21 @@ See issue [#20](https://github.com/exasol/metabase-driver/issues/20) for details
 
 ## Troubleshooting
 
+### Getting the Driver Version
+
+The Exasol driver will log it's version and the Exasol JDBC driver's version when it is first used. You can trigger this the following way:
+
+1. Stop Metabase and start it again
+2. Go to Settings > Admin
+3. Go to Databases > your Exasol Database
+4. Click the "Save changes" button without changing any setting
+
+This will load the Exasol driver and print a message like this to the log:
+
+```
+2022-01-18 10:55:38,634 INFO driver.exasol :: Loading Exasol Metabase driver 0.2.0, Exasol JDBC driver: 7.1.4
+```
+
 ### Exasol Driver Not Available
 
 If Database Type "Exasol" is not availabe in the "Add Database" dialog and Metabase logs the following message at startup, the Exasol JDBC driver is not available.
