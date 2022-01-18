@@ -18,6 +18,27 @@
             [metabase.util.i18n :refer [trs]]
             [java-time :as t]))
 
+
+(defn get-jdbc-driver-version []
+  (com.exasol.jdbc.EXADriver/getVersionInfo))
+
+(defn get-driver-version
+  ([] (get-driver-version "META-INF/maven/metabase/exasol-driver/pom.properties"))
+  ([resource]
+   (when-let [url (java.lang.ClassLoader/getSystemResource resource)]
+     (with-open [stream (.openStream url)]
+       (let [p (java.util.Properties.)]
+         (try
+           (.load p stream)
+           (.getProperty p "version")
+           (catch Exception _)))))))
+
+(defn- log-driver-version []
+  (log/info (u/format-color 'green (format "Loading Exasol Metabase driver %s, Exasol JDBC driver: %s"
+                                           (get-driver-version) (get-jdbc-driver-version)))))
+
+(log-driver-version)
+
 (driver/register! :exasol, :parent #{:sql-jdbc ::sql.qp.empty-string-is-null/empty-string-is-null ::legacy/use-legacy-classes-for-read-and-set})
 
 (defmethod driver/display-name :exasol [_]
