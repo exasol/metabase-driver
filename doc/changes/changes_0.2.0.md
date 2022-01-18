@@ -1,4 +1,4 @@
-# metabase-driver 0.2.0, released 2022-01-17
+# metabase-driver 0.2.0, released 2022-01-18
 
 Code name: Exasol specific data types and fix for `TIMESTAMP` columns
 
@@ -14,11 +14,17 @@ The release also adds support for Exasol specific data types `INTERVAL`, `GEOMET
 ## Features
 
 * #16: Added a log message containing driver version and JDBC driver version when Metabase loads the Exasol driver
+* #6: Added support for Exasol specific data types `INTERVAL`, `GEOMETRY` and `HASHTYPE`
 
 ## Bugfixes
 
 * #17: Fixed reading `TIMESTAMP` columns
-* #6: Added support for Exasol specific data types `INTERVAL`, `GEOMETRY` and `HASHTYPE`
+
+## Tests
+
+* #3: Added integration tests for filter, joins and sub-selects
+* #4: Added integration tests for scalar functions
+* #5: Added integration tests for aggregate functions
 
 ## Dependency Updates
 
