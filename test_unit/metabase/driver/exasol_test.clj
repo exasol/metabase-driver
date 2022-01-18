@@ -1,6 +1,7 @@
 (ns metabase.driver.exasol-test
   "Tests for specific behavior of the Exasol driver."
   (:require [clojure.test :refer [deftest testing is]]
+            [clojure.string :as str]
             [honeysql.core :as hsql]
             [metabase.driver.exasol :as exasol]
             [metabase.config :as config]
@@ -151,3 +152,13 @@
                              [(java.time.ZonedDateTime/parse "2007-12-03T10:15:30+01:00[Europe/Paris]") "timestamp '2007-12-03 10:15:30.000'"]]]
       (testing (format "Unprepare %s" (.getClass value))
         (is (= expected (unprepare/unprepare-value :exasol value))))))
+
+(deftest get-jdbc-driver-version-test
+  (testing "JDBC driver version is not empty"
+  (is (not (str/blank? (exasol/get-jdbc-driver-version))))))
+
+(deftest get-driver-version-test
+  (testing "Driver version returns nil for non-exsiting resource"
+    (is (nil? (exasol/get-driver-version "no-such-resource-name"))))
+  (testing "Driver version read from existing resource"
+    (is (not (str/blank? (exasol/get-driver-version))))))
