@@ -69,7 +69,7 @@ See issue [#20](https://github.com/exasol/metabase-driver/issues/20) for details
 The Exasol driver will log it's version and the Exasol JDBC driver's version when it is first used. You can trigger this the following way:
 
 1. Stop Metabase and start it again
-2. Go to Settings > Admin
+2. Login to Metabase and go to Settings > Admin
 3. Go to Databases > your Exasol Database
 4. Click the "Save changes" button without changing any setting
 
