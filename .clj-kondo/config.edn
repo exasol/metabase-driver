@@ -6,6 +6,7 @@
                                :exclude [
                                          ; The defdataset macro expects a symbol as dataset name
                                          (metabase.test.data.interface/defdataset)
-                                         ; The run-mbql-query macro allows using $field shortcut syntax
+                                         ; The run-mbql-query and mbql-query macros allow using $field shortcut syntax
                                          (metabase.test/run-mbql-query)
+                                         (metabase.test/mbql-query)
                                          ]}}}
