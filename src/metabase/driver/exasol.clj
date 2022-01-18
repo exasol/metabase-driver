@@ -1,5 +1,6 @@
 (ns metabase.driver.exasol
   (:require [clojure.tools.logging :as log]
+            [clojure.java.io :as io]
             [honeysql.core :as hsql]
             [honeysql.format :as hformat]
             [metabase.config :as config]
@@ -23,9 +24,10 @@
   (com.exasol.jdbc.EXADriver/getVersionInfo))
 
 (defn get-driver-version
-  ([] (get-driver-version "META-INF/maven/metabase/exasol-driver/pom.properties"))
+  ([]
+   (get-driver-version "META-INF/maven/metabase/exasol-driver/pom.properties"))
   ([resource]
-   (when-let [url (java.lang.ClassLoader/getSystemResource resource)]
+   (when-let [url ^java.net.URL (io/resource resource)]
      (with-open [stream (.openStream url)]
        (let [p (java.util.Properties.)]
          (try
