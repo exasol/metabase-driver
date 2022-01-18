@@ -1,4 +1,4 @@
-# metabase-driver 0.2.0, released 2022-01-17
+# metabase-driver 0.2.0, released 2022-01-18
 
 Code name: Exasol specific data types and fix for `TIMESTAMP` columns
 
@@ -11,10 +11,19 @@ This release fixes two issues when reading `TIMESTAMP` columns:
 
 The release also adds support for Exasol specific data types `INTERVAL`, `GEOMETRY` and `HASHTYPE`. As Metabase does not support these types, they are returned as strings of Metabase type `:type/*`. There is an issue with scanning values of `GEOMETRY` columns, see [issue #20](https://github.com/exasol/metabase-driver/issues/20) and [user guide](../user_guide/user_guide.md#scanning-field-values-logs-an-exception-for-geometry-columns) for details.
 
+## Features
+
+* #6: Added support for Exasol specific data types `INTERVAL`, `GEOMETRY` and `HASHTYPE`
+
 ## Bugfixes
 
 * #17: Fixed reading `TIMESTAMP` columns
-* #6: Added support for Exasol specific data types `INTERVAL`, `GEOMETRY` and `HASHTYPE`
+
+## Tests
+
+* #3: Added integration tests for filter, joins and sub-selects
+* #4: Added integration tests for scalar functions
+* #5: Added integration tests for aggregate functions
 
 ## Dependency Updates
 
