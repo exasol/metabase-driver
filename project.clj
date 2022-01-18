@@ -11,6 +11,7 @@
    "clj-kondo-deps" ["clj-kondo" "--copy-configs" "--dependencies" "--lint" "$classpath" "--cache-dir" ".clj-kondo/.cache"]
    "lint"           ["do" ["clj-kondo-deps"] ["clj-kondo" "--lint" "src" "test" "--cache-dir" ".clj-kondo/.cache"]]}
 
+
   :profiles
   {:provided
    {:dependencies [[org.clojure/clojure "1.10.0"]
