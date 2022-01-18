@@ -4,7 +4,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-jdbc_driver_version=7.1.3
+jdbc_driver_version=7.1.4
 exasol_driver_dir="$( cd "$(dirname "$0")/.." >/dev/null 2>&1 ; pwd -P )"
 metabase_dir=$(cd "$exasol_driver_dir/../metabase"; pwd)
 metabase_plugin_dir="$metabase_dir/plugins/"

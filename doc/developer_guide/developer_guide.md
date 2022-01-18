@@ -43,7 +43,7 @@ lein --version
 1. Checkout Metabase at `$HOME/git/metabase` (= `$METABASE_DIR`) and build it:
 
     ```bash
-    export METABASE_VERSION=0.41.5
+    export METABASE_VERSION=0.41.6
     cd $HOME/git
     git clone https://github.com/metabase/metabase.git
     cd metabase

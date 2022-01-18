@@ -86,45 +86,6 @@ index 5608a9b374..044e42a2d2 100644
  
  (deftest format-rows-test
    (mt/test-drivers (mt/normal-drivers-except dbs-exempt-from-format-rows-tests)
-diff --git a/test/metabase/query_processor/pivot_test.clj b/test/metabase/query_processor/pivot_test.clj
-index 127e8a609e..43dde7d317 100644
---- a/test/metabase/query_processor/pivot_test.clj
-+++ b/test/metabase/query_processor/pivot_test.clj
-@@ -153,33 +153,7 @@
-             (is (= 6 (count actual)))
-             (is (= expected actual))))))))
- 
--(deftest dont-return-too-many-rows-test
--  (testing "Make sure pivot queries don't return too many rows (#14329)"
--    (let [results (pivot/run-pivot-query (test-query))
--          rows    (mt/rows results)]
--      (is (= ["Product → Category"
--              "User → Source"
--              "Created At"
--              "pivot-grouping"
--              "Count"]
--             (map :display_name (mt/cols results))))
--      (is (apply distinct? rows))
--      (is (= [["Doohickey" "Facebook" "2019-01-01T00:00:00Z" 0  263]
--              ["Doohickey" "Facebook" "2020-01-01T00:00:00Z" 0  89]
--              ["Doohickey" "Google"   "2019-01-01T00:00:00Z" 0  276]
--              ["Doohickey" "Google"   "2020-01-01T00:00:00Z" 0  100]
--              ["Gizmo"     "Facebook" "2019-01-01T00:00:00Z" 0  361]
--              ["Gizmo"     "Facebook" "2020-01-01T00:00:00Z" 0  113]
--              ["Gizmo"     "Google"   "2019-01-01T00:00:00Z" 0  325]
--              ["Gizmo"     "Google"   "2020-01-01T00:00:00Z" 0  101]
--              ["Doohickey" "Facebook" nil                    4  352]
--              ["Doohickey" "Google"   nil                    4  376]
--              ["Gizmo"     "Facebook" nil                    4  474]
--              ["Gizmo"     "Google"   nil                    4  426]
--              ["Doohickey" nil        nil                    6  728]
--              ["Gizmo"     nil        nil                    6  900]
--              [nil         nil        nil                    7  1628]]
--             rows)))))
-+; https://github.com/exasol/metabase-driver/issues/14
- 
- (defn- distinct-values [table col]
-   (->> (mt/rows
 diff --git a/test/metabase/query_processor_test/alternative_date_test.clj b/test/metabase/query_processor_test/alternative_date_test.clj
 index f21aca9a7c..423d0e7bb5 100644
 --- a/test/metabase/query_processor_test/alternative_date_test.clj
@@ -193,19 +154,6 @@ index 015ff7fdd3..db03598e12 100644
      (mt/with-column-remappings [venues.category_id (values-of categories.name)]
        (let [{:keys [rows cols]} (qp.test/rows-and-cols
                                   (mt/format-rows-by [int int str]
-diff --git a/test/metabase/query_processor_test/implicit_joins_test.clj b/test/metabase/query_processor_test/implicit_joins_test.clj
-index 52f6103ab4..f01540a0e4 100644
---- a/test/metabase/query_processor_test/implicit_joins_test.clj
-+++ b/test/metabase/query_processor_test/implicit_joins_test.clj
-@@ -139,7 +139,7 @@
-                     :filter      [:= $receiver_id->users.name "Rasta Toucan"]}))))))))
- 
- (deftest implicit-joins-with-expressions-test
--  (mt/test-drivers (mt/normal-drivers-with-feature :foreign-keys :expressions)
-+  (mt/test-drivers (disj (mt/normal-drivers-with-feature :foreign-keys :expressions) :exasol) ; https://github.com/exasol/metabase-driver/issues/14
-     (testing "Should be able to run query with multiple implicit joins and breakouts"
-       (mt/dataset sample-dataset
-         (is (= [["Doohickey" "Facebook" "2019-01-01T00:00:00Z" 0 263]
 diff --git a/test/metabase/query_processor_test/parameters_test.clj b/test/metabase/query_processor_test/parameters_test.clj
 index f1de41d12e..4d1adbb3f2 100644
 --- a/test/metabase/query_processor_test/parameters_test.clj
