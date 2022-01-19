@@ -2,15 +2,27 @@
 
 To use the Exasol driver for Metabase please first follow the [Metabase installation guide](https://www.metabase.com/docs/latest/operations-guide/installing-metabase.html) to download and install Metabase.
 
-We assume that you installed Metabase at `$METABASE_DIR`.
-
 ## Installing the Driver
+
+We assume that you installed the Metabase JAR file `metabase.jar` to directory `$METABASE_DIR`. Plugins are then located in the same directory under `./plugins`: `$METABASE_DIR/plugins`.
+
+Also see the [Metabase documentation](https://www.metabase.com/docs/latest/developers-guide-drivers.html#how-to-use-a-community-built-driver) about installing community plugins.
+
+To install the Exasol driver follow these steps:
 
 1. Download the latest Exasol JDBC driver for your operating system from the [Exasol download page](https://www.exasol.com/portal/display/DOWNLOAD/).
 2. Copy the Exasol JDBC driver `exajdbc.jar` to `$METABASE_DIR/plugins`.
 3. Download the latest Exasol Metabase driver from the [GitHub release page](https://github.com/exasol/metabase-driver/releases).
-4. Copy the Exasol Metabase driver `exasol.metabase-driver.jar` to `$METABASE_DIR/plugins`.
-5. Restart Metabase.
+4. Copy the Exasol Metabase driver `exasol.metabase-driver_<version>.jar` to `$METABASE_DIR/plugins`.
+5. Restart the Metabase server.
+
+### Upgrading the Driver
+
+To upgrade the Exasol driver or the Exasol JDBC driver, follow these steps:
+
+1. Delete the old JAR file(s) from `$METABASE_DIR/plugins`
+2. Copy the new JAR file(s) to `$METABASE_DIR/plugins`
+3. Restart the Metabase server.
 
 ## Connect to Exasol
 
@@ -29,6 +41,14 @@ After you have installed the driver, create a new connection to your Exasol data
   * Password: Password of the database user
     ![Create Exasol Database](images/add_exasol_database.png "Create Exasol Database")
 4. Click the "Save" button at the bottom of the page to verify and save the database connection.
+
+### Connecting Through an SSH Tunnel
+
+You can optionally connect to Exasol through an SSH tunnel by activating the "Use an SSH-tunnel for database connections" option on the Database page. Then enter the details for the SSH connection.
+
+**Note:** We recommend to avoid connecting through an SSH tunnel if possible because it affects the performance.
+
+See the [Metabase documentation about SSH tunnels](https://www.metabase.com/docs/latest/administration-guide/ssh-tunnel-for-database-connections.html) for details.
 
 ## Known Issues
 
