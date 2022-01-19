@@ -9,3 +9,7 @@ In this release we enable connecting to Exasol through an SSH tunnel. See the [u
 ## Features
 
 * #25: Enabled SSH tunnel for connecting to Exasol
+
+## Documentation
+
+* Improve the installation instructions in the [user guide](../user_guide/user_guide.md#installing-the-driver)
