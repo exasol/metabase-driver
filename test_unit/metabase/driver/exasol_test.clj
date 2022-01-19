@@ -162,3 +162,20 @@
     (is (nil? (exasol/get-driver-version "no-such-resource-name"))))
   (testing "Driver version read from existing resource"
     (is (not (str/blank? (exasol/get-driver-version))))))
+
+(deftest humanize-connection-error-message-test
+  (testing "Driver translates connection error message"
+    (doseq [[message expected-message] [["Unknown host name. 192.168.56.5: nodename nor servname provided, or not known"
+                                         (driver.common/connection-error-messages :invalid-hostname)]
+                                        ["Connection exception - authentication failed."
+                                         (driver.common/connection-error-messages :username-or-password-incorrect)]
+                                        ["java.net.ConnectException: Connection refused (Connection refused)"
+                                         (driver.common/connection-error-messages :cannot-connect-check-host-and-port)]
+                                        ["java.io.IOException: TLS connection to host (192.168.56.5) failed: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target. If you trust the server, you can include the fingerprint in the connection string: 192.168.56.5/15F9CA9BC95E14F1F913FC449A26723841C118CFB644957866ABB73C1399A7FF:8563. "
+                                         "The server's TLS certificate is not signed. If you trust the server specify the following fingerprint: 15F9CA9BC95E14F1F913FC449A26723841C118CFB644957866ABB73C1399A7FF."]
+                                        ["[ERROR] Fingerprint did not match. The fingerprint provided: ABC. Server's certificate fingerprint: 15F9CA9BC95E14F1F913FC449A26723841C118CFB644957866ABB73C1399A7FF. "
+                                         "The server's TLS certificate has fingerprint 15F9CA9BC95E14F1F913FC449A26723841C118CFB644957866ABB73C1399A7FF but we expected ABC."]
+                                        ["Unknown error messages are unchanged"
+                                         "Unknown error messages are unchanged"]
+                                        [nil nil]]]
+         (is (= expected-message (driver/humanize-connection-error-message :exasol message))))))

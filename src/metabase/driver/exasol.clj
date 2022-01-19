@@ -68,6 +68,30 @@
 
       (sql-jdbc.common/handle-additional-options details, :seperator-style :semicolon)))
 
+(defmethod driver/humanize-connection-error-message :exasol
+  [_ message]
+  (when (not (nil? message))
+    (condp re-matches message
+      #"^java\.net\.ConnectException: Connection refused.*$"
+      (driver.common/connection-error-messages :cannot-connect-check-host-and-port)
+
+      #"^Connection exception - authentication failed\..*$"
+      (driver.common/connection-error-messages :username-or-password-incorrect)
+
+      #"^Unknown host name\..*$"
+      (driver.common/connection-error-messages :invalid-hostname)
+
+      #"^java\.io\.IOException: TLS connection to host .* failed: PKIX path building failed: sun\.security\.provider\.certpath\.SunCertPathBuilderException: unable to find valid certification path to requested target\. If you trust the server, you can include the fingerprint in the connection string: .*/(\w+):.*"
+      :>>
+      #(format "The server's TLS certificate is not signed. If you trust the server specify the following fingerprint: %s." (second %))
+
+      #"^\[ERROR\] Fingerprint did not match\. The fingerprint provided: (.*)\. Server's certificate fingerprint: (\w+)\..*"
+      :>>
+      #(format "The server's TLS certificate has fingerprint %s but we expected %s." (nth % 2) (second %))
+
+      #".*" ; default
+      message)))
+
 (def ^:private database-type->base-type
   (sql-jdbc.sync/pattern-based-database-type->base-type
    [;; https://docs.exasol.com/sql_references/data_types/datatypesoverview.htm
