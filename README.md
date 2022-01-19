@@ -16,6 +16,7 @@ The Exasol Driver for Metabase is an adapter, that allows you to query data from
 * Connections are encrypted via TLS by default
   * Specify a certificate fingerprint in case your database uses a self-signed TLS certificate
 * Allows tunneling the connection to Exasol through an [SSH tunnel](./doc/user_guide/user_guide.md#connecting-through-an-ssh-tunnel)
+* Provides helpful error messages in case of connection errors
 
 # Table of Contents
 
