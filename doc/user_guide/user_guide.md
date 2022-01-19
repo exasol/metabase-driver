@@ -30,6 +30,14 @@ After you have installed the driver, create a new connection to your Exasol data
     ![Create Exasol Database](images/add_exasol_database.png "Create Exasol Database")
 4. Click the "Save" button at the bottom of the page to verify and save the database connection.
 
+### Connecting Through an SSH Tunnel
+
+You can optionally connect to Exasol through an SSH tunnel by activating the "Use an SSH-tunnel for database connections" option on the Database page. Then enter the details for the SSH connection.
+
+**Note:** We recommend to avoid connecting through an SSH tunnel if possible because it affects the performance.
+
+See the [Metabase documentation about SSH tunnels](https://www.metabase.com/docs/latest/administration-guide/ssh-tunnel-for-database-connections.html) for details.
+
 ## Known Issues
 
 ### Using Tables with Self-Referencing Foreign Keys
