@@ -16,6 +16,25 @@
      [0 "null-values"      nil                                    nil  nil              nil]
      [1 "non-null-values" "550e8400-e29b-11d4-a716-446655440000" "5-3" "2 12:50:10.123" "POINT(2 5)"]]]])
 
+(tx/defdataset timestamp-data
+  "Test data with timestamp types"
+               (let [winter-timestamp "2021-01-31 08:15:30.123"
+                     summer-timestamp "2021-08-01 17:20:35.321"]
+                 
+  [["timestamp_data"
+    ; Columns
+    [{:field-name "row_order",           :base-type :type/Integer}
+     {:field-name "name",                :base-type :type/Text}
+     {:field-name "utc_string",          :base-type :type/Text}
+     {:field-name "timestamp",           :base-type {:native "TIMESTAMP"}}
+     {:field-name "timestamp_local_tz",  :base-type {:native "TIMESTAMP WITH LOCAL TIME ZONE"}}]
+    [; Rows
+     [0 "nil"    nil               nil               nil]
+     ;[1 "min"    min-timestamp     min-timestamp     min-timestamp]
+     ;[2 "max"    max-timestamp     max-timestamp     max-timestamp]
+     [3 "winter" winter-timestamp  winter-timestamp  winter-timestamp]
+     [4 "summer" summer-timestamp  summer-timestamp  summer-timestamp]]]]))
+
 
 (tx/defdataset geometry
   "Test data for testing geometry functions, see https://docs.exasol.com/sql_references/geospatialdata/geospatialdata_overview.htm#GeospatialObjects"

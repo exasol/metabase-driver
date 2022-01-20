@@ -38,6 +38,8 @@
 (def ^:private unsupported-features [:nested-fields])
 
 (deftest database-supports?-test
+  (testing "Driver supports setting timezone"
+    (is (= true (driver/database-supports? :exasol :set-timezone nil))))
   (testing "Supported features"
     (doseq [feature (apply disj driver/driver-features unsupported-features)]
       (testing (format "Driver supports feature %s" feature)
