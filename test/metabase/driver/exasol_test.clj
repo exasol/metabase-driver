@@ -6,7 +6,8 @@
             [metabase.test.data.dataset-definitions :as dataset]
             [metabase.test.data.exasol-dataset-definitions :as exasol-dataset]
             [metabase.query-processor :as qp]
-            [metabase.query-processor-test :as qp.test])
+            [metabase.query-processor-test :as qp.test]
+            [metabase.query-processor-test.alternative-date-test :as alt-date-test])
   (:import (java.util TimeZone)))
 
 (deftest timezone-id-test
@@ -224,3 +225,14 @@
                       (is (= "EUROPE/BERLIN"
                              (get-session-timezone "Europe/Berlin" "America/New_York"))
                           "Report timezone overrides Java timezone")))))
+
+(deftest iso-8601-text-fields
+  (testing "text fields with semantic_type :type/ISO8601DateTimeString"
+    (mt/test-drivers #{:exasol}
+                     (is (= [[1 "foo" #t "2004-10-19T10:23:54" #t "2004-10-19"]
+                             [2 "bar" #t "2008-10-19T10:23:54" #t "2008-10-19"]
+                             [3 "baz" #t "2012-10-19T10:23:54" #t "2012-10-19"]]
+                            (mt/rows (mt/dataset alt-date-test/just-dates
+                                                 (qp/process-query
+                                                  (assoc (mt/mbql-query just-dates)
+                                                         :middleware {:format-rows? false})))))))))

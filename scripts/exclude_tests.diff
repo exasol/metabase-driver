@@ -90,15 +90,6 @@ diff --git a/test/metabase/query_processor_test/alternative_date_test.clj b/test
 index f21aca9a7c..423d0e7bb5 100644
 --- a/test/metabase/query_processor_test/alternative_date_test.clj
 +++ b/test/metabase/query_processor_test/alternative_date_test.clj
-@@ -29,7 +29,7 @@
-      [0 1433965860000000]]]])
- 
- (deftest microseconds-test
--  (mt/test-drivers (disj (mt/normal-drivers) :sqlite)
-+  (mt/test-drivers (disj (mt/normal-drivers) :sqlite :exasol) ; https://github.com/exasol/metabase-driver/issues/9
-     (let [results (get {:sqlite #{[1 4 "2015-06-06 10:40:00"] [2 0 "2015-06-10 19:51:00"]}
-                         :oracle #{[1M 4M "2015-06-06T10:40:00Z"] [2M 0M "2015-06-10T19:51:00Z"]}}
-                        driver/*driver*
 @@ -174,7 +174,7 @@
  (deftest iso-8601-text-fields
    (testing "text fields with semantic_type :type/ISO8601DateTimeString"
@@ -108,23 +99,6 @@ index f21aca9a7c..423d0e7bb5 100644
          (is (= [[1 "foo" #t "2004-10-19T10:23:54" #t "2004-10-19" #t "10:23:54"]
                  [2 "bar" #t "2008-10-19T10:23:54" #t "2008-10-19" #t "10:23:54"]
                  [3 "baz" #t "2012-10-19T10:23:54" #t "2012-10-19" #t "10:23:54"]]
-@@ -203,6 +203,16 @@
-                             (qp/process-query
-                               (assoc (mt/mbql-query just-dates)
-                                      :middleware {:format-rows? false}))))))))
-+      (testing "exasol doesn't have a time type" ; Additional test for Exasol without TIME column (just-dates)
-+        (mt/test-drivers #{:exasol}
-+                         (is (= [[1 "foo" #t "2004-10-19T10:23:54" #t "2004-10-19"]
-+                                 [2 "bar" #t "2008-10-19T10:23:54" #t "2008-10-19"]
-+                                 [3 "baz" #t "2012-10-19T10:23:54" #t "2012-10-19"]]
-+                 ;; string-times dataset has three text fields, ts, d, t for timestamp, date, and time
-+                                (mt/rows (mt/dataset just-dates
-+                                                     (qp/process-query
-+                                                      (assoc (mt/mbql-query just-dates)
-+                                                             :middleware {:format-rows? false}))))))))
-       (testing "sqlite returns as strings"
-         (mt/test-drivers #{:sqlite}
-           (is (= [[1 "foo" "2004-10-19 10:23:54" "2004-10-19" "10:23:54"]
 @@ -216,13 +226,13 @@
      (testing "are queryable as dates"
        (testing "a datetime field"
