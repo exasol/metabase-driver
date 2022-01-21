@@ -38,7 +38,7 @@ check_preconditions() {
         exit 1
     fi
 
-    if [[ -z "${EXASOL_HOST+x}" || -z "${EXASOL_PORT+x}" || -z "${EXASOL_USER+x}" || -z "${EXASOL_PASSWORD+x}" ]]; then
+    if [[ -z "${EXASOL_HOST+x}" || -z "${EXASOL_PORT+x}" || -z "${EXASOL_USER+x}" || -z "${EXASOL_PASSWORD+x}" ]] ; then
         log_error "Environment variables 'EXASOL_HOST', 'EXASOL_PORT', 'EXASOL_USER' and 'EXASOL_PASSWORD' must be defined:"
         log_error "EXASOL_HOST=localhost EXASOL_PORT=8563 EXASOL_USER=sys EXASOL_PASSWORD=exasol $0"
         exit 1
@@ -153,8 +153,14 @@ patch_metabase_deps
 patch_excluded_tests
 install_jdbc_driver
 install_metabase_jar
-log_info "Getting certificate fingerprint from $EXASOL_HOST:$EXASOL_PORT..."
-fingerprint=$(get_exasol_certificate_fingerprint)
+
+if [[ -z "${EXASOL_FINGERPRINT+x}" ]] ; then
+    log_info "Getting certificate fingerprint from $EXASOL_HOST:$EXASOL_PORT..."
+    fingerprint=$(get_exasol_certificate_fingerprint)
+else
+    log_info "Using given certificate fingerprint $EXASOL_FINGERPRINT"
+    fingerprint="$EXASOL_FINGERPRINT"
+fi
 
 if [ "$skip_build" == "true" ]; then
     log_error "Skipping driver build"
