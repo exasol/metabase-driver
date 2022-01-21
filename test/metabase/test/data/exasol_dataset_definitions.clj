@@ -29,11 +29,8 @@
      {:field-name "timestamp",           :base-type {:native "TIMESTAMP"}}
      {:field-name "timestamp_local_tz",  :base-type {:native "TIMESTAMP WITH LOCAL TIME ZONE"}}]
     [; Rows
-     [0 "nil"    nil               nil               nil]
-     ;[1 "min"    min-timestamp     min-timestamp     min-timestamp]
-     ;[2 "max"    max-timestamp     max-timestamp     max-timestamp]
-     [3 "winter" winter-timestamp  winter-timestamp  winter-timestamp]
-     [4 "summer" summer-timestamp  summer-timestamp  summer-timestamp]]]]))
+     [0 "winter" winter-timestamp  winter-timestamp  winter-timestamp]
+     [1 "summer" summer-timestamp  summer-timestamp  summer-timestamp]]]]))
 
 
 (tx/defdataset geometry

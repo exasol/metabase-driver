@@ -54,17 +54,33 @@ See the [Metabase documentation about SSH tunnels](https://www.metabase.com/docs
 
 Exasol has two data types for representing date and time: `TIMESTAMP` and `TIMESTAMP WITH LOCAL TIME ZONE`, see the [documentation about Exasol's date/time data types](https://docs.exasol.com/sql_references/data_types/datatypedetails.htm#DateTimeDataTypes) for details.
 
-Metabase will show data from `TIMESTAMP` columns 'as is', i.e. the same value as stored in the database. Values from a `TIMESTAMP WITH LOCAL TIME ZONE` column will be interpreted as UTC and displayed in the *Report Timezone* configured in Matabase's Localization Settings. If *Report Timezone* is set to the default (*Database Default*), Metabase will display these values in UTC timezone.
+Metabase will show data from `TIMESTAMP` columns 'as is', i.e. the same value as stored in the database. Values from a `TIMESTAMP WITH LOCAL TIME ZONE` column will be displayed in the *Report Timezone* configured in Matabase's Localization Settings. If *Report Timezone* is set to the default (*Database Default*), Metabase will use Exasol's default timezone. The default timezone in Exasol can be defined by running
+
+```sql
+ALTER SYSTEM SET TIME_ZONE = 'America/New_York';
+```
+
+See the [ALTER SYSTEM documentation](https://docs.exasol.com/sql/alter_system.htm) for details.
 
 **Example:**
-Inserting the value `'2021-01-31 08:15:30.123'` into a column will display the following values (depending on the configured date format):
+Inserting the value `'2021-01-31 08:15:30.123'` (in UTC) into a column will display the following values (depending on the configured date format):
 
 | Metabase *Report Timezone* | Displayed value `TIMESTAMP` | Displayed value `TIMESTAMP WITH LOCAL TIME ZONE` |
 |----------------------------|-----------------------------|--------------------------------------------------|
-| Database Default           | January 31, 2021, 08:15     | January 31, 2021, 08:15                          |
+| Database Default           | January 31, 2021, 08:15     | (depends on default timezone)                    |
 | America/New_York           | January 31, 2021, 08:15     | January 31, 2021, 03:15                          |
 | Europe/Berlin              | January 31, 2021, 08:15     | January 31, 2021, 09:15                          |
 
+To ensure consistent behavior we recommend the following:
+
+* Run SQL command
+
+    ```sql
+    ALTER SESSION SET TIME_ZONE = 'UTC';
+    ```
+
+    before inserting into `TIMESTAMP WITH LOCAL TIME ZONE` columns and using only timestamps in UTC timezone. This ensures that the database contains the correct values.
+* Set the *Report Timezone* in Metabase to the user's timezone. This avoids issues caused by different configuration in the Exasol database.
 
 For further information see the Metabase documentation about [handling timezones](https://www.metabase.com/docs/latest/operations-guide/handling-timezones.html) and the [date and time troubleshooting guide](https://www.metabase.com/docs/latest/troubleshooting-guide/timezones.html).
 

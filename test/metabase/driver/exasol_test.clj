@@ -173,19 +173,15 @@
                                  {:fields   [$name $utc_string $timestamp $timestamp_local_tz]
                                   :order-by [[:asc $row_order]]}))))))
 
-
 (deftest timestamp-test
   (testing "Timestamps are returned in the correct timezone"
     (mt/test-driver :exasol
-
-                    (is (= [["nil"    nil nil nil]
-                            ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123+01:00"  "2021-01-31T09:15:30.123+01:00"]
+                    (is (= [["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123+01:00"  "2021-01-31T09:15:30.123+01:00"]
                             ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321+02:00"  "2021-08-01T19:20:35.321+02:00"]]
                            (get-timestamp-data-rows "Europe/Berlin"))
                         "Session TZ = Europe/Berlin")
 
-                    (is (= [["nil"    nil nil nil]
-                            ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123-05:00"  "2021-01-31T03:15:30.123-05:00"]
+                    (is (= [["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123-05:00"  "2021-01-31T03:15:30.123-05:00"]
                             ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321-04:00"  "2021-08-01T13:20:35.321-04:00"]]
                            (get-timestamp-data-rows "America/New_York"))
                         "Session TZ = America/New_York"))))
