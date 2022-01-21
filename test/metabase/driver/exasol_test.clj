@@ -166,7 +166,6 @@
 (defn- get-timestamp-data-rows
   [db-session-timezone java-timezone]
   (do-with-java-timezone java-timezone
-                         #_{:clj-kondo/ignore [:unresolved-symbol]} ; report-timezone symbol
                          #(mt/with-temporary-setting-values [report-timezone db-session-timezone]
                             (mt/rows
                              (qp/process-query
@@ -177,52 +176,81 @@
 
 
 (deftest timestamp-test
-  (testing "Timestamps are returned in the correct timezone")
-  (mt/test-driver :exasol
-                  (is (= [["nil"    nil nil nil]
-                          ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123Z"  "2021-01-31T08:15:30.123Z"]
-                          ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321Z"  "2021-08-01T17:20:35.321Z"]]
-                         (get-timestamp-data-rows nil nil))
-                      "Session TZ = nil & Java TZ = nil")
+  (testing "Timestamps are returned in the correct timezone"
+    (mt/test-driver :exasol
+                    (is (= [["nil"    nil nil nil]
+                            ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123Z"  "2021-01-31T08:15:30.123Z"]
+                            ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321Z"  "2021-08-01T17:20:35.321Z"]]
+                           (get-timestamp-data-rows nil nil))
+                        "Session TZ = nil & Java TZ = nil")
 
-                  (is (= [["nil"    nil nil nil]
-                          ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123+01:00"  "2021-01-31T09:15:30.123+01:00"]
-                          ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321+02:00"  "2021-08-01T19:20:35.321+02:00"]]
-                         (get-timestamp-data-rows "Europe/Berlin" nil))
-                      "Session TZ = Europe/Berlin & Java TZ = nil")
+                    (is (= [["nil"    nil nil nil]
+                            ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123+01:00"  "2021-01-31T09:15:30.123+01:00"]
+                            ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321+02:00"  "2021-08-01T19:20:35.321+02:00"]]
+                           (get-timestamp-data-rows "Europe/Berlin" nil))
+                        "Session TZ = Europe/Berlin & Java TZ = nil")
 
-                  (is (= [["nil"    nil nil nil]
-                          ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123-05:00"  "2021-01-31T03:15:30.123-05:00"]
-                          ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321-04:00"  "2021-08-01T13:20:35.321-04:00"]]
-                         (get-timestamp-data-rows "America/New_York" nil))
-                      "Session TZ = America/New_York & Java TZ = nil")
+                    (is (= [["nil"    nil nil nil]
+                            ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123-05:00"  "2021-01-31T03:15:30.123-05:00"]
+                            ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321-04:00"  "2021-08-01T13:20:35.321-04:00"]]
+                           (get-timestamp-data-rows "America/New_York" nil))
+                        "Session TZ = America/New_York & Java TZ = nil")
 
-                  (is (= [["nil"    nil nil nil]
-                          ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123-05:00"  "2021-01-31T08:15:30.123-05:00"]
-                          ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321-04:00"  "2021-08-01T17:20:35.321-04:00"]]
-                         (get-timestamp-data-rows nil "America/New_York"))
-                      "Session TZ = nil & Java TZ = America/New_York")
+                    (is (= [["nil"    nil nil nil]
+                            ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123-05:00"  "2021-01-31T08:15:30.123-05:00"]
+                            ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321-04:00"  "2021-08-01T17:20:35.321-04:00"]]
+                           (get-timestamp-data-rows nil "America/New_York"))
+                        "Session TZ = nil & Java TZ = America/New_York")
 
-                  (is (= [["nil"    nil nil nil]
-                          ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123+01:00"  "2021-01-31T08:15:30.123+01:00"]
-                          ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321+02:00"  "2021-08-01T17:20:35.321+02:00"]]
-                         (get-timestamp-data-rows nil "Europe/Berlin"))
-                      "Session TZ = nil & Java TZ = Europe/Berlin")
+                    (is (= [["nil"    nil nil nil]
+                            ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123+01:00"  "2021-01-31T08:15:30.123+01:00"]
+                            ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321+02:00"  "2021-08-01T17:20:35.321+02:00"]]
+                           (get-timestamp-data-rows nil "Europe/Berlin"))
+                        "Session TZ = nil & Java TZ = Europe/Berlin")
 
-                  (is (= [["nil"    nil nil nil]
-                          ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123-05:00"  "2021-01-31T03:15:30.123-05:00"]
-                          ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321-04:00"  "2021-08-01T13:20:35.321-04:00"]]
-                         (get-timestamp-data-rows "America/New_York" "America/New_York"))
-                      "Session TZ = America/New_York & Java TZ = America/New_York")
+                    (is (= [["nil"    nil nil nil]
+                            ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123-05:00"  "2021-01-31T03:15:30.123-05:00"]
+                            ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321-04:00"  "2021-08-01T13:20:35.321-04:00"]]
+                           (get-timestamp-data-rows "America/New_York" "America/New_York"))
+                        "Session TZ = America/New_York & Java TZ = America/New_York")
 
-                  (is (= [["nil" nil nil nil]
-                          ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123+01:00"  "2021-01-31T09:15:30.123+01:00"]
-                          ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321+02:00"  "2021-08-01T19:20:35.321+02:00"]]
-                         (get-timestamp-data-rows "Europe/Berlin" "America/New_York"))
-                      "Session TZ = Europe/Berlin & Java TZ = America/New_York")
+                    (is (= [["nil" nil nil nil]
+                            ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123+01:00"  "2021-01-31T09:15:30.123+01:00"]
+                            ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321+02:00"  "2021-08-01T19:20:35.321+02:00"]]
+                           (get-timestamp-data-rows "Europe/Berlin" "America/New_York"))
+                        "Session TZ = Europe/Berlin & Java TZ = America/New_York")
 
-                  (is (= [["nil" nil nil nil]
-                          ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123-05:00"  "2021-01-31T03:15:30.123-05:00"]
-                          ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321-04:00"  "2021-08-01T13:20:35.321-04:00"]]
-                         (get-timestamp-data-rows "America/New_York" "Europe/Berlin"))
-                      "Session TZ = America/New_York & Java TZ = Europe/Berlin")))
+                    (is (= [["nil" nil nil nil]
+                            ["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123-05:00"  "2021-01-31T03:15:30.123-05:00"]
+                            ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321-04:00"  "2021-08-01T13:20:35.321-04:00"]]
+                           (get-timestamp-data-rows "America/New_York" "Europe/Berlin"))
+                        "Session TZ = America/New_York & Java TZ = Europe/Berlin"))))
+
+(defn- get-db-timezones
+  [db-session-timezone java-timezone]
+  (do-with-java-timezone java-timezone
+                         #(mt/with-temporary-setting-values [report-timezone db-session-timezone]
+                            (mt/rows
+                             (qp/process-query
+                              {:database   (mt/id)
+                               :type       :native
+                               :native     {:query "select DBTIMEZONE, SESSIONTIMEZONE"}})))))
+
+(deftest db-timezone-test
+  (testing "Exasol reports the expected time zones for DB and session"
+    (mt/test-driver :exasol
+                    (is (= [["UTC" "UTC"]]
+                           (get-db-timezones nil nil))
+                        "No configuration returns UTC")
+                    (is (= [["UTC" "UTC"]]
+                           (get-db-timezones nil "America/New_York"))
+                        "Java timezone is ignored")
+                    (is (= [["UTC" "AMERICA/NEW_YORK"]]
+                           (get-db-timezones "America/New_York" nil))
+                        "Report timezone sets session timezone")
+                    (is (= [["UTC" "AMERICA/NEW_YORK"]]
+                           (get-db-timezones "America/New_York" "Europe/Berlin"))
+                        "Report timezone overrides Java timezone")
+                    (is (= [["UTC" "EUROPE/BERLIN"]]
+                           (get-db-timezones "Europe/Berlin" "America/New_York"))
+                        "Report timezone overrides Java timezone"))))
