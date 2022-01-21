@@ -5,6 +5,7 @@
             [metabase.db :as mdb]
             [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
             [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
+            [metabase.driver.sql-jdbc.execute :as sql-jdbc.execute]
             [metabase.models :as model]
             [metabase.test.data.impl :as data.impl]
             [metabase.test.data.interface :as tx]
@@ -143,6 +144,11 @@
 (defn drop-schema! [schema-name]
   (u/ignore-exceptions
    (execute! "DROP SCHEMA \"%s\" CASCADE" schema-name)))
+
+#_{:clj-kondo/ignore [:deprecated-var]} ; method is deprecated but required for setting UTC timezone when loading test data
+(defmethod sql-jdbc.execute/set-timezone-sql :exasol
+  [_]
+  "ALTER SESSION SET TIME_ZONE = %s")
 
 (defmethod tx/before-run :exasol
   [_]
