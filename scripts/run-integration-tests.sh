@@ -124,12 +124,13 @@ build_and_install_driver() {
 get_exasol_certificate_fingerprint() {
     local certificate
     local fingerprint
+    local port=${alternative_tls_port:-$EXASOL_PORT}
     # Adding '|| true' is necessary as openssl returns exit code 1 and logs "poll error".
-    certificate=$(openssl s_client -connect "$EXASOL_HOST:$EXASOL_PORT" < /dev/null 2>/dev/null) || true
+    certificate=$(openssl s_client -connect "$EXASOL_HOST:$port" < /dev/null 2>/dev/null) || true
 
     if [ -z "${certificate}" ]; then
-        >&2 log_error "Error connecting to Exasol database at $EXASOL_HOST:$EXASOL_PORT"
-        openssl s_client -connect "$EXASOL_HOST:$EXASOL_PORT" < /dev/null
+        >&2 log_error "Error connecting to Exasol database at $EXASOL_HOST:$port"
+        openssl s_client -connect "$EXASOL_HOST:$port" < /dev/null
         exit 1
     fi
 
@@ -139,7 +140,8 @@ get_exasol_certificate_fingerprint() {
                 | sed 's/://g')
 
     if [ -z "${fingerprint}" ]; then
-        >&2 log_error "Error getting certificate from $EXASOL_HOST:$EXASOL_PORT"
+        >&2 log_error "Error getting certificate from $EXASOL_HOST:$port"
+        >&2 log_error "Try specifying alternative_tls_port=443"
         exit 1
     fi
     echo "$fingerprint"
@@ -155,7 +157,7 @@ install_jdbc_driver
 install_metabase_jar
 
 if [[ -z "${EXASOL_FINGERPRINT+x}" ]] ; then
-    log_info "Getting certificate fingerprint from $EXASOL_HOST:$EXASOL_PORT..."
+    log_info "Getting certificate fingerprint from $EXASOL_HOST..."
     fingerprint=$(get_exasol_certificate_fingerprint)
 else
     log_info "Using given certificate fingerprint $EXASOL_FINGERPRINT"
