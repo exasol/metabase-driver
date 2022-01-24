@@ -1,3 +1,16 @@
+diff --git a/test/metabase/api/notify_test.clj b/test/metabase/api/notify_test.clj
+index 8a146f7d56..ebd85ff5bc 100644
+--- a/test/metabase/api/notify_test.clj
++++ b/test/metabase/api/notify_test.clj
+@@ -31,7 +31,7 @@
+ 
+ (deftest post-db-id-test
+   (binding [notify/*execute-asynchronously* false]
+-    (mt/test-drivers (mt/normal-drivers)
++    (mt/test-drivers (disj (mt/normal-drivers) :exasol) ; Deactivated flaky test: https://github.com/exasol/metabase-driver/issues/21
+       (let [table-name (->> (mt/db) database/tables first :name)
+             post       (fn post-api
+                          ([payload] (post-api payload 200))
 diff --git a/test/metabase/api/session_test.clj b/test/metabase/api/session_test.clj
 index b1042e9723..c92e26206b 100644
 --- a/test/metabase/api/session_test.clj
