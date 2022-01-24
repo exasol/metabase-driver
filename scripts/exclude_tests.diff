@@ -90,6 +90,15 @@ diff --git a/test/metabase/query_processor_test/alternative_date_test.clj b/test
 index f21aca9a7c..423d0e7bb5 100644
 --- a/test/metabase/query_processor_test/alternative_date_test.clj
 +++ b/test/metabase/query_processor_test/alternative_date_test.clj
+@@ -29,7 +29,7 @@
+      [0 1433965860000000]]]])
+
+ (deftest microseconds-test
+-  (mt/test-drivers (disj (mt/normal-drivers) :sqlite)
++  (mt/test-drivers (disj (mt/normal-drivers) :sqlite :exasol) ; https://github.com/exasol/metabase-driver/issues/9
+     (let [results (get {:sqlite #{[1 4 "2015-06-06 10:40:00"] [2 0 "2015-06-10 19:51:00"]}
+                         :oracle #{[1M 4M "2015-06-06T10:40:00Z"] [2M 0M "2015-06-10T19:51:00Z"]}}
+                        driver/*driver*
 @@ -174,7 +174,7 @@
  (deftest iso-8601-text-fields
    (testing "text fields with semantic_type :type/ISO8601DateTimeString"
