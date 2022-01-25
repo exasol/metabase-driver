@@ -38,7 +38,7 @@ check_preconditions() {
         exit 1
     fi
 
-    if [[ -z "${EXASOL_HOST+x}" || -z "${EXASOL_PORT+x}" || -z "${EXASOL_USER+x}" || -z "${EXASOL_PASSWORD+x}" ]]; then
+    if [[ -z "${EXASOL_HOST+x}" || -z "${EXASOL_PORT+x}" || -z "${EXASOL_USER+x}" || -z "${EXASOL_PASSWORD+x}" ]] ; then
         log_error "Environment variables 'EXASOL_HOST', 'EXASOL_PORT', 'EXASOL_USER' and 'EXASOL_PASSWORD' must be defined:"
         log_error "EXASOL_HOST=localhost EXASOL_PORT=8563 EXASOL_USER=sys EXASOL_PASSWORD=exasol $0"
         exit 1
@@ -124,12 +124,13 @@ build_and_install_driver() {
 get_exasol_certificate_fingerprint() {
     local certificate
     local fingerprint
+    local port=${alternative_tls_port:-$EXASOL_PORT}
     # Adding '|| true' is necessary as openssl returns exit code 1 and logs "poll error".
-    certificate=$(openssl s_client -connect "$EXASOL_HOST:$EXASOL_PORT" < /dev/null 2>/dev/null) || true
+    certificate=$(openssl s_client -connect "$EXASOL_HOST:$port" < /dev/null 2>/dev/null) || true
 
     if [ -z "${certificate}" ]; then
-        >&2 log_error "Error connecting to Exasol database at $EXASOL_HOST:$EXASOL_PORT"
-        openssl s_client -connect "$EXASOL_HOST:$EXASOL_PORT" < /dev/null
+        >&2 log_error "Error connecting to Exasol database at $EXASOL_HOST:$port"
+        openssl s_client -connect "$EXASOL_HOST:$port" < /dev/null
         exit 1
     fi
 
@@ -139,7 +140,8 @@ get_exasol_certificate_fingerprint() {
                 | sed 's/://g')
 
     if [ -z "${fingerprint}" ]; then
-        >&2 log_error "Error getting certificate from $EXASOL_HOST:$EXASOL_PORT"
+        >&2 log_error "Error getting certificate from $EXASOL_HOST:$port"
+        >&2 log_error "Try specifying alternative_tls_port=443"
         exit 1
     fi
     echo "$fingerprint"
@@ -153,8 +155,14 @@ patch_metabase_deps
 patch_excluded_tests
 install_jdbc_driver
 install_metabase_jar
-log_info "Getting certificate fingerprint from $EXASOL_HOST:$EXASOL_PORT..."
-fingerprint=$(get_exasol_certificate_fingerprint)
+
+if [[ -z "${EXASOL_FINGERPRINT+x}" ]] ; then
+    log_info "Getting certificate fingerprint from $EXASOL_HOST..."
+    fingerprint=$(get_exasol_certificate_fingerprint)
+else
+    log_info "Using given certificate fingerprint $EXASOL_FINGERPRINT"
+    fingerprint="$EXASOL_FINGERPRINT"
+fi
 
 if [ "$skip_build" == "true" ]; then
     log_error "Skipping driver build"
@@ -171,5 +179,5 @@ MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_EXASOL_TEST_USER=$EXASOL_USER \
   MB_EXASOL_TEST_PASSWORD=$EXASOL_PASSWORD \
   DRIVERS=exasol \
-  clojure -J-Duser.country=US -J-Duser.language=en \
+  clojure -J-Duser.country=US -J-Duser.language=en -J-Duser.timezone=UTC \
           -X:dev:ci:drivers:drivers-dev:test "$@"

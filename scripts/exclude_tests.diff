@@ -1,3 +1,16 @@
+diff --git a/test/metabase/api/notify_test.clj b/test/metabase/api/notify_test.clj
+index 8a146f7d56..ebd85ff5bc 100644
+--- a/test/metabase/api/notify_test.clj
++++ b/test/metabase/api/notify_test.clj
+@@ -31,7 +31,7 @@
+ 
+ (deftest post-db-id-test
+   (binding [notify/*execute-asynchronously* false]
+-    (mt/test-drivers (mt/normal-drivers)
++    (mt/test-drivers (disj (mt/normal-drivers) :exasol) ; Deactivated flaky test: https://github.com/exasol/metabase-driver/issues/21
+       (let [table-name (->> (mt/db) database/tables first :name)
+             post       (fn post-api
+                          ([payload] (post-api payload 200))
 diff --git a/test/metabase/api/session_test.clj b/test/metabase/api/session_test.clj
 index b1042e9723..c92e26206b 100644
 --- a/test/metabase/api/session_test.clj
@@ -35,7 +48,7 @@ index b1042e9723..c92e26206b 100644
  (deftest logout-test
    (testing "DELETE /api/session"
 diff --git a/test/metabase/api/table_test.clj b/test/metabase/api/table_test.clj
-index a348540ca2..c81ac9b109 100644
+index a348540ca2..b24a88cd52 100644
 --- a/test/metabase/api/table_test.clj
 +++ b/test/metabase/api/table_test.clj
 @@ -706,7 +706,7 @@
@@ -56,12 +69,12 @@ index f70cd095e2..efff516904 100644
  
  (deftest e2e-parse-native-dates-test
 -  (mt/test-drivers (disj (sql-parameters-engines) :sqlite)
-+  (mt/test-drivers (disj (sql-parameters-engines) :sqlite :exasol) ; https://github.com/exasol/metabase-driver/issues/9
++  (mt/test-drivers (disj (sql-parameters-engines) :sqlite :exasol) ; Timestamp/timezone covered by Exasol specific tests.
      (is (= [(cond
                (= driver/*driver* :presto)
                "2018-04-18"
 diff --git a/test/metabase/driver/sql_jdbc_test.clj b/test/metabase/driver/sql_jdbc_test.clj
-index 5e8c012138..b47b53622e 100644
+index 5e8c012138..91e37bbef0 100644
 --- a/test/metabase/driver/sql_jdbc_test.clj
 +++ b/test/metabase/driver/sql_jdbc_test.clj
 @@ -195,7 +195,7 @@
@@ -74,7 +87,7 @@ index 5e8c012138..b47b53622e 100644
          (is (= 2
                 (mt/dataset test-data-with-time
 diff --git a/test/metabase/query_processor/middleware/format_rows_test.clj b/test/metabase/query_processor/middleware/format_rows_test.clj
-index 5608a9b374..044e42a2d2 100644
+index 5608a9b374..c64c953438 100644
 --- a/test/metabase/query_processor/middleware/format_rows_test.clj
 +++ b/test/metabase/query_processor/middleware/format_rows_test.clj
 @@ -14,7 +14,7 @@
@@ -87,7 +100,7 @@ index 5608a9b374..044e42a2d2 100644
  (deftest format-rows-test
    (mt/test-drivers (mt/normal-drivers-except dbs-exempt-from-format-rows-tests)
 diff --git a/test/metabase/query_processor_test/alternative_date_test.clj b/test/metabase/query_processor_test/alternative_date_test.clj
-index f21aca9a7c..423d0e7bb5 100644
+index f21aca9a7c..5ee692d226 100644
 --- a/test/metabase/query_processor_test/alternative_date_test.clj
 +++ b/test/metabase/query_processor_test/alternative_date_test.clj
 @@ -29,7 +29,7 @@
@@ -95,7 +108,7 @@ index f21aca9a7c..423d0e7bb5 100644
  
  (deftest microseconds-test
 -  (mt/test-drivers (disj (mt/normal-drivers) :sqlite)
-+  (mt/test-drivers (disj (mt/normal-drivers) :sqlite :exasol) ; https://github.com/exasol/metabase-driver/issues/9
++  (mt/test-drivers (disj (mt/normal-drivers) :sqlite :exasol) ; Timestamp/timezone covered by Exasol specific tests.
      (let [results (get {:sqlite #{[1 4 "2015-06-06 10:40:00"] [2 0 "2015-06-10 19:51:00"]}
                          :oracle #{[1M 4M "2015-06-06T10:40:00Z"] [2M 0M "2015-06-10T19:51:00Z"]}}
                         driver/*driver*
@@ -108,24 +121,7 @@ index f21aca9a7c..423d0e7bb5 100644
          (is (= [[1 "foo" #t "2004-10-19T10:23:54" #t "2004-10-19" #t "10:23:54"]
                  [2 "bar" #t "2008-10-19T10:23:54" #t "2008-10-19" #t "10:23:54"]
                  [3 "baz" #t "2012-10-19T10:23:54" #t "2012-10-19" #t "10:23:54"]]
-@@ -203,6 +203,16 @@
-                             (qp/process-query
-                               (assoc (mt/mbql-query just-dates)
-                                      :middleware {:format-rows? false}))))))))
-+      (testing "exasol doesn't have a time type" ; Additional test for Exasol without TIME column (just-dates)
-+        (mt/test-drivers #{:exasol}
-+                         (is (= [[1 "foo" #t "2004-10-19T10:23:54" #t "2004-10-19"]
-+                                 [2 "bar" #t "2008-10-19T10:23:54" #t "2008-10-19"]
-+                                 [3 "baz" #t "2012-10-19T10:23:54" #t "2012-10-19"]]
-+                 ;; string-times dataset has three text fields, ts, d, t for timestamp, date, and time
-+                                (mt/rows (mt/dataset just-dates
-+                                                     (qp/process-query
-+                                                      (assoc (mt/mbql-query just-dates)
-+                                                             :middleware {:format-rows? false}))))))))
-       (testing "sqlite returns as strings"
-         (mt/test-drivers #{:sqlite}
-           (is (= [[1 "foo" "2004-10-19 10:23:54" "2004-10-19" "10:23:54"]
-@@ -216,13 +226,13 @@
+@@ -216,13 +216,13 @@
      (testing "are queryable as dates"
        (testing "a datetime field"
          ;; TODO: why does this fail on oracle? gives a NPE
@@ -155,7 +151,7 @@ index 015ff7fdd3..db03598e12 100644
        (let [{:keys [rows cols]} (qp.test/rows-and-cols
                                   (mt/format-rows-by [int int str]
 diff --git a/test/metabase/query_processor_test/parameters_test.clj b/test/metabase/query_processor_test/parameters_test.clj
-index f1de41d12e..4d1adbb3f2 100644
+index f1de41d12e..7986f53406 100644
 --- a/test/metabase/query_processor_test/parameters_test.clj
 +++ b/test/metabase/query_processor_test/parameters_test.clj
 @@ -114,7 +114,7 @@
@@ -168,7 +164,7 @@ index f1de41d12e..4d1adbb3f2 100644
              (doseq [field
                      [:datetime
 diff --git a/test/metabase/query_processor_test/remapping_test.clj b/test/metabase/query_processor_test/remapping_test.clj
-index 70b172130f..5f1ed24e89 100644
+index 70b172130f..8a40f4ca91 100644
 --- a/test/metabase/query_processor_test/remapping_test.clj
 +++ b/test/metabase/query_processor_test/remapping_test.clj
 @@ -9,7 +9,7 @@
@@ -199,7 +195,7 @@ index 70b172130f..5f1ed24e89 100644
        (mt/with-column-remappings [users.created_by users.name]
          (db/update! Field (mt/id :users :created_by)
 diff --git a/test/metabase/query_processor_test/time_field_test.clj b/test/metabase/query_processor_test/time_field_test.clj
-index e8b2743998..fdfc7e6e28 100644
+index e8b2743998..49e268736c 100644
 --- a/test/metabase/query_processor_test/time_field_test.clj
 +++ b/test/metabase/query_processor_test/time_field_test.clj
 @@ -14,7 +14,7 @@
@@ -212,14 +208,14 @@ index e8b2743998..fdfc7e6e28 100644
  (deftest basic-test
    (mt/test-drivers (mt/normal-drivers-except skip-time-test-drivers)
 diff --git a/test/metabase/query_processor_test/timezones_test.clj b/test/metabase/query_processor_test/timezones_test.clj
-index 0eb62eed08..3312cb3d79 100644
+index 0eb62eed08..cff19f3d37 100644
 --- a/test/metabase/query_processor_test/timezones_test.clj
 +++ b/test/metabase/query_processor_test/timezones_test.clj
 @@ -18,6 +18,7 @@
    https://circleci.com/workflow-run/856f6dd0-3d95-4732-a56e-1af59e3ae4ba. The goal is to gradually remove these
    one-by-one as they are fixed."
    #{:oracle
-+    :exasol ; https://github.com/exasol/metabase-driver/issues/9
++    :exasol ; Timestamp/timezone covered by Exasol specific tests.
      :presto
      :redshift
      :snowflake

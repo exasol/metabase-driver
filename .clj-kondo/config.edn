@@ -9,4 +9,6 @@
                                          ; The run-mbql-query and mbql-query macros allow using $field shortcut syntax
                                          (metabase.test/run-mbql-query)
                                          (metabase.test/mbql-query)
+                                         ; Requires specifying a symbol, e.g. report-timezone
+                                         (metabase.test/with-temporary-setting-values)
                                          ]}}}

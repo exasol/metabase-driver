@@ -6,7 +6,9 @@
             [metabase.test.data.dataset-definitions :as dataset]
             [metabase.test.data.exasol-dataset-definitions :as exasol-dataset]
             [metabase.query-processor :as qp]
-            [metabase.query-processor-test :as qp.test]))
+            [metabase.query-processor-test :as qp.test]
+            [metabase.query-processor-test.alternative-date-test :as alt-date-test])
+  (:import (java.util TimeZone)))
 
 (deftest timezone-id-test
   (mt/test-driver :exasol
@@ -152,3 +154,85 @@
                                                                    :aggregation  [:count]
                                                                    :order-by     [[:asc $venue_id->venues.price]]
                                                                    :breakout     [$venue_id->venues.price]}))))))))
+
+(defn- do-with-java-timezone
+  [timezone-id body]
+  (let [org-timezone (TimeZone/getDefault)]
+    (try
+      (TimeZone/setDefault (when (not (nil? timezone-id)) (TimeZone/getTimeZone timezone-id)))
+      (body)
+      (finally
+        (TimeZone/setDefault org-timezone)))))
+
+(defn- get-timestamp-data-rows
+  [db-session-timezone]
+  (mt/with-temporary-setting-values [report-timezone db-session-timezone]
+    (mt/rows
+     (qp/process-query
+      (mt/dataset exasol-dataset/timestamp-data
+                  (mt/mbql-query "timestamp_data"
+                                 {:fields   [$name $utc_string $timestamp $timestamp_local_tz]
+                                  :order-by [[:asc $row_order]]}))))))
+
+(deftest timestamp-test
+  (testing "Timestamps are returned in the correct timezone"
+    (mt/test-driver :exasol
+                    (is (= [["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123+01:00"  "2021-01-31T09:15:30.123+01:00"]
+                            ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321+02:00"  "2021-08-01T19:20:35.321+02:00"]]
+                           (get-timestamp-data-rows "Europe/Berlin"))
+                        "Session TZ = Europe/Berlin")
+
+                    (is (= [["winter"  "2021-01-31 08:15:30.123"  "2021-01-31T08:15:30.123-05:00"  "2021-01-31T03:15:30.123-05:00"]
+                            ["summer"  "2021-08-01 17:20:35.321"  "2021-08-01T17:20:35.321-04:00"  "2021-08-01T13:20:35.321-04:00"]]
+                           (get-timestamp-data-rows "America/New_York"))
+                        "Session TZ = America/New_York"))))
+
+(defn- get-db-timezone
+  []
+  (ffirst
+   (mt/rows
+    (qp/process-query
+     {:database   (mt/id)
+      :type       :native
+      :native     {:query "SELECT DBTIMEZONE"}}))))
+
+(defn- get-session-timezone
+  [db-session-timezone java-timezone]
+  (do-with-java-timezone java-timezone
+                         #(mt/with-temporary-setting-values [report-timezone db-session-timezone]
+                            (ffirst (mt/rows
+                                     (qp/process-query
+                                      {:database   (mt/id)
+                                       :type       :native
+                                       :native     {:query "select SESSIONTIMEZONE"}}))))))
+
+(deftest db-timezone-test
+  (testing "Exasol reports the expected time zones for DB and session"
+    (mt/test-driver :exasol
+                    (let [default-timezone (get-db-timezone)]
+                      (is (= default-timezone
+                             (get-session-timezone nil nil))
+                          "No configuration returns UTC")
+                      (is (= default-timezone
+                             (get-session-timezone nil "America/New_York"))
+                          "Java timezone is ignored")
+                      (is (= "AMERICA/NEW_YORK"
+                             (get-session-timezone "America/New_York" nil))
+                          "Report timezone sets session timezone")
+                      (is (= "AMERICA/NEW_YORK"
+                             (get-session-timezone "America/New_York" "Europe/Berlin"))
+                          "Report timezone overrides Java timezone")
+                      (is (= "EUROPE/BERLIN"
+                             (get-session-timezone "Europe/Berlin" "America/New_York"))
+                          "Report timezone overrides Java timezone")))))
+
+(deftest iso-8601-text-fields
+  (testing "text fields with semantic_type :type/ISO8601DateTimeString"
+    (mt/test-drivers #{:exasol}
+                     (is (= [[1 "foo" #t "2004-10-19T10:23:54" #t "2004-10-19"]
+                             [2 "bar" #t "2008-10-19T10:23:54" #t "2008-10-19"]
+                             [3 "baz" #t "2012-10-19T10:23:54" #t "2012-10-19"]]
+                            (mt/rows (mt/dataset alt-date-test/just-dates
+                                                 (qp/process-query
+                                                  (assoc (mt/mbql-query just-dates)
+                                                         :middleware {:format-rows? false})))))))))
