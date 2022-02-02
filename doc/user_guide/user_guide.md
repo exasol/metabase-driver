@@ -54,7 +54,9 @@ See the [Metabase documentation about SSH tunnels](https://www.metabase.com/docs
 
 Exasol has two data types for representing date and time: `TIMESTAMP` and `TIMESTAMP WITH LOCAL TIME ZONE`, see the [documentation about Exasol's date/time data types](https://docs.exasol.com/sql_references/data_types/datatypedetails.htm#DateTimeDataTypes) for details.
 
-Metabase will show data from `TIMESTAMP` columns 'as is', i.e. the same value as stored in the database. Values from a `TIMESTAMP WITH LOCAL TIME ZONE` column will be displayed in the *Report Timezone* configured in Matabase's Localization Settings. If *Report Timezone* is set to the default (*Database Default*), Metabase will use Exasol's default timezone. The default timezone in Exasol can be defined by running
+Metabase will show data from `TIMESTAMP` columns 'as is', i.e. the same value as stored in the database. You can imagine the value just like a string. It's not influenced by any timezone settings. 
+
+Values from a `TIMESTAMP WITH LOCAL TIME ZONE` column will be displayed in the *Report Timezone* configured in Matabase's Localization Settings. If *Report Timezone* is set to the default (*Database Default*), Metabase will use Exasol's default timezone. The default timezone in Exasol can be defined by running
 
 ```sql
 ALTER SYSTEM SET TIME_ZONE = 'America/New_York';
