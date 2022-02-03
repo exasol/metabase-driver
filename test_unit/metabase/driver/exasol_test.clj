@@ -112,17 +112,17 @@
 
 (deftest substring->honeysql-test
   (testing "substring without length argument"
-    (is (= (hsql/call :substr "arg" 4) (sql.qp/->honeysql :exasol [:substring "arg" 4]))))
+    (is (= (hsql/call :substring "arg" 4) (sql.qp/->honeysql :exasol [:substring "arg" 4]))))
   (testing "substring with length argument"
-    (is (= (hsql/call :substr "arg" 4 6) (sql.qp/->honeysql :exasol [:substring "arg" 4 6])))))
+    (is (= (hsql/call :substring "arg" 4 6) (sql.qp/->honeysql :exasol [:substring "arg" 4 6])))))
 
 (deftest concat->honeysql-test
   (testing "concat with single argument"
-    (is (= "arg" (sql.qp/->honeysql :exasol [:concat "arg"]))))
+    (is (= (hsql/call :concat "arg1") (sql.qp/->honeysql :exasol [:concat "arg1"]))))
   (testing "concat with two arguments"
     (is (= (hsql/call :concat "arg1" "arg2") (sql.qp/->honeysql :exasol [:concat "arg1" "arg2"]))))
   (testing "concat with three arguments"
-    (is (= (hsql/call :concat (hsql/call :concat "arg1" "arg2") "arg3") (sql.qp/->honeysql :exasol [:concat "arg1" "arg2" "arg3"])))))
+    (is (= (hsql/call :concat "arg1" "arg2" "arg3") (sql.qp/->honeysql :exasol [:concat "arg1" "arg2" "arg3"])))))
 
 (deftest add-interval-honeysql-form-test
   (let [hsql-form (hx/literal "5")
