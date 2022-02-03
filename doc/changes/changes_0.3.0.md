@@ -1,4 +1,4 @@
-# metabase-driver 0.3.0, released 2022-01-??
+# metabase-driver 0.3.0, released 2022-02-??
 
 Code name: Enable SSH tunnel and improve error messages
 
@@ -7,6 +7,8 @@ Code name: Enable SSH tunnel and improve error messages
 In this release we enable connecting to Exasol through an SSH tunnel (see the [user guide](../user_guide/user_guide.md#connecting-through-an–ssh–tunnel) for details) and we provide better error messages in case of connection errors.
 
 We also explain how to use data types `TIMESTAMP` and `TIMESTAMP WITH LOCAL TIME ZONE` with timezones in the [user guide](../user_guide/user_guide.md#timestamps-and-time-zone).
+
+Additionally we now correctly map `INTEGER` and `SMALLINT` columns to Metabase's type `:type/Decimal`.
 
 ## Features
 
@@ -17,3 +19,7 @@ We also explain how to use data types `TIMESTAMP` and `TIMESTAMP WITH LOCAL TIME
 
 * Improved the installation instructions in the [user guide](../user_guide/user_guide.md#installing-the-driver)
 * #9: Explained how to use data types `TIMESTAMP` and `TIMESTAMP WITH LOCAL TIME ZONE` with timezones
+
+## Tests
+
+* #10: Fixed remapping tests
