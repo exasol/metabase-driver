@@ -101,9 +101,9 @@
 (deftest math-functions
   (testing "Exasol supports math functions, e.g. POWER()"
     (mt/test-driver :exasol
-                    (is (= [[3 9.0]
-                            [2 4.0]
-                            [2 4.0]]
+                    (is (= [[3M 9.0]
+                            [2M 4.0]
+                            [2M 4.0]]
                            (mt/rows
                             (mt/run-mbql-query venues
                                                {:expressions {"test" [:power [:field-id $price] 2]}
@@ -229,9 +229,9 @@
 (deftest iso-8601-text-fields
   (testing "text fields with semantic_type :type/ISO8601DateTimeString"
     (mt/test-drivers #{:exasol}
-                     (is (= [[1 "foo" #t "2004-10-19T10:23:54" #t "2004-10-19"]
-                             [2 "bar" #t "2008-10-19T10:23:54" #t "2008-10-19"]
-                             [3 "baz" #t "2012-10-19T10:23:54" #t "2012-10-19"]]
+                     (is (= [[1M "foo" #t "2004-10-19T10:23:54" #t "2004-10-19"]
+                             [2M "bar" #t "2008-10-19T10:23:54" #t "2008-10-19"]
+                             [3M "baz" #t "2012-10-19T10:23:54" #t "2012-10-19"]]
                             (mt/rows (mt/dataset alt-date-test/just-dates
                                                  (qp/process-query
                                                   (assoc (mt/mbql-query just-dates)
