@@ -98,8 +98,10 @@
     [#"^BOOLEAN$"                         :type/Boolean]
     [#"^CHAR$"                            :type/Text]
     [#"^VARCHAR$"                         :type/Text]
-    [#"^BIGINT$"                          :type/Decimal]
     [#"^DECIMAL$"                         :type/Decimal]
+    [#"^BIGINT$"                          :type/Decimal] ; Precision <= 18
+    [#"^INTEGER$"                         :type/Decimal] ; Precision <= 9
+    [#"^SMALLINT$"                        :type/Decimal] ; Precision <= 4
     [#"^DOUBLE PRECISION$"                :type/Float]
     [#"^DOUBLE$"                          :type/Float]
     [#"^DATE$"                            :type/Date]
@@ -217,6 +219,18 @@
 (def ^:private now (hsql/raw "SYSTIMESTAMP"))
 
 (defmethod sql.qp/current-datetime-honeysql-form :exasol [_] now)
+
+(defmethod sql.qp/->honeysql [:exasol :substring]
+  [driver [_ arg start length]]
+  (if length
+    (hsql/call :substr (sql.qp/->honeysql driver arg) (sql.qp/->honeysql driver start) (sql.qp/->honeysql driver length))
+    (hsql/call :substr (sql.qp/->honeysql driver arg) (sql.qp/->honeysql driver start))))
+
+(defmethod sql.qp/->honeysql [:exasol :concat]
+  [driver [_ & args]]
+  (->> args
+       (map (partial sql.qp/->honeysql driver))
+       (reduce (partial hsql/call :concat))))
 
 (defmethod sql.qp/->honeysql [:exasol :regex-match-first]
   [driver [_ arg pattern]]
