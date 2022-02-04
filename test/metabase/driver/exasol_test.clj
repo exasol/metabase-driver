@@ -26,9 +26,9 @@
 (deftest exasol-data-types
   (mt/test-driver :exasol
                   (td/dataset exasol-dataset/exasol-data-types
-                              (is (= [["null-values"      nil                                nil      nil                nil]
-                                      ["non-null-values" "550e8400e29b11d4a716446655440000" "+05-03" "+02 12:50:10.123" "POINT (2 5)"]]
-                                     (mt/rows (mt/run-mbql-query "data_types" {:fields [$name $hash $interval_ytm $interval_dts $geo]
+                              (is (= [["null-values"      nil                                nil      nil                nil          nil]
+                                      ["non-null-values" "550e8400e29b11d4a716446655440000" "+05-03" "+02 12:50:10.123" "POINT (2 5)" 123.45M]]
+                                     (mt/rows (mt/run-mbql-query "data_types" {:fields [$name $hash $interval_ytm $interval_dts $geo $decimal_5_2]
                                                                                :order-by [[:asc $row_order]]})))))))
 
 (deftest join-test
