@@ -1,4 +1,4 @@
-# metabase-driver 0.3.0, released 2022-02-??
+# metabase-driver 0.3.0, released 2022-02-04
 
 Code name: Enable SSH tunnel and improve error messages
 
