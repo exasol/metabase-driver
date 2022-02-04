@@ -11,10 +11,12 @@
      {:field-name "hash",          :base-type {:native "HASHTYPE"}}
      {:field-name "interval_ytm",  :base-type {:native "INTERVAL YEAR TO MONTH"}}
      {:field-name "interval_dts",  :base-type {:native "INTERVAL DAY TO SECOND"}}
-     {:field-name "geo",           :base-type {:native "GEOMETRY"}}]
+     {:field-name "geo",           :base-type {:native "GEOMETRY"}}
+     {:field-name "decimal_5_2",   :base-type {:native "DECIMAL(5,2)"}}
+     ]
     [; Rows
-     [0 "null-values"      nil                                    nil  nil              nil]
-     [1 "non-null-values" "550e8400-e29b-11d4-a716-446655440000" "5-3" "2 12:50:10.123" "POINT(2 5)"]]]])
+     [0 "null-values"      nil                                    nil  nil              nil           nil]
+     [1 "non-null-values" "550e8400-e29b-11d4-a716-446655440000" "5-3" "2 12:50:10.123" "POINT(2 5)" 123.45]]]])
 
 (tx/defdataset timestamp-data
   "Test data with timestamp types"

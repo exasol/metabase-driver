@@ -98,8 +98,10 @@
     [#"^BOOLEAN$"                         :type/Boolean]
     [#"^CHAR$"                            :type/Text]
     [#"^VARCHAR$"                         :type/Text]
-    [#"^BIGINT$"                          :type/Decimal]
     [#"^DECIMAL$"                         :type/Decimal]
+    [#"^BIGINT$"                          :type/Decimal] ; Precision <= 18
+    [#"^INTEGER$"                         :type/Decimal] ; Precision <= 9
+    [#"^SMALLINT$"                        :type/Decimal] ; Precision <= 4
     [#"^DOUBLE PRECISION$"                :type/Float]
     [#"^DOUBLE$"                          :type/Float]
     [#"^DATE$"                            :type/Date]

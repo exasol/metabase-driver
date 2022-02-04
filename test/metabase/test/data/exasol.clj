@@ -38,10 +38,13 @@
 
 (defmethod tx/has-questionable-timezone-support? :exasol [_] true)
 
+(defonce ^:private number-column-type
+  "DECIMAL(36,0)")
+
 (doseq [[base-type sql-type] {:type/Text                   "VARCHAR(4000)"
-                              :type/BigInteger             "DECIMAL(36,0)"
-                              :type/Integer                "DECIMAL(18,0)"
-                              :type/Decimal                "DECIMAL(18,0)"
+                              :type/BigInteger             number-column-type
+                              :type/Integer                number-column-type
+                              :type/Decimal                number-column-type
                               :type/Float                  "DOUBLE PRECISION"
                               :type/Boolean                "BOOLEAN"
                               :type/Date                   "DATE"
@@ -100,7 +103,7 @@
   (apply execute/sequentially-execute-sql! args))
 
 (defmethod sql.tx/pk-sql-type :exasol [_]
-  "INTEGER IDENTITY NOT NULL")
+  (str number-column-type " IDENTITY NOT NULL"))
 
 (defmethod sql.tx/qualified-name-components :exasol [& args]
   (apply tx/single-db-qualified-name-components session-schema args))

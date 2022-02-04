@@ -61,6 +61,8 @@
                                      ["CHAR"                            :type/Text]
                                      ["VARCHAR"                         :type/Text]
                                      ["BIGINT"                          :type/Decimal]
+                                     ["INTEGER"                         :type/Decimal]
+                                     ["SMALLINT"                        :type/Decimal]
                                      ["DECIMAL"                         :type/Decimal]
                                      ["DOUBLE PRECISION"                :type/Float]
                                      ["DOUBLE"                          :type/Float]
@@ -104,9 +106,23 @@
 (deftest current-datetime-honeysql-form-test
   (is (= (hsql/raw "SYSTIMESTAMP") (sql.qp/current-datetime-honeysql-form :exasol))))
 
-(deftest ->honeysql-test
+(deftest regex-match-first->honeysql-test
   (testing :regex-match-first
   (is (= (hsql/call :regexp_substr "arg" "pattern") (sql.qp/->honeysql :exasol [:regex-match-first "arg" "pattern"])))))
+
+(deftest substring->honeysql-test
+  (testing "substring without length argument"
+    (is (= (hsql/call :substring "arg" 4) (sql.qp/->honeysql :exasol [:substring "arg" 4]))))
+  (testing "substring with length argument"
+    (is (= (hsql/call :substring "arg" 4 6) (sql.qp/->honeysql :exasol [:substring "arg" 4 6])))))
+
+(deftest concat->honeysql-test
+  (testing "concat with single argument"
+    (is (= (hsql/call :concat "arg1") (sql.qp/->honeysql :exasol [:concat "arg1"]))))
+  (testing "concat with two arguments"
+    (is (= (hsql/call :concat "arg1" "arg2") (sql.qp/->honeysql :exasol [:concat "arg1" "arg2"]))))
+  (testing "concat with three arguments"
+    (is (= (hsql/call :concat "arg1" "arg2" "arg3") (sql.qp/->honeysql :exasol [:concat "arg1" "arg2" "arg3"])))))
 
 (deftest add-interval-honeysql-form-test
   (let [hsql-form (hx/literal "5")
