@@ -15,7 +15,7 @@
   :profiles
   {:provided
    {:dependencies [[org.clojure/clojure "1.10.0"]
-                   [metabase "0.42.0-rc2"]
+                   [metabase "0.42.0"]
                    [com.exasol/exasol-jdbc "7.1.4"]]}
 
    :unit_tests
