@@ -1,4 +1,4 @@
-(defproject metabase/exasol-driver "0.2.0"
+(defproject metabase/exasol-driver "0.3.1"
   :description "An Exasol driver for Metabase"
   :url "https://github.com/exasol/metabase-driver/"
   :min-lein-version "2.9.7"
@@ -15,7 +15,7 @@
   :profiles
   {:provided
    {:dependencies [[org.clojure/clojure "1.10.0"]
-                   [metabase "0.41.6"]
+                   [metabase "0.42.0"]
                    [com.exasol/exasol-jdbc "7.1.4"]]}
 
    :unit_tests
