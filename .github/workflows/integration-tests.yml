@@ -8,18 +8,23 @@ on:
 
 jobs:
   integration-test:
+    strategy:
+      fail-fast: true
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     env:
-      METABASE_VERSION: 0.42.0
+      METABASE_VERSION: 0.42.3
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 1
           path: 'metabase-driver'
 
       - name: Checkout the Metabase repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 1
           repository: 'metabase/metabase'
@@ -27,7 +32,7 @@ jobs:
           ref: v${{ env.METABASE_VERSION }}
 
       - name: Checkout integration test docker environment
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 1
           repository: 'exasol/integration-test-docker-environment'

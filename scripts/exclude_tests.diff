@@ -1,57 +1,8 @@
-diff --git a/test/metabase/api/notify_test.clj b/test/metabase/api/notify_test.clj
-index 8a146f7d56..ebd85ff5bc 100644
---- a/test/metabase/api/notify_test.clj
-+++ b/test/metabase/api/notify_test.clj
-@@ -31,7 +31,7 @@
- 
- (deftest post-db-id-test
-   (binding [notify/*execute-asynchronously* false]
--    (mt/test-drivers (mt/normal-drivers)
-+    (mt/test-drivers (disj (mt/normal-drivers) :exasol) ; Deactivated flaky test: https://github.com/exasol/metabase-driver/issues/21
-       (let [table-name (->> (mt/db) database/tables first :name)
-             post       (fn post-api
-                          ([payload] (post-api payload 200))
-diff --git a/test/metabase/api/session_test.clj b/test/metabase/api/session_test.clj
-index b1042e9723..c92e26206b 100644
---- a/test/metabase/api/session_test.clj
-+++ b/test/metabase/api/session_test.clj
-@@ -160,29 +160,8 @@
-         (is (re= #"^Too many attempts! You must wait \d+ seconds before trying again\.$"
-                  (error)))))))
- 
--(deftest failure-threshold-per-request-source
--  (testing "The same as above, but ensure that throttling is done on a per request source basis."
--    (with-redefs [session-api/login-throttlers          (cleaned-throttlers #'session-api/login-throttlers
--                                                                            [:username :ip-address])
--                  public-settings/source-address-header (constantly "x-forwarded-for")]
--      (dotimes [n 50]
--        (let [response    (send-login-request (format "user-%d" n)
--                                              {"x-forwarded-for" "10.1.2.3"})
--              status-code (:status response)]
--          (assert (= status-code 401) (str "Unexpected response status code:" status-code))))
--      (dotimes [n 50]
--        (let [response    (send-login-request (format "round2-user-%d" n)) ; no x-forwarded-for
--              status-code (:status response)]
--          (assert (= status-code 401) (str "Unexpected response status code:" status-code))))
--      (let [error (fn []
--                    (-> (send-login-request "last-user" {"x-forwarded-for" "10.1.2.3"})
--                        :body
--                        json/parse-string
--                        (get-in ["errors" "username"])))]
--        (is (re= #"^Too many attempts! You must wait 1\d seconds before trying again\.$"
--                 (error)))
--        (is (re= #"^Too many attempts! You must wait 4\d seconds before trying again\.$"
--                 (error)))))))
-+; Deactivated flaky test
-+; https://github.com/exasol/metabase-driver/issues/21
- 
- (deftest logout-test
-   (testing "DELETE /api/session"
 diff --git a/test/metabase/api/table_test.clj b/test/metabase/api/table_test.clj
-index a348540ca2..b24a88cd52 100644
+index 6fa3bd66c6..335daac095 100644
 --- a/test/metabase/api/table_test.clj
 +++ b/test/metabase/api/table_test.clj
-@@ -706,7 +706,7 @@
+@@ -710,7 +710,7 @@
                     (dimension-options-for-field response "timestamp"))))))
  
        (testing "time columns"
@@ -61,10 +12,10 @@ index a348540ca2..b24a88cd52 100644
              (let [response (mt/user-http-request :rasta :get 200 (format "table/%d/query_metadata" (mt/id :users)))]
                (is (= []
 diff --git a/test/metabase/driver/sql/parameters/substitute_test.clj b/test/metabase/driver/sql/parameters/substitute_test.clj
-index f70cd095e2..efff516904 100644
+index 18d389dab6..f2dd3e31f9 100644
 --- a/test/metabase/driver/sql/parameters/substitute_test.clj
 +++ b/test/metabase/driver/sql/parameters/substitute_test.clj
-@@ -614,7 +614,7 @@
+@@ -609,7 +609,7 @@
                                   :value  "2015-07-01"}]))))))))
  
  (deftest e2e-parse-native-dates-test
@@ -100,10 +51,10 @@ index 5608a9b374..c64c953438 100644
  (deftest format-rows-test
    (mt/test-drivers (mt/normal-drivers-except dbs-exempt-from-format-rows-tests)
 diff --git a/test/metabase/query_processor_test/alternative_date_test.clj b/test/metabase/query_processor_test/alternative_date_test.clj
-index f21aca9a7c..5ee692d226 100644
+index 4de1e2eab1..03fe72b5e2 100644
 --- a/test/metabase/query_processor_test/alternative_date_test.clj
 +++ b/test/metabase/query_processor_test/alternative_date_test.clj
-@@ -29,7 +29,7 @@
+@@ -32,7 +32,7 @@
       [0 1433965860000000]]]])
  
  (deftest microseconds-test
@@ -112,7 +63,7 @@ index f21aca9a7c..5ee692d226 100644
      (let [results (get {:sqlite #{[1 4 "2015-06-06 10:40:00"] [2 0 "2015-06-10 19:51:00"]}
                          :oracle #{[1M 4M "2015-06-06T10:40:00Z"] [2M 0M "2015-06-10T19:51:00Z"]}}
                         driver/*driver*
-@@ -174,7 +174,7 @@
+@@ -177,7 +177,7 @@
  (deftest iso-8601-text-fields
    (testing "text fields with semantic_type :type/ISO8601DateTimeString"
      (testing "return as dates"
@@ -121,7 +72,7 @@ index f21aca9a7c..5ee692d226 100644
          (is (= [[1 "foo" #t "2004-10-19T10:23:54" #t "2004-10-19" #t "10:23:54"]
                  [2 "bar" #t "2008-10-19T10:23:54" #t "2008-10-19" #t "10:23:54"]
                  [3 "baz" #t "2012-10-19T10:23:54" #t "2012-10-19" #t "10:23:54"]]
-@@ -216,13 +216,13 @@
+@@ -219,13 +219,13 @@
      (testing "are queryable as dates"
        (testing "a datetime field"
          ;; TODO: why does this fail on oracle? gives a NPE
@@ -137,11 +88,24 @@ index f21aca9a7c..5ee692d226 100644
            (is (= 1
                   (count (mt/rows (mt/dataset string-times
                                     (mt/run-mbql-query times
+diff --git a/test/metabase/query_processor_test/explicit_joins_test.clj b/test/metabase/query_processor_test/explicit_joins_test.clj
+index 328f68aa7b..4cfae3567f 100644
+--- a/test/metabase/query_processor_test/explicit_joins_test.clj
++++ b/test/metabase/query_processor_test/explicit_joins_test.clj
+@@ -779,7 +779,7 @@
+                        results))))))))))
+ 
+ (deftest double-quotes-in-join-alias-test
+-  (mt/test-drivers (mt/normal-drivers-with-feature :left-join)
++  (mt/test-drivers (disj (mt/normal-drivers-with-feature :left-join) :exasol) ; Exasol does not support '.' in quoted identifiers: "Error executing query: '.' character is not allowed within quoted identifiers"
+     (testing "Make sure our we handle (escape) double quotes in join aliases. Make sure we prevent SQL injection (#20307)"
+       (let [expected-rows (mt/rows
+                            (mt/run-mbql-query venues
 diff --git a/test/metabase/query_processor_test/parameters_test.clj b/test/metabase/query_processor_test/parameters_test.clj
-index f1de41d12e..7986f53406 100644
+index bab435d1ad..fc0560256d 100644
 --- a/test/metabase/query_processor_test/parameters_test.clj
 +++ b/test/metabase/query_processor_test/parameters_test.clj
-@@ -114,7 +114,7 @@
+@@ -115,7 +115,7 @@
          ;; TIMEZONE FIXME — The excluded drivers below don't have TIME types, so the `attempted-murders` dataset doesn't
          ;; currently work. We should use the closest equivalent types (e.g. `DATETIME` or `TIMESTAMP` so we can still
          ;; load the dataset and run tests using this dataset such as these, which doesn't even use the TIME type.
@@ -150,19 +114,6 @@ index f1de41d12e..7986f53406 100644
            (mt/dataset attempted-murders
              (doseq [field
                      [:datetime
-diff --git a/test/metabase/query_processor_test/remapping_test.clj b/test/metabase/query_processor_test/remapping_test.clj
-index 70b172130f..8a40f4ca91 100644
---- a/test/metabase/query_processor_test/remapping_test.clj
-+++ b/test/metabase/query_processor_test/remapping_test.clj
-@@ -170,7 +170,7 @@
-   ;;
-   ;; Having a self-referencing FK is currently broken with the Redshift and Oracle backends. The issue related to fix
-   ;; this is https://github.com/metabase/metabase/issues/8510
--  (mt/test-drivers (disj (mt/normal-drivers-with-feature :foreign-keys) :redshift :oracle :vertica)
-+  (mt/test-drivers (disj (mt/normal-drivers-with-feature :foreign-keys) :redshift :oracle :vertica :exasol) ; https://github.com/exasol/metabase-driver/issues/12
-     (mt/dataset test-data-self-referencing-user
-       (mt/with-column-remappings [users.created_by users.name]
-         (db/update! Field (mt/id :users :created_by)
 diff --git a/test/metabase/query_processor_test/time_field_test.clj b/test/metabase/query_processor_test/time_field_test.clj
 index e8b2743998..49e268736c 100644
 --- a/test/metabase/query_processor_test/time_field_test.clj
@@ -177,7 +128,7 @@ index e8b2743998..49e268736c 100644
  (deftest basic-test
    (mt/test-drivers (mt/normal-drivers-except skip-time-test-drivers)
 diff --git a/test/metabase/query_processor_test/timezones_test.clj b/test/metabase/query_processor_test/timezones_test.clj
-index 0eb62eed08..cff19f3d37 100644
+index fd93f7119b..488ad361bb 100644
 --- a/test/metabase/query_processor_test/timezones_test.clj
 +++ b/test/metabase/query_processor_test/timezones_test.clj
 @@ -18,6 +18,7 @@
@@ -188,18 +139,12 @@ index 0eb62eed08..cff19f3d37 100644
      :presto
      :redshift
      :snowflake
-@@ -217,13 +218,4 @@
-    (when (supports-datetime-with-zone-id?)
-      {:datetime_tz_id (t/zoned-date-time "2019-11-01T00:23:18.331-07:00[America/Los_Angeles]")})))
- 
--(deftest time-timezone-handling-test
--  ;; Actual value : "2019-11-01T00:23:18.331-07:00[America/Los_Angeles]"
--  ;; Oracle doesn't have a time type
+@@ -222,7 +223,7 @@
+ (deftest time-timezone-handling-test
+   ;; Actual value : "2019-11-01T00:23:18.331-07:00[America/Los_Angeles]"
+   ;; Oracle doesn't have a time type
 -  (mt/test-drivers (set-timezone-drivers)
--    (mt/dataset attempted-murders
--      (doseq [timezone [nil "US/Pacific" "US/Eastern" "Asia/Hong_Kong"]]
--        (mt/with-temporary-setting-values [report-timezone timezone]
--          (let [expected (expected-attempts)
--                actual   (select-keys (attempts) (keys expected))]
--            (is (= expected actual))))))))
-+; time-timezone-handling-test: Exasol does not support TIME data type
++  (mt/test-drivers (disj (set-timezone-drivers) :exasol) ; Exasol does not support TIME data type
+     (mt/dataset attempted-murders
+       (doseq [timezone [nil "US/Pacific" "US/Eastern" "Asia/Hong_Kong"]]
+         (mt/with-temporary-setting-values [report-timezone timezone]

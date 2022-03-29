@@ -178,6 +178,7 @@ MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=$fingerprint \
   MB_EXASOL_TEST_USER=$EXASOL_USER \
   MB_EXASOL_TEST_PASSWORD=$EXASOL_PASSWORD \
+  MB_ENCRYPTION_SECRET_KEY=$(openssl rand -base64 32) \
   DRIVERS=exasol \
   clojure -J-Duser.country=US -J-Duser.language=en -J-Duser.timezone=UTC \
           -X:dev:ci:drivers:drivers-dev:test "$@"
