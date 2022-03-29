@@ -5,8 +5,8 @@ set -o nounset
 set -o pipefail
 
 # See available versions and checksums at https://github.com/metabase/metabase/releases/
-metabase_version=${METABASE_VERSION:-0.42.0}
-metabase_sha256=${METABASE_SHA256:-392c91a63256df82edab6c211a94eae3c39ae0ca7f042b3f4fd7fd16deee34e1}
+metabase_version=${METABASE_VERSION:-0.42.3}
+metabase_sha256=${METABASE_SHA256:-3a80abf84b968b1bf57200c14542a8a30ed9f4e2182feb2feb7c75883d29df82}
 
 metabase_download_url="https://downloads.metabase.com/v$metabase_version/metabase.jar"
 
