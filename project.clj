@@ -1,4 +1,4 @@
-(defproject metabase/exasol-driver "0.3.1"
+(defproject metabase/exasol-driver "1.0.0"
   :description "An Exasol driver for Metabase"
   :url "https://github.com/exasol/metabase-driver/"
   :min-lein-version "2.9.7"
