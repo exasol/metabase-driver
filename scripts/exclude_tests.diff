@@ -88,6 +88,19 @@ index 4de1e2eab1..03fe72b5e2 100644
            (is (= 1
                   (count (mt/rows (mt/dataset string-times
                                     (mt/run-mbql-query times
+diff --git a/test/metabase/query_processor_test/explicit_joins_test.clj b/test/metabase/query_processor_test/explicit_joins_test.clj
+index 328f68aa7b..4cfae3567f 100644
+--- a/test/metabase/query_processor_test/explicit_joins_test.clj
++++ b/test/metabase/query_processor_test/explicit_joins_test.clj
+@@ -779,7 +779,7 @@
+                        results))))))))))
+ 
+ (deftest double-quotes-in-join-alias-test
+-  (mt/test-drivers (mt/normal-drivers-with-feature :left-join)
++  (mt/test-drivers (disj (mt/normal-drivers-with-feature :left-join) :exasol) ; Exasol does not support '.' in quoted identifiers: "Error executing query: '.' character is not allowed within quoted identifiers"
+     (testing "Make sure our we handle (escape) double quotes in join aliases. Make sure we prevent SQL injection (#20307)"
+       (let [expected-rows (mt/rows
+                            (mt/run-mbql-query venues
 diff --git a/test/metabase/query_processor_test/parameters_test.clj b/test/metabase/query_processor_test/parameters_test.clj
 index bab435d1ad..fc0560256d 100644
 --- a/test/metabase/query_processor_test/parameters_test.clj
