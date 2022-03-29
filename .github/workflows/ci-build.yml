@@ -8,6 +8,11 @@ on:
 
 jobs:
   build:
+    strategy:
+      fail-fast: true
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository

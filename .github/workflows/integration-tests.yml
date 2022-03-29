@@ -8,6 +8,11 @@ on:
 
 jobs:
   integration-test:
+    strategy:
+      fail-fast: true
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     env:
       METABASE_VERSION: 0.42.3
