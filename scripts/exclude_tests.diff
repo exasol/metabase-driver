@@ -141,7 +141,7 @@ index e8b2743998..49e268736c 100644
  (deftest basic-test
    (mt/test-drivers (mt/normal-drivers-except skip-time-test-drivers)
 diff --git a/test/metabase/query_processor_test/timezones_test.clj b/test/metabase/query_processor_test/timezones_test.clj
-index fd93f7119b..04c638aa21 100644
+index fd93f7119b..488ad361bb 100644
 --- a/test/metabase/query_processor_test/timezones_test.clj
 +++ b/test/metabase/query_processor_test/timezones_test.clj
 @@ -18,6 +18,7 @@
@@ -152,18 +152,12 @@ index fd93f7119b..04c638aa21 100644
      :presto
      :redshift
      :snowflake
-@@ -219,13 +220,4 @@
-    (when (supports-datetime-with-zone-id?)
-      {:datetime_tz_id (t/zoned-date-time "2019-11-01T00:23:18.331-07:00[America/Los_Angeles]")})))
- 
--(deftest time-timezone-handling-test
--  ;; Actual value : "2019-11-01T00:23:18.331-07:00[America/Los_Angeles]"
--  ;; Oracle doesn't have a time type
+@@ -222,7 +223,7 @@
+ (deftest time-timezone-handling-test
+   ;; Actual value : "2019-11-01T00:23:18.331-07:00[America/Los_Angeles]"
+   ;; Oracle doesn't have a time type
 -  (mt/test-drivers (set-timezone-drivers)
--    (mt/dataset attempted-murders
--      (doseq [timezone [nil "US/Pacific" "US/Eastern" "Asia/Hong_Kong"]]
--        (mt/with-temporary-setting-values [report-timezone timezone]
--          (let [expected (expected-attempts)
--                actual   (select-keys (attempts) (keys expected))]
--            (is (= expected actual))))))))
-+; time-timezone-handling-test: Exasol does not support TIME data type
++  (mt/test-drivers (disj (set-timezone-drivers) :exasol) ; Exasol does not support TIME data type
+     (mt/dataset attempted-murders
+       (doseq [timezone [nil "US/Pacific" "US/Eastern" "Asia/Hong_Kong"]]
+         (mt/with-temporary-setting-values [report-timezone timezone]
