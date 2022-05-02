@@ -67,6 +67,7 @@ jobs:
       - name: Build driver
         run: |
           cd metabase-driver
+          clojure -X:test:deps prep
           clojure -X:dev:build
           unzip -l target/exasol.metabase-driver.jar
 
