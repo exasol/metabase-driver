@@ -1,0 +1,18 @@
+{:paths
+ ["src" "resources"]
+
+ :mvn/repos
+ {"Exasol" {:url "https://maven.exasol.com/artifactory/exasol-releases"}}
+
+ :deps
+ {com.exasol/exasol-jdbc {:mvn/version "7.1.7"}}
+
+ ;; build the driver with clojure -X:build
+ :aliases
+ {:build
+  {:extra-deps {metabase/metabase-core {:local/root "../metabase"}
+                metabase/build-drivers {:local/root "../metabase/bin/build-drivers"}}
+   :exec-fn    build-drivers.build-driver/build-driver!
+   :exec-args  {:driver      :exasol
+                :project-dir "."
+                :target-dir  "./target"}}}}

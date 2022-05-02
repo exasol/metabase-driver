@@ -14,39 +14,41 @@ jobs:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
     runs-on: ubuntu-latest
+    env:
+      METABASE_VERSION: 0.42.3
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          path: metabase-driver
+
+      - name: Checkout the Metabase repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          repository: metabase/metabase
+          path: metabase
+          ref: v${{ env.METABASE_VERSION }}
 
       - name: Set up JDK 11
         uses: actions/setup-java@v2
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: 11
 
       - name: Install clojure tools
         uses: DeLaGuardo/setup-clojure@3.6
         with:
           cli: latest
-          lein: latest
 
       - name: Cache Maven repository
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('project.clj', 'scripts/install-metabase-jar.sh') }}
+          key: ${{ runner.os }}-maven-${{ hashFiles('deps.edn', 'scripts/install-metabase-jar.sh') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-
-      - name: Cache local Maven repository
-        uses: actions/cache@v2
-        with:
-          path: maven_repository
-          key: local-maven-${{ hashFiles('scripts/install-metabase-jar.sh') }}
-          restore-keys: |
-            local-maven-
 
       - name: Cache clj-kondo
         uses: actions/cache@v2
@@ -61,21 +63,23 @@ jobs:
           java --version
           echo Clojure: $(clojure -M --eval "(clojure-version)")
           clojure --version
-          echo Leiningen: $(lein --version)
 
-      - name: Install Metabase
-        run: ./scripts/install-metabase-jar.sh
-
-      - name: Run tests
-        run: lein test
-
-      - name: Run linter
+      - name: Build driver
         run: |
-          mkdir -p .clj-kondo/.cache
-          lein lint
+          cd metabase-driver
+          clojure -X:dev:build
+          unzip -l target/exasol.metabase-driver.jar
 
-      - name: Build jar
-        run: DEBUG=1 lein uberjar
+#      - name: Run tests
+#        run: lein test
+#
+#      - name: Run linter
+#        run: |
+#          mkdir -p .clj-kondo/.cache
+#          lein lint
+#
+#      - name: Build jar
+#        run: DEBUG=1 lein uberjar
 
       - name: Upload jar
         uses: actions/upload-artifact@v2
