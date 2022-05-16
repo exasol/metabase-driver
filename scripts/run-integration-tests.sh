@@ -108,15 +108,15 @@ install_jdbc_driver() {
     fi
 }
 
-install_metabase_jar() {
-    "$exasol_driver_dir/scripts/install-metabase-jar.sh"
-}
+#install_metabase_jar() {
+#    "$exasol_driver_dir/scripts/install-metabase-jar.sh"
+#}
 
 build_and_install_driver() {
-    local driver_jar="$exasol_driver_dir/target/uberjar/exasol.metabase-driver.jar"
+    local driver_jar="$exasol_driver_dir/target/exasol.metabase-driver.jar"
     log_info "Building exasol driver..."
     cd "$exasol_driver_dir"
-    DEBUG=1 lein uberjar
+    clojure -X:build :project-dir "\"$(pwd)\""
     log_info "Copy driver $driver_jar to $metabase_plugin_dir"
     cp -v "$driver_jar" "$metabase_plugin_dir"
 }
@@ -153,8 +153,8 @@ check_preconditions
 symlink_driver_sources
 patch_metabase_deps
 patch_excluded_tests
-install_jdbc_driver
-install_metabase_jar
+#install_jdbc_driver
+#install_metabase_jar
 
 if [[ -z "${EXASOL_FINGERPRINT+x}" ]] ; then
     log_info "Getting certificate fingerprint from $EXASOL_HOST..."
