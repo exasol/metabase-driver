@@ -15,7 +15,7 @@ jobs:
       cancel-in-progress: true
     runs-on: ubuntu-latest
     env:
-      METABASE_VERSION: 0.42.3
+      METABASE_VERSION: master
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
@@ -73,9 +73,14 @@ jobs:
       - name: Build driver
         run: |
           cd "$GITHUB_WORKSPACE/metabase-driver"
-          clojure -X:test:deps prep
           clojure -X:dev:build
           unzip -l target/exasol.metabase-driver.jar
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v2
+        with:
+          name: exasol.metabase-driver.jar
+          path: target/uberjar/exasol.metabase-driver.jar
 
 #      - name: Run tests
 #        run: lein test
@@ -84,12 +89,4 @@ jobs:
 #        run: |
 #          mkdir -p .clj-kondo/.cache
 #          lein lint
-#
-#      - name: Build jar
-#        run: DEBUG=1 lein uberjar
 
-      - name: Upload jar
-        uses: actions/upload-artifact@v2
-        with:
-          name: exasol.metabase-driver.jar
-          path: target/uberjar/exasol.metabase-driver.jar
