@@ -15,4 +15,10 @@
    :exec-fn    build-drivers.build-driver/build-driver!
    :exec-args  {:driver      :exasol
                 :project-dir "."
-                :target-dir  "./target"}}}}
+                :target-dir  "./target"}}}
+ :oss
+  ;; JDBC driver isn't GPL-compatible
+ {:replace-deps  {}}
+
+ :ee
+ {}}
