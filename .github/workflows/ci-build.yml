@@ -73,7 +73,7 @@ jobs:
       - name: Build driver
         run: |
           cd "$GITHUB_WORKSPACE/metabase-driver"
-          clojure -X:dev:build
+          clojure -X:build :project-dir "\"$(pwd)\""
           unzip -l target/exasol.metabase-driver.jar
 
       - name: Upload jar
