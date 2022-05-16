@@ -64,12 +64,6 @@ jobs:
           echo Clojure: $(clojure -M --eval "(clojure-version)")
           clojure --version
 
-      - name: Prepare Metabase deps
-        run: |
-          cd "$GITHUB_WORKSPACE/metabase"
-          source "./bin/prep.sh"
-          prep_deps
-
       - name: Build driver
         run: |
           cd "$GITHUB_WORKSPACE/metabase-driver"
