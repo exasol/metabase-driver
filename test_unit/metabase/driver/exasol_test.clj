@@ -108,7 +108,7 @@
 
 (deftest regex-match-first->honeysql-test
   (testing :regex-match-first
-  (is (= (hsql/call :regexp_substr "arg" "pattern") (sql.qp/->honeysql :exasol [:regex-match-first "arg" "pattern"])))))
+    (is (= (hsql/call :regexp_substr "arg" "pattern") (sql.qp/->honeysql :exasol [:regex-match-first "arg" "pattern"])))))
 
 (deftest substring->honeysql-test
   (testing "substring without length argument"
@@ -137,16 +137,17 @@
                              [:quarter (hsql/call :+ timestamp-form (hsql/call :numtoyminterval (hsql/call :* amount #sql/raw "3") (hx/literal "month")))]
                              [:year    (hsql/call :+ timestamp-form (hsql/call :numtoyminterval amount (hx/literal "year")))]]]
       (testing (format "Add interval with unit %s" unit)
-        (is (= expected  (sql.qp/add-interval-honeysql-form :exasol hsql-form amount unit)))))))
-
+        (let [complete-expected (metabase.util.honeysql-extensions/with-type-info expected #:metabase.util.honeysql-extensions{:database-type "timestamp"})]
+          (is (= complete-expected
+                 (sql.qp/add-interval-honeysql-form :exasol hsql-form amount unit))))))))
 
 (deftest cast-temporal-string-test
   (let [expr (hx/literal "5")]
-   (doseq [[coercion-strategy expected] [[:Coercion/ISO8601->DateTime              (hsql/call :to_timestamp expr "YYYY-MM-DD HH:mi:SS")]
-                                         [:Coercion/ISO8601->Date                  (hsql/call :to_date expr "YYYY-MM-DD")]
-                                         [:Coercion/YYYYMMDDHHMMSSString->Temporal (hsql/call :to_timestamp expr "YYYYMMDDHH24miSS")]]]
-   (testing (format "Cast temporal string with coercion strategy %s" coercion-strategy)
-     (is (= expected (sql.qp/cast-temporal-string :exasol coercion-strategy expr)))))))
+    (doseq [[coercion-strategy expected] [[:Coercion/ISO8601->DateTime              (hsql/call :to_timestamp expr "YYYY-MM-DD HH:mi:SS")]
+                                          [:Coercion/ISO8601->Date                  (hsql/call :to_date expr "YYYY-MM-DD")]
+                                          [:Coercion/YYYYMMDDHHMMSSString->Temporal (hsql/call :to_timestamp expr "YYYYMMDDHH24miSS")]]]
+      (testing (format "Cast temporal string with coercion strategy %s" coercion-strategy)
+        (is (= expected (sql.qp/cast-temporal-string :exasol coercion-strategy expr)))))))
 
 (deftest unix-timestamp->honeysql-test
   (let [expr (hx/literal "5")]
@@ -166,14 +167,14 @@
   (is (= #{"EXA_STATISTICS" "SYS"} (sql-jdbc.sync/excluded-schemas :exasol))))
 
 (deftest unprepare-value-test
-    (doseq [[value expected] [[(java.time.OffsetDateTime/parse "2007-12-03T10:15:30+01:00") "timestamp '2007-12-03 10:15:30.000'"]
-                             [(java.time.ZonedDateTime/parse "2007-12-03T10:15:30+01:00[Europe/Paris]") "timestamp '2007-12-03 10:15:30.000'"]]]
-      (testing (format "Unprepare %s" (.getClass value))
-        (is (= expected (unprepare/unprepare-value :exasol value))))))
+  (doseq [[value expected] [[(java.time.OffsetDateTime/parse "2007-12-03T10:15:30+01:00") "timestamp '2007-12-03 10:15:30.000'"]
+                            [(java.time.ZonedDateTime/parse "2007-12-03T10:15:30+01:00[Europe/Paris]") "timestamp '2007-12-03 10:15:30.000'"]]]
+    (testing (format "Unprepare %s" (.getClass value))
+      (is (= expected (unprepare/unprepare-value :exasol value))))))
 
 (deftest get-jdbc-driver-version-test
   (testing "JDBC driver version is not empty"
-  (is (not (str/blank? (exasol/get-jdbc-driver-version))))))
+    (is (not (str/blank? (exasol/get-jdbc-driver-version))))))
 
 (deftest get-driver-version-test
   (testing "Driver version returns nil for non-exsiting resource"
@@ -196,4 +197,4 @@
                                         ["Unknown error messages are unchanged"
                                          "Unknown error messages are unchanged"]
                                         [nil nil]]]
-         (is (= expected-message (driver/humanize-connection-error-message :exasol message))))))
+      (is (= expected-message (driver/humanize-connection-error-message :exasol message))))))
