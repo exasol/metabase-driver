@@ -1,8 +1,8 @@
 diff --git a/test/metabase/api/table_test.clj b/test/metabase/api/table_test.clj
-index 6fa3bd66c6..335daac095 100644
+index ee5e239fae..97f25dedde 100644
 --- a/test/metabase/api/table_test.clj
 +++ b/test/metabase/api/table_test.clj
-@@ -710,7 +710,7 @@
+@@ -737,7 +737,7 @@
                     (dimension-options-for-field response "timestamp"))))))
  
        (testing "time columns"
@@ -10,9 +10,9 @@ index 6fa3bd66c6..335daac095 100644
 +        (mt/test-drivers (mt/normal-drivers-except #{:sparksql :mongo :oracle :redshift :exasol}) ; Exasol does not support TIME data type
            (mt/dataset test-data-with-time
              (let [response (mt/user-http-request :rasta :get 200 (format "table/%d/query_metadata" (mt/id :users)))]
-               (is (= []
+               (is (= @#'api.table/time-dimension-indexes
 diff --git a/test/metabase/driver/sql/parameters/substitute_test.clj b/test/metabase/driver/sql/parameters/substitute_test.clj
-index 18d389dab6..f2dd3e31f9 100644
+index 9dae81c3e5..a764e3e6bf 100644
 --- a/test/metabase/driver/sql/parameters/substitute_test.clj
 +++ b/test/metabase/driver/sql/parameters/substitute_test.clj
 @@ -609,7 +609,7 @@
@@ -25,7 +25,7 @@ index 18d389dab6..f2dd3e31f9 100644
                (= driver/*driver* :presto)
                "2018-04-18"
 diff --git a/test/metabase/driver/sql_jdbc_test.clj b/test/metabase/driver/sql_jdbc_test.clj
-index 5e8c012138..91e37bbef0 100644
+index dce2cb2600..2db1365558 100644
 --- a/test/metabase/driver/sql_jdbc_test.clj
 +++ b/test/metabase/driver/sql_jdbc_test.clj
 @@ -195,7 +195,7 @@
@@ -38,7 +38,7 @@ index 5e8c012138..91e37bbef0 100644
          (is (= 2
                 (mt/dataset test-data-with-time
 diff --git a/test/metabase/query_processor/middleware/format_rows_test.clj b/test/metabase/query_processor/middleware/format_rows_test.clj
-index 5608a9b374..c64c953438 100644
+index 504aa3b84a..359beb7eed 100644
 --- a/test/metabase/query_processor/middleware/format_rows_test.clj
 +++ b/test/metabase/query_processor/middleware/format_rows_test.clj
 @@ -14,7 +14,7 @@
@@ -51,7 +51,7 @@ index 5608a9b374..c64c953438 100644
  (deftest format-rows-test
    (mt/test-drivers (mt/normal-drivers-except dbs-exempt-from-format-rows-tests)
 diff --git a/test/metabase/query_processor_test/alternative_date_test.clj b/test/metabase/query_processor_test/alternative_date_test.clj
-index 4de1e2eab1..03fe72b5e2 100644
+index 814e4cc2dc..dfa4937239 100644
 --- a/test/metabase/query_processor_test/alternative_date_test.clj
 +++ b/test/metabase/query_processor_test/alternative_date_test.clj
 @@ -32,7 +32,7 @@
@@ -89,7 +89,7 @@ index 4de1e2eab1..03fe72b5e2 100644
                   (count (mt/rows (mt/dataset string-times
                                     (mt/run-mbql-query times
 diff --git a/test/metabase/query_processor_test/explicit_joins_test.clj b/test/metabase/query_processor_test/explicit_joins_test.clj
-index 328f68aa7b..4cfae3567f 100644
+index 1453ad3958..17dd967db1 100644
 --- a/test/metabase/query_processor_test/explicit_joins_test.clj
 +++ b/test/metabase/query_processor_test/explicit_joins_test.clj
 @@ -779,7 +779,7 @@
@@ -102,10 +102,10 @@ index 328f68aa7b..4cfae3567f 100644
        (let [expected-rows (mt/rows
                             (mt/run-mbql-query venues
 diff --git a/test/metabase/query_processor_test/parameters_test.clj b/test/metabase/query_processor_test/parameters_test.clj
-index bab435d1ad..fc0560256d 100644
+index 9dc121b109..5799d42068 100644
 --- a/test/metabase/query_processor_test/parameters_test.clj
 +++ b/test/metabase/query_processor_test/parameters_test.clj
-@@ -115,7 +115,7 @@
+@@ -116,7 +116,7 @@
          ;; TIMEZONE FIXME — The excluded drivers below don't have TIME types, so the `attempted-murders` dataset doesn't
          ;; currently work. We should use the closest equivalent types (e.g. `DATETIME` or `TIMESTAMP` so we can still
          ;; load the dataset and run tests using this dataset such as these, which doesn't even use the TIME type.
@@ -128,7 +128,7 @@ index e8b2743998..49e268736c 100644
  (deftest basic-test
    (mt/test-drivers (mt/normal-drivers-except skip-time-test-drivers)
 diff --git a/test/metabase/query_processor_test/timezones_test.clj b/test/metabase/query_processor_test/timezones_test.clj
-index fd93f7119b..488ad361bb 100644
+index f4423e1461..8e7ebafdb7 100644
 --- a/test/metabase/query_processor_test/timezones_test.clj
 +++ b/test/metabase/query_processor_test/timezones_test.clj
 @@ -18,6 +18,7 @@
