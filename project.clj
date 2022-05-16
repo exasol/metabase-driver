@@ -16,7 +16,7 @@
   {:provided
    {:dependencies [[org.clojure/clojure "1.10.0"]
                    [metabase "0.43.0"]
-                   [com.exasol/exasol-jdbc "7.1.7"]]}
+                   [com.exasol/exasol-jdbc "7.1.10"]]}
 
    :unit_tests
    {:test-paths     ^:replace ["test_unit"]}
