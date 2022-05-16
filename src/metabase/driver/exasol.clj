@@ -46,10 +46,10 @@
 (defmethod driver/display-name :exasol [_]
   "Exasol")
 
-(doseq [[feature supported?] {:set-timezone   true
-                              :nested-fields  false}]
-  #_{:clj-kondo/ignore [:deprecated-var]} ; Function is deprecated but no replacement is available
-  (defmethod driver/supports? [:exasol feature] [_ _] supported?))
+(doseq [[feature supported?] {:set-timezone         true
+                              :nested-fields        false
+                              :nested-field-columns false}]
+  (defmethod driver/database-supports? [:exasol feature] [_ _ _] supported?))
 
 (defmethod sql-jdbc.conn/connection-details->spec :exasol
   [_ {:keys [user password host port certificate-fingerprint]
