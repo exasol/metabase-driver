@@ -81,12 +81,6 @@ jobs:
           clojure --version
           echo Leiningen: $(lein --version)
 
-      - name: Prepare Metabase deps
-        run: |
-          cd "$GITHUB_WORKSPACE/metabase"
-          source "./bin/prep.sh"
-          prep_deps
-      
       - name: Build Metabase static viz
         run: |
           cd "$GITHUB_WORKSPACE/metabase"
