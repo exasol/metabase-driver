@@ -184,8 +184,7 @@ When the patch file has changed or you updated to a new Metabase release, do the
 
 ```shell
 cd $METABASE_DIR
-git reset --hard
-rm -vf target/patch_excluded_test_applied
+git reset --hard && rm -vf target/patch_excluded_test_applied && rm -rvf modules/drivers/exasol
 ```
 
 # Troubleshooting
