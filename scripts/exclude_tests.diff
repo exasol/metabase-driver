@@ -24,6 +24,19 @@ index 018ec0446b..accbb02ed1 100644
      (is (= [(cond
                (= driver/*driver* :presto)
                "2018-04-18"
+diff --git a/test/metabase/driver/sql_jdbc/connection_test.clj b/test/metabase/driver/sql_jdbc/connection_test.clj
+index f05ebd53a0..46bea0c74d 100644
+--- a/test/metabase/driver/sql_jdbc/connection_test.clj
++++ b/test/metabase/driver/sql_jdbc/connection_test.clj
+@@ -105,7 +105,7 @@
+                 (assoc :new-config "something"))))))
+ 
+ (deftest connection-pool-invalidated-on-details-change
+-  (mt/test-drivers (sql-jdbc.tu/sql-jdbc-drivers)
++  (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :exasol) ; https://github.com/exasol/metabase-driver/issues/39
+     (testing "db->pooled-connection-spec marks a connection pool invalid if the db details map changes\n"
+       (let [db                       (mt/db)
+             hash-change-called-times (atom 0)
 diff --git a/test/metabase/driver/sql_jdbc_test.clj b/test/metabase/driver/sql_jdbc_test.clj
 index dce2cb2600..2db1365558 100644
 --- a/test/metabase/driver/sql_jdbc_test.clj
