@@ -71,11 +71,6 @@ jobs:
           echo Clojure: $(clojure -M --eval "(clojure-version)")
           clojure --version
 
-#      - name: Build Metabase static viz
-#        run: |
-#          cd "$GITHUB_WORKSPACE/metabase"
-#          yarn build-static-viz
-
       - name: Spawn Exasol environment
         run: |
           ./start-test-env spawn-test-environment --environment-name test --database-port-forward 8563 --deactivate-database-setup
