@@ -1,8 +1,8 @@
 diff --git a/test/metabase/api/table_test.clj b/test/metabase/api/table_test.clj
-index ee5e239fae..97f25dedde 100644
+index 7bd2ea7362..d77500e812 100644
 --- a/test/metabase/api/table_test.clj
 +++ b/test/metabase/api/table_test.clj
-@@ -737,7 +737,7 @@
+@@ -720,7 +720,7 @@
                     (dimension-options-for-field response "timestamp"))))))
  
        (testing "time columns"
@@ -10,9 +10,9 @@ index ee5e239fae..97f25dedde 100644
 +        (mt/test-drivers (mt/normal-drivers-except #{:sparksql :mongo :oracle :redshift :exasol}) ; Exasol does not support TIME data type
            (mt/dataset test-data-with-time
              (let [response (mt/user-http-request :rasta :get 200 (format "table/%d/query_metadata" (mt/id :users)))]
-               (is (= @#'api.table/time-dimension-indexes
+               (is (= @#'table-api/time-dimension-indexes
 diff --git a/test/metabase/driver/sql/parameters/substitute_test.clj b/test/metabase/driver/sql/parameters/substitute_test.clj
-index 9dae81c3e5..a764e3e6bf 100644
+index 018ec0446b..accbb02ed1 100644
 --- a/test/metabase/driver/sql/parameters/substitute_test.clj
 +++ b/test/metabase/driver/sql/parameters/substitute_test.clj
 @@ -609,7 +609,7 @@
@@ -24,6 +24,19 @@ index 9dae81c3e5..a764e3e6bf 100644
      (is (= [(cond
                (= driver/*driver* :presto)
                "2018-04-18"
+diff --git a/test/metabase/driver/sql_jdbc/connection_test.clj b/test/metabase/driver/sql_jdbc/connection_test.clj
+index f05ebd53a0..46bea0c74d 100644
+--- a/test/metabase/driver/sql_jdbc/connection_test.clj
++++ b/test/metabase/driver/sql_jdbc/connection_test.clj
+@@ -105,7 +105,7 @@
+                 (assoc :new-config "something"))))))
+ 
+ (deftest connection-pool-invalidated-on-details-change
+-  (mt/test-drivers (sql-jdbc.tu/sql-jdbc-drivers)
++  (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :exasol) ; https://github.com/exasol/metabase-driver/issues/39
+     (testing "db->pooled-connection-spec marks a connection pool invalid if the db details map changes\n"
+       (let [db                       (mt/db)
+             hash-change-called-times (atom 0)
 diff --git a/test/metabase/driver/sql_jdbc_test.clj b/test/metabase/driver/sql_jdbc_test.clj
 index dce2cb2600..2db1365558 100644
 --- a/test/metabase/driver/sql_jdbc_test.clj
