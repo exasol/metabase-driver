@@ -1,8 +1,9 @@
 (ns metabase.driver.exasol
-  (:require [clojure.tools.logging :as log]
-            [clojure.java.io :as io]
+  (:require [clojure.java.io :as io]
+            [clojure.tools.logging :as log]
             [honeysql.core :as hsql]
             [honeysql.format :as hformat]
+            [java-time :as t]
             [metabase.config :as config]
             [metabase.driver :as driver]
             [metabase.driver.common :as driver.common]
@@ -16,8 +17,7 @@
             [metabase.driver.sql.util.unprepare :as unprepare]
             [metabase.util :as u]
             [metabase.util.honeysql-extensions :as hx]
-            [metabase.util.i18n :refer [trs]]
-            [java-time :as t]))
+            [metabase.util.i18n :refer [trs]]))
 
 
 (defn get-jdbc-driver-version []

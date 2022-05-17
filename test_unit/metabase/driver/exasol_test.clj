@@ -1,15 +1,15 @@
 (ns metabase.driver.exasol-test
   "Tests for specific behavior of the Exasol driver."
-  (:require [clojure.test :refer [deftest testing is]]
-            [clojure.string :as str]
+  (:require [clojure.string :as str]
+            [clojure.test :refer [deftest is testing]]
             [honeysql.core :as hsql]
-            [metabase.driver.exasol :as exasol]
             [metabase.config :as config]
             [metabase.driver :as driver]
             [metabase.driver.common :as driver.common]
+            [metabase.driver.exasol :as exasol]
+            [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
             [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
             [metabase.driver.sql.query-processor :as sql.qp]
-            [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
             [metabase.driver.sql.util.unprepare :as unprepare]
             [metabase.util.honeysql-extensions :as hx]))
 
