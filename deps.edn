@@ -5,7 +5,7 @@
  {"Exasol" {:url "https://maven.exasol.com/artifactory/exasol-releases"}}
 
  :deps
- {com.exasol/exasol-jdbc {:mvn/version "7.1.7"}}
+ {com.exasol/exasol-jdbc {:mvn/version "7.1.10"}}
 
  ;; build the driver with clojure -X:build
  :aliases
