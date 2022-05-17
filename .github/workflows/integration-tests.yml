@@ -15,7 +15,7 @@ jobs:
       cancel-in-progress: true
     runs-on: ubuntu-latest
     env:
-      METABASE_VERSION: 0.42.3
+      METABASE_TAG: v0.43.0
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
@@ -29,7 +29,7 @@ jobs:
           fetch-depth: 1
           repository: 'metabase/metabase'
           path: 'metabase'
-          ref: v${{ env.METABASE_VERSION }}
+          ref: ${{ env.METABASE_TAG }}
 
       - name: Checkout integration test docker environment
         uses: actions/checkout@v3
@@ -81,12 +81,6 @@ jobs:
           clojure --version
           echo Leiningen: $(lein --version)
 
-      - name: Prepare Metabase deps
-        run: |
-          cd "$GITHUB_WORKSPACE/metabase"
-          source "./bin/prep.sh"
-          prep_deps
-      
       - name: Build Metabase static viz
         run: |
           cd "$GITHUB_WORKSPACE/metabase"

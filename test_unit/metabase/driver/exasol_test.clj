@@ -1,15 +1,15 @@
 (ns metabase.driver.exasol-test
   "Tests for specific behavior of the Exasol driver."
-  (:require [clojure.test :refer [deftest testing is]]
-            [clojure.string :as str]
+  (:require [clojure.string :as str]
+            [clojure.test :refer [deftest is testing]]
             [honeysql.core :as hsql]
-            [metabase.driver.exasol :as exasol]
             [metabase.config :as config]
             [metabase.driver :as driver]
             [metabase.driver.common :as driver.common]
+            [metabase.driver.exasol :as exasol]
+            [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
             [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
             [metabase.driver.sql.query-processor :as sql.qp]
-            [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
             [metabase.driver.sql.util.unprepare :as unprepare]
             [metabase.util.honeysql-extensions :as hx]))
 
@@ -35,7 +35,7 @@
              (sql-jdbc.conn/connection-details->spec :exasol details)) message))))
 
 
-(def ^:private unsupported-features [:nested-fields])
+(def ^:private unsupported-features [:nested-fields :nested-field-columns])
 
 (deftest database-supports?-test
   (testing "Driver supports setting timezone"
@@ -85,20 +85,20 @@
 
 (deftest date-test
   (let [value :dummy-value]
-    (doseq [[type expected] [[:minute          (hsql/call :truncate value (hx/literal "mi"))]
+    (doseq [[type expected] [[:minute          (hsql/call :truncate (hx/->timestamp value) (hx/literal "mi"))]
                              [:minute-of-hour  (hsql/call :extract :minute (hx/with-type-info (hsql/call :cast value #sql/raw "timestamp") #:metabase.util.honeysql-extensions{:database-type "timestamp"}))]
-                             [:hour            (hsql/call :truncate value (hx/literal "hh"))]
+                             [:hour            (hsql/call :truncate (hx/->timestamp value) (hx/literal "hh"))]
                              [:hour-of-day     (hsql/call :extract :hour (hx/with-type-info (hsql/call :cast value #sql/raw "timestamp") #:metabase.util.honeysql-extensions{:database-type "timestamp"}))]
-                             [:day             (hsql/call :truncate value (hx/literal "dd"))]
+                             [:day             (hsql/call :truncate (hx/->date value) (hx/literal "dd"))]
                              [:day-of-month    (hsql/call :extract :day value)]
-                             [:month           (hsql/call :truncate value (hx/literal "month"))]
+                             [:month           (hsql/call :truncate (hx/->date value) (hx/literal "month"))]
                              [:month-of-year   (hsql/call :extract :month value)]
-                             [:quarter         (hsql/call :truncate value (hx/literal "q"))]
-                             [:year            (hsql/call :truncate value (hx/literal "year"))]
-                             [:week            (hsql/call :truncate value (hx/literal "day"))]
-                             [:week-of-year    (hsql/call :ceil (hsql/call :/ (hsql/call :+ (hsql/call :- (hsql/call :to_date (hsql/call :truncate (hsql/call :truncate value (hx/literal "day")) (hx/literal "dd"))) (hsql/call :to_date (hsql/call :truncate (hsql/call :truncate value (hx/literal "day")) (hx/literal "year")))) 1) 7.0))]
-                             [:day-of-year     (hsql/call :+ (hsql/call :- (hsql/call :to_date (hsql/call :truncate value (hx/literal "dd"))) (hsql/call :to_date (hsql/call :truncate value (hx/literal "year")))) 1)]
-                             [:quarter-of-year (hsql/call :/ (hsql/call :+ (hsql/call :extract :month (hsql/call :truncate value (hx/literal "q"))) 2) 3)]
+                             [:quarter         (hsql/call :truncate (hx/->date value) (hx/literal "q"))]
+                             [:year            (hsql/call :truncate (hx/->date value) (hx/literal "year"))]
+                             [:week            (hsql/call :truncate (hx/->date value) (hx/literal "day"))]
+                             [:week-of-year    (hsql/call :ceil (hsql/call :/ (hsql/call :+ (hsql/call :- (hsql/call :to_date (hsql/call :truncate (hx/->date (hsql/call :truncate (hx/->date value) (hx/literal "day"))) (hx/literal "dd"))) (hsql/call :to_date (hsql/call :truncate (hx/->date (hsql/call :truncate (hx/->date value) (hx/literal "day"))) (hx/literal "year")))) 1) 7.0))]
+                             [:day-of-year     (hsql/call :+ (hsql/call :- (hsql/call :to_date (hsql/call :truncate (hx/->date value) (hx/literal "dd"))) (hsql/call :to_date (hsql/call :truncate (hx/->date value) (hx/literal "year")))) 1)]
+                             [:quarter-of-year (hsql/call :/ (hsql/call :+ (hsql/call :extract :month (hsql/call :truncate (hx/->date value) (hx/literal "q"))) 2) 3)]
                              [:day-of-week     (hx/with-type-info (hsql/call :cast (hsql/call :to_char value (hx/literal "d")) #sql/raw "integer") #:metabase.util.honeysql-extensions{:database-type "integer"})]]]
       (testing (format "Date function %s" type)
         (is (= expected (sql.qp/date :exasol type value)))))))
@@ -108,7 +108,7 @@
 
 (deftest regex-match-first->honeysql-test
   (testing :regex-match-first
-  (is (= (hsql/call :regexp_substr "arg" "pattern") (sql.qp/->honeysql :exasol [:regex-match-first "arg" "pattern"])))))
+    (is (= (hsql/call :regexp_substr "arg" "pattern") (sql.qp/->honeysql :exasol [:regex-match-first "arg" "pattern"])))))
 
 (deftest substring->honeysql-test
   (testing "substring without length argument"
@@ -127,26 +127,29 @@
 (deftest add-interval-honeysql-form-test
   (let [hsql-form (hx/literal "5")
         amount 42
+        date-form (hx/with-type-info (hsql/call :cast hsql-form #sql/raw "date") #:metabase.util.honeysql-extensions{:database-type "date"})
         timestamp-form (hx/with-type-info (hsql/call :cast hsql-form #sql/raw "timestamp") #:metabase.util.honeysql-extensions{:database-type "timestamp"})]
-    (doseq [[unit expected] [[:second  (hsql/call :+ timestamp-form (hsql/call :numtodsinterval amount (hx/literal "second")))]
-                             [:minute  (hsql/call :+ timestamp-form (hsql/call :numtodsinterval amount (hx/literal "minute")))]
-                             [:hour    (hsql/call :+ timestamp-form (hsql/call :numtodsinterval amount (hx/literal "hour")))]
-                             [:day     (hsql/call :+ timestamp-form (hsql/call :numtodsinterval amount (hx/literal "day")))]
-                             [:week    (hsql/call :+ timestamp-form (hsql/call :numtodsinterval (hsql/call :* amount #sql/raw "7") (hx/literal "day")))]
-                             [:month   (hsql/call :+ timestamp-form (hsql/call :numtoyminterval amount (hx/literal "month")))]
-                             [:quarter (hsql/call :+ timestamp-form (hsql/call :numtoyminterval (hsql/call :* amount #sql/raw "3") (hx/literal "month")))]
-                             [:year    (hsql/call :+ timestamp-form (hsql/call :numtoyminterval amount (hx/literal "year")))]]]
+    (doseq [[unit expected expected-type] [
+                             [:second  (hsql/call :+ timestamp-form (hsql/call :numtodsinterval amount (hx/literal "second"))) "timestamp"]
+                             [:minute  (hsql/call :+ timestamp-form (hsql/call :numtodsinterval amount (hx/literal "minute"))) "timestamp"]
+                             [:hour    (hsql/call :+ timestamp-form (hsql/call :numtodsinterval amount (hx/literal "hour"))) "timestamp"]
+                             [:day     (hsql/call :+ date-form (hsql/call      :numtodsinterval amount (hx/literal "day"))) "date"]
+                             [:week    (hsql/call :+ date-form (hsql/call      :numtodsinterval (hsql/call :* amount #sql/raw "7") (hx/literal "day"))) "date"]
+                             [:month   (hsql/call :+ date-form (hsql/call      :numtoyminterval amount (hx/literal "month"))) "date"]
+                             [:quarter (hsql/call :+ date-form (hsql/call      :numtoyminterval (hsql/call :* amount #sql/raw "3") (hx/literal "month"))) "date"]
+                             [:year    (hsql/call :+ date-form (hsql/call      :numtoyminterval amount (hx/literal "year"))) "date"]]]
       (testing (format "Add interval with unit %s" unit)
-        (is (= expected  (sql.qp/add-interval-honeysql-form :exasol hsql-form amount unit)))))))
-
+        (let [complete-expected (metabase.util.honeysql-extensions/with-type-info expected #:metabase.util.honeysql-extensions{:database-type expected-type})]
+          (is (= complete-expected
+                 (sql.qp/add-interval-honeysql-form :exasol hsql-form amount unit))))))))
 
 (deftest cast-temporal-string-test
   (let [expr (hx/literal "5")]
-   (doseq [[coercion-strategy expected] [[:Coercion/ISO8601->DateTime              (hsql/call :to_timestamp expr "YYYY-MM-DD HH:mi:SS")]
-                                         [:Coercion/ISO8601->Date                  (hsql/call :to_date expr "YYYY-MM-DD")]
-                                         [:Coercion/YYYYMMDDHHMMSSString->Temporal (hsql/call :to_timestamp expr "YYYYMMDDHH24miSS")]]]
-   (testing (format "Cast temporal string with coercion strategy %s" coercion-strategy)
-     (is (= expected (sql.qp/cast-temporal-string :exasol coercion-strategy expr)))))))
+    (doseq [[coercion-strategy expected] [[:Coercion/ISO8601->DateTime              (hsql/call :to_timestamp expr "YYYY-MM-DD HH:mi:SS")]
+                                          [:Coercion/ISO8601->Date                  (hsql/call :to_date expr "YYYY-MM-DD")]
+                                          [:Coercion/YYYYMMDDHHMMSSString->Temporal (hsql/call :to_timestamp expr "YYYYMMDDHH24miSS")]]]
+      (testing (format "Cast temporal string with coercion strategy %s" coercion-strategy)
+        (is (= expected (sql.qp/cast-temporal-string :exasol coercion-strategy expr)))))))
 
 (deftest unix-timestamp->honeysql-test
   (let [expr (hx/literal "5")]
@@ -166,14 +169,14 @@
   (is (= #{"EXA_STATISTICS" "SYS"} (sql-jdbc.sync/excluded-schemas :exasol))))
 
 (deftest unprepare-value-test
-    (doseq [[value expected] [[(java.time.OffsetDateTime/parse "2007-12-03T10:15:30+01:00") "timestamp '2007-12-03 10:15:30.000'"]
-                             [(java.time.ZonedDateTime/parse "2007-12-03T10:15:30+01:00[Europe/Paris]") "timestamp '2007-12-03 10:15:30.000'"]]]
-      (testing (format "Unprepare %s" (.getClass value))
-        (is (= expected (unprepare/unprepare-value :exasol value))))))
+  (doseq [[value expected] [[(java.time.OffsetDateTime/parse "2007-12-03T10:15:30+01:00") "timestamp '2007-12-03 10:15:30.000'"]
+                            [(java.time.ZonedDateTime/parse "2007-12-03T10:15:30+01:00[Europe/Paris]") "timestamp '2007-12-03 10:15:30.000'"]]]
+    (testing (format "Unprepare %s" (.getClass value))
+      (is (= expected (unprepare/unprepare-value :exasol value))))))
 
 (deftest get-jdbc-driver-version-test
   (testing "JDBC driver version is not empty"
-  (is (not (str/blank? (exasol/get-jdbc-driver-version))))))
+    (is (not (str/blank? (exasol/get-jdbc-driver-version))))))
 
 (deftest get-driver-version-test
   (testing "Driver version returns nil for non-exsiting resource"
@@ -196,4 +199,4 @@
                                         ["Unknown error messages are unchanged"
                                          "Unknown error messages are unchanged"]
                                         [nil nil]]]
-         (is (= expected-message (driver/humanize-connection-error-message :exasol message))))))
+      (is (= expected-message (driver/humanize-connection-error-message :exasol message))))))
