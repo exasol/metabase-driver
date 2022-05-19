@@ -155,7 +155,7 @@ cd "$metabase_dir"
 
 readonly dep_driver_jar="exasol/exasol-driver {:local/root \"$driver_jar\"}"
 readonly dep_test_jar="exasol/exasol-tests {:local/root \"$driver_test_jar\"}"
-readonly sdeps_option="{:deps { $dep_driver_jar $dep_test_jar}}"
+readonly sdeps_option="{:deps { $dep_driver_jar $dep_test_jar }}"
 
 
 MB_EXASOL_TEST_HOST=$EXASOL_HOST \
