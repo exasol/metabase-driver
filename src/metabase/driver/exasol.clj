@@ -36,7 +36,7 @@
            (catch Exception _)))))))
 
 (defn- log-driver-version []
-  (log/info (u/format-color 'green (format "Loading Exasol Metabase driver %s, Exasol JDBC driver: %s"
+  (println (u/format-color 'green (format "Loading Exasol Metabase driver %s, Exasol JDBC driver: %s"
                                            (get-driver-version) (get-jdbc-driver-version)))))
 
 (log-driver-version)

@@ -6,8 +6,8 @@ set -o pipefail
 
 exasol_driver_dir="$( cd "$(dirname "$0")/.." >/dev/null 2>&1 ; pwd -P )"
 metabase_dir=$(cd "$exasol_driver_dir/../metabase"; pwd)
-metabase_plugin_dir="$metabase_dir/plugins/"
-skip_build=${skip_build:-false}
+readonly driver_jar="$exasol_driver_dir/target/exasol.metabase-driver.jar"
+readonly driver_test_jar="$exasol_driver_dir/target/exasol-test-sources.jar"
 
 log_color() {
     local color="$1"
@@ -91,14 +91,18 @@ patch_excluded_tests() {
     fi
 }
 
-build_and_install_driver() {
-    local driver_jar="$exasol_driver_dir/target/exasol.metabase-driver.jar"
-    log_info "Building exasol driver..."
+build_driver() {
+    log_info "Building exasol driver $driver_jar..."
     cd "$exasol_driver_dir"
     clojure -X:build :project-dir "\"$(pwd)\""
-    mkdir -pv "$metabase_plugin_dir"
-    log_info "Copy driver $driver_jar to $metabase_plugin_dir"
-    cp -v "$driver_jar" "$metabase_plugin_dir"
+    ls -lah "$driver_jar"
+}
+
+build_test_jar() {
+    log_info "Building test jar $driver_test_jar..."
+    cd "$exasol_driver_dir"
+    clojure -T:build-test-jar test-jar
+    ls -lha "$driver_test_jar"
 }
 
 get_exasol_certificate_fingerprint() {
@@ -130,8 +134,8 @@ get_exasol_certificate_fingerprint() {
 ###
 
 check_preconditions
-symlink_driver_sources
-patch_metabase_deps
+#symlink_driver_sources
+#patch_metabase_deps
 patch_excluded_tests
 
 if [[ -z "${EXASOL_FINGERPRINT+x}" ]] ; then
@@ -142,15 +146,18 @@ else
     fingerprint="$EXASOL_FINGERPRINT"
 fi
 
-if [ "$skip_build" == "true" ]; then
-    log_error "Skipping driver build"
-else
-    build_and_install_driver
-fi
+build_driver
+build_test_jar
 
 log_info "Using Exasol database $EXASOL_HOST:$EXASOL_PORT with certificate fingerprint '$fingerprint'"
 log_info "Starting integration tests in $metabase_dir..."
 cd "$metabase_dir"
+
+readonly dep_driver_jar="exasol/exasol-driver {:local/root \"$driver_jar\"}"
+readonly dep_test_jar="exasol/exasol-tests {:local/root \"$driver_test_jar\"}"
+readonly sdeps_option="{:deps { $dep_driver_jar $dep_test_jar}}"
+
+
 MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_EXASOL_TEST_PORT=$EXASOL_PORT \
   MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=$fingerprint \
@@ -159,4 +166,5 @@ MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_ENCRYPTION_SECRET_KEY=$(openssl rand -base64 32) \
   DRIVERS=exasol \
   clojure -J-Duser.country=US -J-Duser.language=en -J-Duser.timezone=UTC \
+          -Sdeps "$sdeps_option" \
           -X:dev:ci:drivers:drivers-dev:test "$@"
