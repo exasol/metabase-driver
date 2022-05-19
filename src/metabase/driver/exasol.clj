@@ -1,6 +1,5 @@
 (ns metabase.driver.exasol
   (:require [clojure.java.io :as io]
-            [clojure.tools.logging :as log]
             [honeysql.core :as hsql]
             [honeysql.format :as hformat]
             [java-time :as t]
@@ -18,7 +17,6 @@
             [metabase.util :as u]
             [metabase.util.honeysql-extensions :as hx]
             [metabase.util.i18n :refer [trs]]))
-
 
 (defn get-jdbc-driver-version []
   (com.exasol.jdbc.EXADriver/getVersionInfo))
@@ -130,7 +128,7 @@
     (let [set-timezone-sql (create-set-timezone-sql timezone-id)]
       (with-open [stmt (.createStatement conn)]
         (.execute stmt set-timezone-sql)
-        (log/tracef "Successfully set timezone for Exasol to %s using statement %s" timezone-id set-timezone-sql)))))
+        (println "Successfully set timezone for Exasol to %s using statement %s" timezone-id set-timezone-sql)))))
 
 ;; Same as default implementation but without calling the unsupported setHoldability() method
 (defmethod sql-jdbc.execute/connection-with-timezone :exasol
@@ -142,11 +140,11 @@
       (try
         (.setReadOnly conn true)
         (catch Throwable e
-          (log/warn e (trs "Error setting connection to read-only"))))
+          (println e (trs "Error setting connection to read-only"))))
       (try
         (.setAutoCommit conn false)
         (catch Throwable e
-          (log/warn e (trs "Error setting connection to autoCommit false"))))
+          (println e (trs "Error setting connection to autoCommit false"))))
       conn
       (catch Throwable e
         (.close conn)
