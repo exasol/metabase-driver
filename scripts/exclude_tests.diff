@@ -1,5 +1,5 @@
 diff --git a/test/metabase/api/table_test.clj b/test/metabase/api/table_test.clj
-index ee5e239fae..97f25dedde 100644
+index 495be5d570..36620d487e 100644
 --- a/test/metabase/api/table_test.clj
 +++ b/test/metabase/api/table_test.clj
 @@ -737,7 +737,7 @@
@@ -7,12 +7,12 @@ index ee5e239fae..97f25dedde 100644
  
        (testing "time columns"
 -        (mt/test-drivers (mt/normal-drivers-except #{:sparksql :mongo :oracle :redshift})
-+        (mt/test-drivers (mt/normal-drivers-except #{:sparksql :mongo :oracle :redshift :exasol}) ; Exasol does not support TIME data type
++        (mt/test-drivers (mt/normal-drivers-except #{:sparksql :mongo :oracle :exasol}) ; Exasol does not support TIME data type
            (mt/dataset test-data-with-time
              (let [response (mt/user-http-request :rasta :get 200 (format "table/%d/query_metadata" (mt/id :users)))]
-               (is (= @#'api.table/time-dimension-indexes
+               (is (= @#'table-api/time-dimension-indexes
 diff --git a/test/metabase/driver/sql/parameters/substitute_test.clj b/test/metabase/driver/sql/parameters/substitute_test.clj
-index 9dae81c3e5..a764e3e6bf 100644
+index 018ec0446b..accbb02ed1 100644
 --- a/test/metabase/driver/sql/parameters/substitute_test.clj
 +++ b/test/metabase/driver/sql/parameters/substitute_test.clj
 @@ -609,7 +609,7 @@
@@ -25,7 +25,7 @@ index 9dae81c3e5..a764e3e6bf 100644
                (= driver/*driver* :presto)
                "2018-04-18"
 diff --git a/test/metabase/driver/sql_jdbc/connection_test.clj b/test/metabase/driver/sql_jdbc/connection_test.clj
-index 678783f67d..6c6cd57c11 100644
+index f05ebd53a0..46bea0c74d 100644
 --- a/test/metabase/driver/sql_jdbc/connection_test.clj
 +++ b/test/metabase/driver/sql_jdbc/connection_test.clj
 @@ -105,7 +105,7 @@
