@@ -76,7 +76,7 @@ jobs:
           path: target/uberjar/exasol.metabase-driver.jar
 
       - name: Run unit tests
-        run: ./scripts/run-unit-tests.sh
+        run: ./metabase-driver/scripts/run-unit-tests.sh
 
 #      - name: Run linter
 #        run: |
