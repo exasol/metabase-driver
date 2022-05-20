@@ -6,8 +6,6 @@ set -o pipefail
 
 exasol_driver_dir="$( cd "$(dirname "$0")/.." >/dev/null 2>&1 ; pwd -P )"
 metabase_dir=$(cd "$exasol_driver_dir/../metabase"; pwd)
-readonly driver_jar="$exasol_driver_dir/target/exasol.metabase-driver.jar"
-readonly driver_test_jar="$exasol_driver_dir/target/exasol-test-sources.jar"
 
 log_color() {
     local color="$1"
@@ -44,22 +42,6 @@ check_preconditions() {
     fi
 }
 
-symlink_driver_sources() {
-    local symlink_target="$metabase_dir/modules/drivers/exasol"
-    if [[ -L "$symlink_target" && -d "$symlink_target" ]]; then
-        log_trace "Symlink already exists at $symlink_target"
-        return 0
-    fi
-    if [[ ! -d "$symlink_target" && ! -f "$symlink_target" ]]; then
-        log_info "Creating symlink to $symlink_target -> $exasol_driver_dir"
-        ln -s "$exasol_driver_dir" "$symlink_target"
-        return 0
-    fi
-
-    log_error "A file or directory already exists at $symlink_target. Please delete it and try again."
-    exit 1
-}
-
 patch_metabase_deps() {
     local metabase_deps="$metabase_dir/deps.edn"
     if ! grep --quiet "modules/drivers/exasol/test" "$metabase_deps"; then
@@ -91,20 +73,6 @@ patch_excluded_tests() {
     fi
 }
 
-build_driver() {
-    log_info "Building exasol driver $driver_jar..."
-    cd "$exasol_driver_dir"
-    clojure -X:build :project-dir "\"$(pwd)\""
-    ls -lah "$driver_jar"
-}
-
-build_test_jar() {
-    log_info "Building test jar $driver_test_jar..."
-    cd "$exasol_driver_dir"
-    clojure -T:build-test-jar test-jar
-    ls -lha "$driver_test_jar"
-}
-
 get_exasol_certificate_fingerprint() {
     local certificate
     local fingerprint
@@ -134,8 +102,6 @@ get_exasol_certificate_fingerprint() {
 ###
 
 check_preconditions
-#symlink_driver_sources
-#patch_metabase_deps
 patch_excluded_tests
 
 if [[ -z "${EXASOL_FINGERPRINT+x}" ]] ; then
@@ -146,16 +112,14 @@ else
     fingerprint="$EXASOL_FINGERPRINT"
 fi
 
-build_driver
-build_test_jar
-
 log_info "Using Exasol database $EXASOL_HOST:$EXASOL_PORT with certificate fingerprint '$fingerprint'"
 log_info "Starting integration tests in $metabase_dir..."
 cd "$metabase_dir"
 
-readonly dep_driver_jar="exasol/exasol-driver {:local/root \"$driver_jar\"}"
-readonly dep_test_jar="exasol/exasol-tests {:local/root \"$driver_test_jar\"}"
-readonly sdeps_option="{:deps { $dep_driver_jar $dep_test_jar }}"
+readonly dep_driver_dir="exasol/exasol-driver {:local/root \"$exasol_driver_dir\"}"
+readonly dep_test_dir="exasol/exasol-tests {:local/root \"$exasol_driver_dir/test\"}"
+readonly exasol_maven_repo=':mvn/repos {"Exasol" {:url "https://maven.exasol.com/artifactory/exasol-releases"}}'
+readonly sdeps_option="{:deps { $dep_driver_dir $dep_test_dir } $exasol_maven_repo }"
 
 
 MB_EXASOL_TEST_HOST=$EXASOL_HOST \

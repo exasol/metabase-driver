@@ -1,4 +1,4 @@
-(ns metabase.driver.exasol-test
+(ns metabase.driver.exasol-unit-test
   "Tests for specific behavior of the Exasol driver."
   (:require [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]
