@@ -24,15 +24,7 @@
 
 (defn get-driver-version
   ([]
-   (get-driver-version "META-INF/maven/metabase/exasol-driver/pom.properties"))
-  ([resource]
-   (when-let [url ^java.net.URL (io/resource resource)]
-     (with-open [stream (.openStream url)]
-       (let [properties (java.util.Properties.)]
-         (try
-           (.load properties stream)
-           (.getProperty properties "version")
-           (catch Exception _)))))))
+   "(unknown)")) ; Will be implemented in https://github.com/exasol/metabase-driver/issues/40
 
 (defn- log-driver-version []
   (log/info (u/format-color 'green (format "Loading Exasol Metabase driver %s, Exasol JDBC driver: %s"
