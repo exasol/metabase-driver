@@ -42,17 +42,6 @@ check_preconditions() {
     fi
 }
 
-patch_metabase_deps() {
-    local metabase_deps="$metabase_dir/deps.edn"
-    if ! grep --quiet "modules/drivers/exasol/test" "$metabase_deps"; then
-        log_info "Adding dependency to $metabase_deps"
-        sed --in-place 's/"modules\/drivers\/druid\/test"/"modules\/drivers\/druid\/test" "modules\/drivers\/exasol\/test"/g' "$metabase_deps"
-        sed --in-place 's/"modules\/drivers\/druid\/src"/"modules\/drivers\/druid\/src" "modules\/drivers\/exasol\/src"/g' "$metabase_deps"
-    else
-        log_trace "Dependency already added to $metabase_deps"
-    fi
-}
-
 patch_excluded_tests() {
     local patch_applied="$metabase_dir/target/patch_excluded_test_applied"
     if [ ! -f "$patch_applied" ]; then

@@ -68,7 +68,6 @@ jobs:
         run: |
           cd "$GITHUB_WORKSPACE/metabase-driver"
           clojure -X:build :project-dir "\"$(pwd)\""
-          unzip -l target/exasol.metabase-driver.jar
 
       - name: Upload jar
         uses: actions/upload-artifact@v2
@@ -76,9 +75,9 @@ jobs:
           name: exasol.metabase-driver.jar
           path: target/uberjar/exasol.metabase-driver.jar
 
-#      - name: Run tests
-#        run: lein test
-#
+      - name: Run unit tests
+        run: ./scripts/run-unit-tests.sh
+
 #      - name: Run linter
 #        run: |
 #          mkdir -p .clj-kondo/.cache

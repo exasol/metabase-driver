@@ -79,7 +79,7 @@ jobs:
       - name: Run integration tests
         run: |
           source $GITHUB_WORKSPACE/integration-test-docker-environment/.build_output/cache/environments/test/environment_info.sh
-            EXASOL_HOST=$ENVIRONMENT_DATABASE_HOST \
+          EXASOL_HOST=$ENVIRONMENT_DATABASE_HOST \
             EXASOL_PORT=$ENVIRONMENT_DATABASE_DB_PORT \
             EXASOL_USER=sys EXASOL_PASSWORD=exasol \
             $GITHUB_WORKSPACE/metabase-driver/scripts/run-integration-tests.sh
