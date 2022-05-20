@@ -15,23 +15,10 @@
    :exec-fn    build-drivers.build-driver/build-driver!
    :exec-args  {:driver      :exasol
                 :project-dir "."
-                :target-dir  "./target"}}
+                :target-dir  "./target"}}}
 
- ;; Build a jar with test code with
-  :test-jar
-  {:replace-deps  {}}
-
-  ;; run with `clojure -T:build test-jar`
-  :build-test-jar
-  {:replace-paths ["test"]
-   :replace-deps {}
-   :extra-deps {io.github.clojure/tools.build {:git/tag "v0.8.2"
-                                               :git/sha "ba1a2bf"}}
-   :ns-default build}}
-
- ;:oss
- ; ;; JDBC driver isn't GPL-compatible
- ;{:replace-deps  {}}
- ;:ee
- ;{}
- }
+ :oss
+  ;; JDBC driver isn't GPL-compatible
+ {:replace-deps  {}}
+ :ee
+ {}}

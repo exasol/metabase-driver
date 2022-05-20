@@ -4,7 +4,6 @@
 
 For building and testing the driver you will need
 * [Clojure](https://clojure.org/) version 1.10.3 or later
-* [Leiningen](https://leiningen.org/) version 2.9.8 or later
 
 To build Metabase itself you will need
 * [Node.js](https://nodejs.org/en/)
@@ -25,7 +24,7 @@ yum install perl-Digest-SHA nodejs yarnpkg
 On macOS you additionally need `gnu-sed`:
 
 ```shell
-brew install nodejs yarnpkg clojure leiningen gnu-sed
+brew install nodejs yarnpkg clojure gnu-sed
 # Then add gnubin to your PATH:
 # export PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
 ```
@@ -35,7 +34,6 @@ Run the following commands to check the current versions:
 ```shell
 clojure -M --eval "(clojure-version)"
 clojure --version
-lein --version
 ```
 
 ## Setup Development Environment
@@ -43,11 +41,11 @@ lein --version
 1. Checkout Metabase at `$HOME/git/metabase` (= `$METABASE_DIR`) and build it:
 
     ```bash
-    export METABASE_VERSION=0.43.0
     cd $HOME/git
     git clone https://github.com/metabase/metabase.git
     cd metabase
     git fetch --all --tags
+    export METABASE_VERSION=0.43.0
     git checkout "tags/v${METABASE_VERSION}" -b "v${METABASE_VERSION}-branch"
     # Build (this will take ~15min)
     ./bin/build
@@ -71,8 +69,7 @@ lein --version
 ## Run Driver Unit Tests
 
 ```bash
-./scripts/install-metabase-jar.sh
-lein test
+./scripts/run-unit-tests.sh
 ```
 
 ## Start Metabase With the Exasol Driver
@@ -98,14 +95,11 @@ export METABASE_DIR="$HOME/git/metabase"
 export METABASE_EXASOL_DRIVER="$HOME/git/metabase-driver"
 cd $METABASE_EXASOL_DRIVER
 
-# Install dependencies
-./scripts/install-metabase-jar.sh
-
 # Build driver
-DEBUG=1 lein uberjar
+clojure -X:build :project-dir "\"$(pwd)\""
 
 # Install driver
-cp -v "$METABASE_EXASOL_DRIVER/target/uberjar/exasol.metabase-driver.jar" "$METABASE_DIR/plugins/"
+cp -v "$METABASE_EXASOL_DRIVER/target/exasol.metabase-driver.jar" "$METABASE_DIR/plugins/"
 
 # Run Metabase
 cd $METABASE_DIR
