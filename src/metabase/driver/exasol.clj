@@ -45,9 +45,11 @@
 (defmethod driver/display-name :exasol [_]
   "Exasol")
 
-(doseq [[feature supported?] {:set-timezone         true
-                              :nested-fields        false
-                              :nested-field-columns false}]
+(doseq [[feature supported?] {:set-timezone           true
+                              :nested-fields          false
+                              :nested-field-columns   false
+                              :persist-models         false
+                              :persist-models-enabled false}]
   (defmethod driver/database-supports? [:exasol feature] [_ _ _] supported?))
 
 (defmethod sql-jdbc.conn/connection-details->spec :exasol
