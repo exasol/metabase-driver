@@ -1,6 +1,5 @@
 (ns metabase.driver.exasol
-  (:require [clojure.java.io :as io]
-            [clojure.tools.logging :as log]
+  (:require [clojure.tools.logging :as log]
             [honeysql.core :as hsql]
             [honeysql.format :as hformat]
             [java-time :as t]
@@ -39,9 +38,7 @@
 
 (doseq [[feature supported?] {:set-timezone           true
                               :nested-fields          false
-                              :nested-field-columns   false
-                              :persist-models         false
-                              :persist-models-enabled false}]
+                              :nested-field-columns   false}]
   (defmethod driver/database-supports? [:exasol feature] [_ _ _] supported?))
 
 (defmethod sql-jdbc.conn/connection-details->spec :exasol
