@@ -70,10 +70,11 @@ jobs:
           clojure -X:build :project-dir "\"$(pwd)\""
 
       - name: Upload jar
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: exasol.metabase-driver.jar
-          path: "$GITHUB_WORKSPACE/metabase-driver/target/exasol.metabase-driver.jar"
+          path: metabase-driver/target/exasol.metabase-driver.jar
+          if-no-files-found: error
 
       - name: Run unit tests
         run: "$GITHUB_WORKSPACE/metabase-driver/scripts/run-unit-tests.sh"
