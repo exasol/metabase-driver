@@ -1,13 +1,13 @@
 diff --git a/test/metabase/api/table_test.clj b/test/metabase/api/table_test.clj
-index 7bd2ea7362..d77500e812 100644
+index 495be5d570..36620d487e 100644
 --- a/test/metabase/api/table_test.clj
 +++ b/test/metabase/api/table_test.clj
-@@ -720,7 +720,7 @@
+@@ -737,7 +737,7 @@
                     (dimension-options-for-field response "timestamp"))))))
  
        (testing "time columns"
 -        (mt/test-drivers (mt/normal-drivers-except #{:sparksql :mongo :oracle :redshift})
-+        (mt/test-drivers (mt/normal-drivers-except #{:sparksql :mongo :oracle :redshift :exasol}) ; Exasol does not support TIME data type
++        (mt/test-drivers (mt/normal-drivers-except #{:sparksql :mongo :oracle :exasol}) ; Exasol does not support TIME data type
            (mt/dataset test-data-with-time
              (let [response (mt/user-http-request :rasta :get 200 (format "table/%d/query_metadata" (mt/id :users)))]
                (is (= @#'table-api/time-dimension-indexes

@@ -1,6 +1,5 @@
 (ns metabase.driver.exasol
-  (:require [clojure.java.io :as io]
-            [clojure.tools.logging :as log]
+  (:require [clojure.tools.logging :as log]
             [honeysql.core :as hsql]
             [honeysql.format :as hformat]
             [java-time :as t]
@@ -19,21 +18,12 @@
             [metabase.util.honeysql-extensions :as hx]
             [metabase.util.i18n :refer [trs]]))
 
-
 (defn get-jdbc-driver-version []
   (com.exasol.jdbc.EXADriver/getVersionInfo))
 
 (defn get-driver-version
   ([]
-   (get-driver-version "META-INF/maven/metabase/exasol-driver/pom.properties"))
-  ([resource]
-   (when-let [url ^java.net.URL (io/resource resource)]
-     (with-open [stream (.openStream url)]
-       (let [properties (java.util.Properties.)]
-         (try
-           (.load properties stream)
-           (.getProperty properties "version")
-           (catch Exception _)))))))
+   "(unknown)")) ; Will be implemented in https://github.com/exasol/metabase-driver/issues/40
 
 (defn- log-driver-version []
   (log/info (u/format-color 'green (format "Loading Exasol Metabase driver %s, Exasol JDBC driver: %s"
@@ -46,9 +36,9 @@
 (defmethod driver/display-name :exasol [_]
   "Exasol")
 
-(doseq [[feature supported?] {:set-timezone         true
-                              :nested-fields        false
-                              :nested-field-columns false}]
+(doseq [[feature supported?] {:set-timezone           true
+                              :nested-fields          false
+                              :nested-field-columns   false}]
   (defmethod driver/database-supports? [:exasol feature] [_ _ _] supported?))
 
 (defmethod sql-jdbc.conn/connection-details->spec :exasol

@@ -4,6 +4,5 @@
 /target/
 /.calva/
 /maven_repository/
-/.lein-failures
 /.eastwood
 /.nrepl-port

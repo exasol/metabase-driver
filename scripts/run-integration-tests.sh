@@ -4,11 +4,12 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-jdbc_driver_version=7.1.10
 exasol_driver_dir="$( cd "$(dirname "$0")/.." >/dev/null 2>&1 ; pwd -P )"
+readonly exasol_driver_dir
 metabase_dir=$(cd "$exasol_driver_dir/../metabase"; pwd)
-metabase_plugin_dir="$metabase_dir/plugins/"
-skip_build=${skip_build:-false}
+readonly metabase_dir
+readonly skip_build=${skip_build:-false}
+readonly driver_jar="$exasol_driver_dir/target/exasol.metabase-driver.jar"
 
 log_color() {
     local color="$1"
@@ -45,32 +46,6 @@ check_preconditions() {
     fi
 }
 
-symlink_driver_sources() {
-    local symlink_target="$metabase_dir/modules/drivers/exasol"
-    if [[ -L "$symlink_target" && -d "$symlink_target" ]]; then
-        log_trace "Symlink already exists at $symlink_target"
-        return 0
-    fi
-    if [[ ! -d "$symlink_target" && ! -f "$symlink_target" ]]; then
-        log_info "Creating symlink to $symlink_target -> $exasol_driver_dir"
-        ln -s "$exasol_driver_dir" "$symlink_target"
-        return 0
-    fi
-
-    log_error "A file or directory already exists at $symlink_target. Please delete it and try again."
-    exit 1
-}
-
-patch_metabase_deps() {
-    local metabase_deps="$metabase_dir/deps.edn"
-    if ! grep --quiet "modules/drivers/exasol/test" "$metabase_deps"; then
-        log_info "Adding dependency to $metabase_deps"
-        sed --in-place 's/"modules\/drivers\/druid\/test"/"modules\/drivers\/druid\/test" "modules\/drivers\/exasol\/test"/g' "$metabase_deps"
-    else
-        log_trace "Dependency already added to $metabase_deps"
-    fi
-}
-
 patch_excluded_tests() {
     local patch_applied="$metabase_dir/target/patch_excluded_test_applied"
     if [ ! -f "$patch_applied" ]; then
@@ -91,34 +66,15 @@ patch_excluded_tests() {
     fi
 }
 
-install_jdbc_driver() {
-    if [ ! -d "$metabase_plugin_dir" ]; then
-        log_info "Creating $metabase_plugin_dir"
-        mkdir -p "$metabase_plugin_dir"
-    fi
-
-    if [ ! -f "$metabase_plugin_dir/exasol-jdbc.jar" ]; then
-        log_info "Installing Exasol JDBC driver..."
-        mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get --batch-mode \
-          -DremoteRepositories=https://maven.exasol.com/artifactory/exasol-releases \
-          -Dartifact=com.exasol:exasol-jdbc:$jdbc_driver_version
-        cp -v "$HOME/.m2/repository/com/exasol/exasol-jdbc/$jdbc_driver_version/exasol-jdbc-$jdbc_driver_version.jar" "$metabase_plugin_dir/exasol-jdbc.jar"
-    else
-        log_trace "Exasol JDBC driver already exists in $metabase_plugin_dir"
-    fi
-}
-
-install_metabase_jar() {
-    "$exasol_driver_dir/scripts/install-metabase-jar.sh"
-}
-
 build_and_install_driver() {
-    local driver_jar="$exasol_driver_dir/target/uberjar/exasol.metabase-driver.jar"
-    log_info "Building exasol driver..."
+    log_info "Building exasol driver $driver_jar..."
+    local plugin_dir="$metabase_dir/plugins"
     cd "$exasol_driver_dir"
-    DEBUG=1 lein uberjar
-    log_info "Copy driver $driver_jar to $metabase_plugin_dir"
-    cp -v "$driver_jar" "$metabase_plugin_dir"
+    clojure -X:build :project-dir "\"$(pwd)\""
+    ls -lah "$driver_jar"
+    log_info "Installing exasol driver $driver_jar to $plugin_dir"
+    mkdir -p "$plugin_dir"
+    cp -v "$driver_jar" "$plugin_dir"
 }
 
 get_exasol_certificate_fingerprint() {
@@ -150,11 +106,13 @@ get_exasol_certificate_fingerprint() {
 ###
 
 check_preconditions
-symlink_driver_sources
-patch_metabase_deps
 patch_excluded_tests
-install_jdbc_driver
-install_metabase_jar
+
+if [ "$skip_build" == "true" ]; then
+    log_error "Skipping driver build"
+else
+    build_and_install_driver
+fi
 
 if [[ -z "${EXASOL_FINGERPRINT+x}" ]] ; then
     log_info "Getting certificate fingerprint from $EXASOL_HOST..."
@@ -164,15 +122,16 @@ else
     fingerprint="$EXASOL_FINGERPRINT"
 fi
 
-if [ "$skip_build" == "true" ]; then
-    log_error "Skipping driver build"
-else
-    build_and_install_driver
-fi
-
 log_info "Using Exasol database $EXASOL_HOST:$EXASOL_PORT with certificate fingerprint '$fingerprint'"
 log_info "Starting integration tests in $metabase_dir..."
 cd "$metabase_dir"
+
+readonly dep_driver_dir="exasol/exasol-driver {:local/root \"$exasol_driver_dir\"}"
+readonly dep_test_dir="exasol/exasol-tests {:local/root \"$exasol_driver_dir/test\"}"
+readonly exasol_maven_repo=':mvn/repos {"Exasol" {:url "https://maven.exasol.com/artifactory/exasol-releases"}}'
+readonly sdeps_option="{:deps { $dep_driver_dir $dep_test_dir } $exasol_maven_repo }"
+
+
 MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_EXASOL_TEST_PORT=$EXASOL_PORT \
   MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=$fingerprint \
@@ -181,4 +140,5 @@ MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_ENCRYPTION_SECRET_KEY=$(openssl rand -base64 32) \
   DRIVERS=exasol \
   clojure -J-Duser.country=US -J-Duser.language=en -J-Duser.timezone=UTC \
+          -Sdeps "$sdeps_option" \
           -X:dev:ci:drivers:drivers-dev:test "$@"

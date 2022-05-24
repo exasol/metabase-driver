@@ -1,0 +1,29 @@
+{:paths
+ ["src" "resources"]
+
+ :mvn/repos
+ {"Exasol" {:url "https://maven.exasol.com/artifactory/exasol-releases"}}
+
+ :deps
+ {com.exasol/exasol-jdbc {:mvn/version "7.1.10"}}
+
+ ;; Build the driver with clojure -X:build
+ :aliases
+ {:build
+  {:extra-deps {metabase/metabase-core {:local/root "../metabase"}
+                metabase/build-drivers {:local/root "../metabase/bin/build-drivers"}}
+   :exec-fn    build-drivers.build-driver/build-driver!
+   :exec-args  {:driver      :exasol
+                :project-dir "."
+                :target-dir  "./target"}}
+
+; clojure -M:clj-kondo --lint src test --debug
+  :clj-kondo
+  {:replace-deps {clj-kondo/clj-kondo {:mvn/version "2022.04.25"}}
+   :main-opts ["-m" "clj-kondo.main"]}}
+
+ :oss
+  ;; JDBC driver isn't GPL-compatible
+ {:replace-deps  {}}
+ :ee
+ {}}

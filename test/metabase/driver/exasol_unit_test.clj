@@ -1,4 +1,4 @@
-(ns metabase.driver.exasol-test
+(ns metabase.driver.exasol-unit-test
   "Tests for specific behavior of the Exasol driver."
   (:require [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]
@@ -179,8 +179,6 @@
     (is (not (str/blank? (exasol/get-jdbc-driver-version))))))
 
 (deftest get-driver-version-test
-  (testing "Driver version returns nil for non-exsiting resource"
-    (is (nil? (exasol/get-driver-version "no-such-resource-name"))))
   (testing "Driver version read from existing resource"
     (is (not (str/blank? (exasol/get-driver-version))))))
 
