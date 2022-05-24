@@ -151,7 +151,7 @@ In the REPL you can use the following commands:
 (dev/query-jdbc-db [:exasol 'test-data] "SELECT * from CAM_179.\"test_data_users\"")
 ```
 
-### Helfpul Files in Metabase
+### Helpful Files in Metabase
 
 * [deps.edn](https://github.com/metabase/metabase/blob/master/deps.edn): Dependencies and comments with useful commands for building and testing
 * [`dev/src/dev.clj`](https://github.com/metabase/metabase/blob/master/dev/src/dev.clj): Functions for developing with the REPL
@@ -179,6 +179,11 @@ When the patch file has changed or you updated to a new Metabase release, do the
 ```shell
 cd $METABASE_DIR
 git reset --hard && rm -vf target/patch_excluded_test_applied
+```
+## Linting
+
+```shell
+clojure -M:clj-kondo --lint src test --debug
 ```
 
 # Troubleshooting

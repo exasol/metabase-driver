@@ -78,7 +78,7 @@ jobs:
 
       - name: Spawn Exasol environment
         run: |
-          ./start-test-env spawn-test-environment --environment-name test --database-port-forward 8563 --deactivate-database-setup
+          "$GITHUB_WORKSPACE/start-test-env spawn-test-environment" --environment-name test --database-port-forward 8563 --deactivate-database-setup
         working-directory: integration-test-docker-environment
 
       - name: Run integration tests
@@ -87,4 +87,4 @@ jobs:
           EXASOL_HOST=$ENVIRONMENT_DATABASE_HOST \
             EXASOL_PORT=$ENVIRONMENT_DATABASE_DB_PORT \
             EXASOL_USER=sys EXASOL_PASSWORD=exasol \
-            $GITHUB_WORKSPACE/metabase-driver/scripts/run-integration-tests.sh
+            "$GITHUB_WORKSPACE/metabase-driver/scripts/run-integration-tests.sh"

@@ -73,13 +73,14 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: exasol.metabase-driver.jar
-          path: target/uberjar/exasol.metabase-driver.jar
+          path: "$GITHUB_WORKSPACE/metabase-driver/target/exasol.metabase-driver.jar"
 
       - name: Run unit tests
-        run: ./metabase-driver/scripts/run-unit-tests.sh
+        run: "$GITHUB_WORKSPACE/metabase-driver/scripts/run-unit-tests.sh"
 
-#      - name: Run linter
-#        run: |
-#          mkdir -p .clj-kondo/.cache
-#          lein lint
+      - name: Run linter
+        run: |
+          cd "$GITHUB_WORKSPACE/metabase-driver"
+          mkdir -p .clj-kondo/.cache
+          clojure -M:clj-kondo --lint src test --debug
 
