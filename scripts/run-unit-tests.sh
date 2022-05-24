@@ -43,14 +43,6 @@ readonly dep_test_dir="exasol/exasol-tests {:local/root \"$exasol_driver_dir/tes
 readonly exasol_maven_repo=':mvn/repos {"Exasol" {:url "https://maven.exasol.com/artifactory/exasol-releases"}}'
 readonly sdeps_option="{:deps { $dep_driver_dir $dep_test_dir } $exasol_maven_repo }"
 
-
-#MB_EXASOL_TEST_HOST=$EXASOL_HOST \
-#  MB_EXASOL_TEST_PORT=$EXASOL_PORT \
-#  MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=$fingerprint \
-#  MB_EXASOL_TEST_USER=$EXASOL_USER \
-#  MB_EXASOL_TEST_PASSWORD=$EXASOL_PASSWORD \
-#  MB_ENCRYPTION_SECRET_KEY=$(openssl rand -base64 32) \
-#  DRIVERS=exasol \
-  clojure -J-Duser.country=US -J-Duser.language=en -J-Duser.timezone=UTC \
-          -Sdeps "$sdeps_option" \
-          -X:dev:ci:drivers:drivers-dev:test :only metabase.driver.exasol-unit-test
+clojure -J-Duser.country=US -J-Duser.language=en -J-Duser.timezone=UTC \
+        -Sdeps "$sdeps_option" \
+        -X:dev:ci:drivers:drivers-dev:test :only metabase.driver.exasol-unit-test
