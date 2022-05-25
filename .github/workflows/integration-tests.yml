@@ -53,7 +53,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('metabase-driver/deps.edn', 'metabase/**/deps.edn') }}
+          key: ${{ runner.os }}-maven-${{ hashFiles('metabase-driver/deps.edn', 'metabase-driver/scripts/run-integration-tests.sh', 'metabase/**/deps.edn') }}
           restore-keys: |
             ${{ runner.os }}-maven-
 

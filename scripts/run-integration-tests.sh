@@ -4,12 +4,14 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+readonly jdbc_driver_version=7.1.10
+
 exasol_driver_dir="$( cd "$(dirname "$0")/.." >/dev/null 2>&1 ; pwd -P )"
 readonly exasol_driver_dir
 metabase_dir=$(cd "$exasol_driver_dir/../metabase"; pwd)
 readonly metabase_dir
+readonly metabase_plugin_dir="$metabase_dir/plugins"
 readonly skip_build=${skip_build:-false}
-readonly driver_jar="$exasol_driver_dir/target/exasol.metabase-driver.jar"
 
 log_color() {
     local color="$1"
@@ -66,6 +68,24 @@ patch_excluded_tests() {
     fi
 }
 
+install_jdbc_driver() {
+    if [ ! -d "$metabase_plugin_dir" ]; then
+        log_info "Creating $metabase_plugin_dir"
+        mkdir -p "$metabase_plugin_dir"
+    fi
+
+    local exasol_driver="$metabase_plugin_dir/exasol-jdbc.jar"
+    if [ ! -f "$exasol_driver" ]; then
+        mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get --batch-mode \
+          -DremoteRepositories=https://maven.exasol.com/artifactory/exasol-releases \
+          -Dartifact=com.exasol:exasol-jdbc:$jdbc_driver_version
+        log_info "Installing Exasol JDBC driver to $exasol_driver"
+        cp -v "$HOME/.m2/repository/com/exasol/exasol-jdbc/$jdbc_driver_version/exasol-jdbc-$jdbc_driver_version.jar" "$exasol_driver"
+    else
+        log_trace "Exasol JDBC driver already exists in $exasol_driver"
+    fi
+}
+
 get_exasol_certificate_fingerprint() {
     local certificate
     local fingerprint
@@ -96,6 +116,7 @@ get_exasol_certificate_fingerprint() {
 
 check_preconditions
 patch_excluded_tests
+install_jdbc_driver
 
 if [[ -z "${EXASOL_FINGERPRINT+x}" ]] ; then
     log_info "Getting certificate fingerprint from $EXASOL_HOST..."
