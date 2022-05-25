@@ -66,17 +66,6 @@ patch_excluded_tests() {
     fi
 }
 
-build_and_install_driver() {
-    log_info "Building exasol driver $driver_jar..."
-    local plugin_dir="$metabase_dir/plugins"
-    cd "$exasol_driver_dir"
-    clojure -X:build :project-dir "\"$(pwd)\""
-    ls -lah "$driver_jar"
-    log_info "Installing exasol driver $driver_jar to $plugin_dir"
-    mkdir -p "$plugin_dir"
-    cp -v "$driver_jar" "$plugin_dir"
-}
-
 get_exasol_certificate_fingerprint() {
     local certificate
     local fingerprint
@@ -108,12 +97,6 @@ get_exasol_certificate_fingerprint() {
 check_preconditions
 patch_excluded_tests
 
-if [ "$skip_build" == "true" ]; then
-    log_error "Skipping driver build"
-else
-    build_and_install_driver
-fi
-
 if [[ -z "${EXASOL_FINGERPRINT+x}" ]] ; then
     log_info "Getting certificate fingerprint from $EXASOL_HOST..."
     fingerprint=$(get_exasol_certificate_fingerprint)
@@ -137,6 +120,7 @@ MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=$fingerprint \
   MB_EXASOL_TEST_USER=$EXASOL_USER \
   MB_EXASOL_TEST_PASSWORD=$EXASOL_PASSWORD \
+  MB_DEV_ADDITIONAL_DRIVER_MANIFEST_PATHS="$exasol_driver_dir/resources/metabase-plugin.yaml" \
   MB_ENCRYPTION_SECRET_KEY=$(openssl rand -base64 32) \
   DRIVERS=exasol \
   clojure -J-Duser.country=US -J-Duser.language=en -J-Duser.timezone=UTC \
