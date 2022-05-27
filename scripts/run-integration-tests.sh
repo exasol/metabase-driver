@@ -4,12 +4,14 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+readonly jdbc_driver_version=7.1.10
+
 exasol_driver_dir="$( cd "$(dirname "$0")/.." >/dev/null 2>&1 ; pwd -P )"
 readonly exasol_driver_dir
 metabase_dir=$(cd "$exasol_driver_dir/../metabase"; pwd)
 readonly metabase_dir
+readonly metabase_plugin_dir="$metabase_dir/plugins"
 readonly skip_build=${skip_build:-false}
-readonly driver_jar="$exasol_driver_dir/target/exasol.metabase-driver.jar"
 
 log_color() {
     local color="$1"
@@ -66,15 +68,28 @@ patch_excluded_tests() {
     fi
 }
 
-build_and_install_driver() {
-    log_info "Building exasol driver $driver_jar..."
-    local plugin_dir="$metabase_dir/plugins"
-    cd "$exasol_driver_dir"
-    clojure -X:build :project-dir "\"$(pwd)\""
-    ls -lah "$driver_jar"
-    log_info "Installing exasol driver $driver_jar to $plugin_dir"
-    mkdir -p "$plugin_dir"
-    cp -v "$driver_jar" "$plugin_dir"
+install_jdbc_driver() {
+    if [ -f "$metabase_plugin_dir" ]; then
+        log_error "$metabase_plugin_dir exists but is a file, it should be a directory. Please delete it."
+        exit 1
+    fi
+
+    if [ ! -d "$metabase_plugin_dir" ]; then
+        log_info "Creating directory $metabase_plugin_dir"
+        mkdir -p "$metabase_plugin_dir"
+    fi
+
+    local exasol_driver_filename="exasol-jdbc.jar"
+    local exasol_driver_path="$metabase_plugin_dir/$exasol_driver_filename"
+    if [ ! -f "$exasol_driver_path" ]; then
+        mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get --batch-mode \
+          -DremoteRepositories=https://maven.exasol.com/artifactory/exasol-releases \
+          -Dartifact=com.exasol:exasol-jdbc:$jdbc_driver_version
+        log_info "Installing Exasol JDBC driver to $exasol_driver_path"
+        cp -v "$HOME/.m2/repository/com/exasol/exasol-jdbc/$jdbc_driver_version/exasol-jdbc-$jdbc_driver_version.jar" "$exasol_driver_path"
+    else
+        log_trace "Exasol JDBC driver already exists in $exasol_driver_path"
+    fi
 }
 
 get_exasol_certificate_fingerprint() {
@@ -107,12 +122,7 @@ get_exasol_certificate_fingerprint() {
 
 check_preconditions
 patch_excluded_tests
-
-if [ "$skip_build" == "true" ]; then
-    log_error "Skipping driver build"
-else
-    build_and_install_driver
-fi
+install_jdbc_driver
 
 if [[ -z "${EXASOL_FINGERPRINT+x}" ]] ; then
     log_info "Getting certificate fingerprint from $EXASOL_HOST..."
@@ -137,6 +147,7 @@ MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_EXASOL_TEST_CERTIFICATE_FINGERPRINT=$fingerprint \
   MB_EXASOL_TEST_USER=$EXASOL_USER \
   MB_EXASOL_TEST_PASSWORD=$EXASOL_PASSWORD \
+  MB_DEV_ADDITIONAL_DRIVER_MANIFEST_PATHS="$exasol_driver_dir/resources/metabase-plugin.yaml" \
   MB_ENCRYPTION_SECRET_KEY=$(openssl rand -base64 32) \
   DRIVERS=exasol \
   clojure -J-Duser.country=US -J-Duser.language=en -J-Duser.timezone=UTC \

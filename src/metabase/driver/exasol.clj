@@ -19,7 +19,7 @@
             [metabase.util.i18n :refer [trs]]))
 
 (defn get-jdbc-driver-version []
-  (com.exasol.jdbc.EXADriver/getVersionInfo))
+  "(unknown)") ; Will be implemented in https://github.com/exasol/metabase-driver/issues/43
 
 (defn get-driver-version
   ([]
