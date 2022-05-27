@@ -69,20 +69,26 @@ patch_excluded_tests() {
 }
 
 install_jdbc_driver() {
+    if [ -f "$metabase_plugin_dir" ]; then
+        log_error "$metabase_plugin_dir exists but is a file, it should be a directory. Please delete it."
+        exit 1
+    fi
+
     if [ ! -d "$metabase_plugin_dir" ]; then
-        log_info "Creating $metabase_plugin_dir"
+        log_info "Creating directory $metabase_plugin_dir"
         mkdir -p "$metabase_plugin_dir"
     fi
 
-    local exasol_driver="$metabase_plugin_dir/exasol-jdbc.jar"
-    if [ ! -f "$exasol_driver" ]; then
+    local exasol_driver_filename="exasol-jdbc.jar"
+    local exasol_driver_path="$metabase_plugin_dir/$exasol_driver_filename"
+    if [ ! -f "$exasol_driver_path" ]; then
         mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get --batch-mode \
           -DremoteRepositories=https://maven.exasol.com/artifactory/exasol-releases \
           -Dartifact=com.exasol:exasol-jdbc:$jdbc_driver_version
-        log_info "Installing Exasol JDBC driver to $exasol_driver"
-        cp -v "$HOME/.m2/repository/com/exasol/exasol-jdbc/$jdbc_driver_version/exasol-jdbc-$jdbc_driver_version.jar" "$exasol_driver"
+        log_info "Installing Exasol JDBC driver to $exasol_driver_path"
+        cp -v "$HOME/.m2/repository/com/exasol/exasol-jdbc/$jdbc_driver_version/exasol-jdbc-$jdbc_driver_version.jar" "$exasol_driver_path"
     else
-        log_trace "Exasol JDBC driver already exists in $exasol_driver"
+        log_trace "Exasol JDBC driver already exists in $exasol_driver_path"
     fi
 }
 
