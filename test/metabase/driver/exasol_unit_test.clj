@@ -179,8 +179,12 @@
     (is (not (str/blank? (exasol/get-jdbc-driver-version))))))
 
 (deftest get-driver-version-test
+  (testing "Reading driver version from non existing resource returns nil"
+    (is (= nil (exasol/get-driver-version "non-existing-resource.yaml"))))
   (testing "Driver version read from existing resource"
-    (is (not (str/blank? (exasol/get-driver-version))))))
+    (is (not (str/blank? (exasol/get-driver-version)))))
+  (testing "Driver version read from existing resource equal to expected version"
+    (is (= "1.0.1" (exasol/get-driver-version)))))
 
 (deftest humanize-connection-error-message-test
   (testing "Driver translates connection error message"
