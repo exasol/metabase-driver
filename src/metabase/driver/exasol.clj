@@ -1,5 +1,6 @@
 (ns metabase.driver.exasol
-  (:require [clojure.tools.logging :as log]
+  (:require [clojure.java.io :as io]
+            [clojure.tools.logging :as log]
             [honeysql.core :as hsql]
             [honeysql.format :as hformat]
             [java-time :as t]
@@ -16,14 +17,21 @@
             [metabase.driver.sql.util.unprepare :as unprepare]
             [metabase.util :as u]
             [metabase.util.honeysql-extensions :as hx]
-            [metabase.util.i18n :refer [trs]]))
+            [metabase.util.i18n :refer [trs]]
+            [yaml.core :as yaml]))
 
 (defn get-jdbc-driver-version []
   "(unknown)") ; Will be implemented in https://github.com/exasol/metabase-driver/issues/43
 
 (defn get-driver-version
+  "Reads the driver version from the plugin yaml file on the classpath."
   ([]
-   "(unknown)")) ; Will be implemented in https://github.com/exasol/metabase-driver/issues/40
+   (get-driver-version "metabase-plugin.yaml"))
+  ([resource-name]
+   (when-let [resource (io/resource resource-name)]
+     (let [content (slurp resource)
+           parsed-yaml (yaml/parse-string content)]
+       (get-in parsed-yaml [:info :version])))))
 
 (defn- log-driver-version []
   (log/info (u/format-color 'green (format "Loading Exasol Metabase driver %s, Exasol JDBC driver: %s"

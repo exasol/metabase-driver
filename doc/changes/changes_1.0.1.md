@@ -13,3 +13,7 @@ Note: During implementation of #35 and #41 the logging of the version for the dr
 * #38: Adapted driver to Metabase version 0.43.0
 * #35: Migrated build system to deps.edn and adapted driver to Metabase version 0.43.1
 * #41: Removed Exasol JDBC driver from built driver jar
+
+## Bugfixes
+
+* #40: Implemented reading driver version from metabase-plugin.yaml
