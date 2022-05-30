@@ -18,8 +18,19 @@
             [metabase.util.honeysql-extensions :as hx]
             [metabase.util.i18n :refer [trs]]))
 
-(defn get-jdbc-driver-version []
-  "(unknown)") ; Will be implemented in https://github.com/exasol/metabase-driver/issues/43
+(defn- invoke-static-method
+  "Invoke a static method via reflection"
+  [class-name method-name]
+  (let [class (java.lang.Class/forName class-name)
+        method (.getMethod class method-name (make-array Class 0))
+        result (.invoke method nil (make-array Object 0))]
+    result))
+
+(defn get-jdbc-driver-version
+  "Get the JDBC driver's version number via reflection. This avoids having a runtime dependency on the driver"
+  []
+  (try (invoke-static-method "com.exasol.jdbc.EXADriver" "getVersionInfo")
+       (catch Exception e (log/warn (str "Error getting JDBC driver version: " e)))))
 
 (defn get-driver-version
   ([]

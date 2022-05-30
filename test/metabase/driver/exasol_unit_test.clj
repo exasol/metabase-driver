@@ -175,8 +175,8 @@
       (is (= expected (unprepare/unprepare-value :exasol value))))))
 
 (deftest get-jdbc-driver-version-test
-  (testing "JDBC driver version is not empty"
-    (is (not (str/blank? (exasol/get-jdbc-driver-version))))))
+  (testing "Getting JDBC driver version fails because driver is not on classpath"
+    (is  (nil? (exasol/get-jdbc-driver-version)))))
 
 (deftest get-driver-version-test
   (testing "Driver version read from existing resource"
