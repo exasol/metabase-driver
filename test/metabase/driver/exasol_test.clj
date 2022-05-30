@@ -1,14 +1,22 @@
 (ns metabase.driver.exasol-test
-  (:require [clojure.test :refer [deftest testing is]]
+  (:require [clojure.string :as str]
+            [clojure.test :refer [deftest is testing]]
+            [metabase.driver.exasol :as exasol]
+            [metabase.query-processor :as qp]
+            [metabase.query-processor-test :as qp.test]
+            [metabase.query-processor-test.alternative-date-test :as alt-date-test]
             [metabase.test :as mt]
-            [metabase.test.util :as tu]
             [metabase.test.data :as td]
             [metabase.test.data.dataset-definitions :as dataset]
             [metabase.test.data.exasol-dataset-definitions :as exasol-dataset]
-            [metabase.query-processor :as qp]
-            [metabase.query-processor-test :as qp.test]
-            [metabase.query-processor-test.alternative-date-test :as alt-date-test])
+            [metabase.test.util :as tu])
   (:import (java.util TimeZone)))
+
+(deftest get-jdbc-driver-version-test
+  (testing "Getting JDBC driver version succeeds"
+    (is (not (str/blank? (exasol/get-jdbc-driver-version)))))
+  (testing "Getting JDBC driver version returns expected value"
+    (is (= "7.1.10" (exasol/get-jdbc-driver-version)))))
 
 (deftest timezone-id-test
   (mt/test-driver :exasol
