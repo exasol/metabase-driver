@@ -135,12 +135,26 @@ This will load the Exasol driver and print a message like this to the log:
 2022-01-18 10:55:38,634 INFO driver.exasol :: Loading Exasol Metabase driver 0.2.0, Exasol JDBC driver: 7.1.4
 ```
 
-### Exasol Driver Not Available
+### Exasol JDBC Driver Not Available
 
-If Database Type "Exasol" is not availabe in the "Add Database" dialog and Metabase logs the following message at startup, the Exasol JDBC driver is not available.
+If Database Type "Exasol" is not available in the "Add Database" dialog and Metabase logs the following message at startup, the Exasol JDBC driver is not available.
 
 ```
-INFO plugins.dependencies :: Metabase cannot initialize plugin Metabase Exasol Driver due to required dependencies. Metabase requires the Exasol JDBC driver in order to connect to Exasol databases, but we can't ship it as part of the driver due to licensing restrictions. See https://github.com/exasol/metabase-driver for more details.
-````
+2022-05-30 09:50:38,237 INFO plugins.dependencies :: Metabase cannot initialize plugin Metabase Exasol Driver due to required dependencies. Metabase requires the Exasol JDBC driver in order to connect to Exasol databases, but we can't ship it as part of the driver due to licensing restrictions. See https://github.com/exasol/metabase-driver for more details.
+
+2022-05-30 09:50:38,237 INFO plugins.dependencies :: Metabase Exasol Driver dependency {:class com.exasol.jdbc.EXADriver} satisfied? false
+2022-05-30 09:50:38,237 INFO plugins.dependencies :: Plugins with unsatisfied deps: ["Metabase Exasol Driver"]
+```
 
 Please download the latest Exasol JDBC driver from the [Exasol download page](https://www.exasol.com/portal/display/DOWNLOAD/) and copy `exajdbc.jar` to `$METABASE_DIR/plugins`.
+
+### Error finding Exasol driver class
+
+If you can't open an Exasol database in Metabase and Metabase outputs the following log messages:
+
+```
+2022-05-30 09:51:49,181 ERROR driver.impl :: Error loading driver namespace
+clojure.lang.ExceptionInfo: Could not locate metabase/driver/exasol__init.class, metabase/driver/exasol.clj or metabase/driver/exasol.cljc on classpath. {:classloader #object[clojure.lang.DynamicClassLoader 0x2b6a0ea9 "clojure.lang.DynamicClassLoader@2b6a0ea9"], :classpath-urls (), :system-classpath ("metabase.jar")}
+```
+
+then please check if both the Exasol JDBC driver (`exajdbc.jar`) and the Exasol driver (`exasol.metabase-driver.jar`) are installed in the `plugins` directory and restart Metabase.
