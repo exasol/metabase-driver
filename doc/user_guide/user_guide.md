@@ -148,7 +148,7 @@ If Database Type "Exasol" is not available in the "Add Database" dialog and Meta
 
 Please download the latest Exasol JDBC driver from the [Exasol download page](https://www.exasol.com/portal/display/DOWNLOAD/) and copy `exajdbc.jar` to `$METABASE_DIR/plugins`.
 
-### Error finding Exasol driver class
+### Error Finding Exasol Driver Class
 
 If you can't open an Exasol database in Metabase and Metabase outputs the following log messages:
 
