@@ -25,27 +25,30 @@ index 018ec0446b..accbb02ed1 100644
                (= driver/*driver* :presto)
                "2018-04-18"
 diff --git a/test/metabase/driver/sql_jdbc/connection_test.clj b/test/metabase/driver/sql_jdbc/connection_test.clj
-index f05ebd53a0..46bea0c74d 100644
+index f05ebd53a0..5f29526825 100644
 --- a/test/metabase/driver/sql_jdbc/connection_test.clj
 +++ b/test/metabase/driver/sql_jdbc/connection_test.clj
-@@ -105,7 +105,7 @@
-                 (assoc :new-config "something"))))))
+@@ -93,6 +93,9 @@
+               :redshift
+               (assoc details :additional-options "defaultRowFetchSize=1000")
  
- (deftest connection-pool-invalidated-on-details-change
--  (mt/test-drivers (sql-jdbc.tu/sql-jdbc-drivers)
-+  (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :exasol) ; https://github.com/exasol/metabase-driver/issues/39
-     (testing "db->pooled-connection-spec marks a connection pool invalid if the db details map changes\n"
-       (let [db                       (mt/db)
-             hash-change-called-times (atom 0)
++              :exasol
++              (assoc details :feedbackinterval "5")
++
+               (cond-> details
+                 ;; swap localhost and 127.0.0.1
+                 (= "localhost" (:host details))
 diff --git a/test/metabase/driver/sql_jdbc_test.clj b/test/metabase/driver/sql_jdbc_test.clj
-index dce2cb2600..2db1365558 100644
+index dce2cb2600..f679a5a0e8 100644
 --- a/test/metabase/driver/sql_jdbc_test.clj
 +++ b/test/metabase/driver/sql_jdbc_test.clj
-@@ -195,7 +195,7 @@
+@@ -194,8 +194,8 @@
+           (is (= 3
                   (spliced-count-of :checkins [:= $date "2014-03-05"]))))))
  
-     ;; Oracle, Redshift, and SparkSQL don't have 'Time' types
+-    ;; Oracle, Redshift, and SparkSQL don't have 'Time' types
 -    (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :oracle :redshift :sparksql)
++    ;; Oracle, Redshift, SparkSQL and Exasol don't have 'Time' types
 +    (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :oracle :redshift :sparksql :exasol) ; Exasol does not support TIME data type
        (testing "splicing a time"
          (is (= 2
