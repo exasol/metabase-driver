@@ -39,7 +39,7 @@ index f05ebd53a0..ff03a1b63c 100644
                :redshift
                (assoc details :additional-options "defaultRowFetchSize=1000")
  
-+              :exasol
++              :exasol ;; Test fail when using a hostname other than localhost or 127.0.0.1 e.g. when the DB runs in a VM.
 +              (assoc details :certificate-fingerprint (str/lower-case (:certificate-fingerprint details)))
 +
                (cond-> details
