@@ -15,7 +15,7 @@ jobs:
       cancel-in-progress: true
     runs-on: ubuntu-latest
     env:
-      METABASE_TAG: v0.43.1
+      METABASE_TAG: v0.43.3
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 0
           path: metabase-driver
 
-      - name: Checkout the Metabase repository
+      - name: Checkout the Metabase repository at tag ${{ env.METABASE_TAG }}
         uses: actions/checkout@v3
         with:
           fetch-depth: 1
@@ -38,12 +38,12 @@ jobs:
           java-version: 11
 
       - name: Install clojure tools
-        uses: DeLaGuardo/setup-clojure@5.1
+        uses: DeLaGuardo/setup-clojure@7.0
         with:
           cli: latest
 
       - name: Cache Maven repository
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('metabase-driver/deps.edn', 'metabase/**/deps.edn') }}
@@ -51,7 +51,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Cache clj-kondo
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: .clj-kondo/.cache
           key: clj-kondo-cache
