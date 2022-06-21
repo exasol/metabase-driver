@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 1
           path: 'metabase-driver'
 
-      - name: Checkout the Metabase repository
+      - name: Checkout the Metabase repository at tag ${{ env.METABASE_TAG }}
         uses: actions/checkout@v3
         with:
           fetch-depth: 1
@@ -45,7 +45,7 @@ jobs:
           java-version: 11
 
       - name: Install clojure tools
-        uses: DeLaGuardo/setup-clojure@5.1
+        uses: DeLaGuardo/setup-clojure@7.0
         with:
           cli: latest
 
