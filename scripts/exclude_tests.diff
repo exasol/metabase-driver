@@ -25,15 +25,22 @@ index 018ec0446b..accbb02ed1 100644
                (= driver/*driver* :presto)
                "2018-04-18"
 diff --git a/test/metabase/driver/sql_jdbc/connection_test.clj b/test/metabase/driver/sql_jdbc/connection_test.clj
-index f05ebd53a0..5f29526825 100644
+index f05ebd53a0..ff03a1b63c 100644
 --- a/test/metabase/driver/sql_jdbc/connection_test.clj
 +++ b/test/metabase/driver/sql_jdbc/connection_test.clj
-@@ -93,6 +93,9 @@
+@@ -1,5 +1,6 @@
+ (ns metabase.driver.sql-jdbc.connection-test
+   (:require [clojure.java.jdbc :as jdbc]
++            [clojure.string :as str]
+             [clojure.test :refer :all]
+             [metabase.db.spec :as db.spec]
+             [metabase.driver :as driver]
+@@ -93,6 +94,9 @@
                :redshift
                (assoc details :additional-options "defaultRowFetchSize=1000")
  
 +              :exasol
-+              (assoc details :feedbackinterval "5")
++              (assoc details :certificate-fingerprint (str/lower-case (:certificate-fingerprint details)))
 +
                (cond-> details
                  ;; swap localhost and 127.0.0.1
