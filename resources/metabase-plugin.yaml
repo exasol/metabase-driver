@@ -5,7 +5,7 @@ info:
   description: Allows Metabase to connect to Exasol databases.
 contact-info:
   name: Exasol AG
-  address: support@exasol.com
+  address: service@exasol.com
 dependencies:
   - class: com.exasol.jdbc.EXADriver
     message: >
