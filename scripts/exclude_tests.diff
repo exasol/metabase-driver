@@ -1,3 +1,16 @@
+diff --git a/test/metabase/api/session_test.clj b/test/metabase/api/session_test.clj
+index 1e09d159be..b313972078 100644
+--- a/test/metabase/api/session_test.clj
++++ b/test/metabase/api/session_test.clj
+@@ -177,7 +178,7 @@
+                         :body
+                         json/parse-string
+                         (get-in ["errors" "username"])))]
+-        (is (re= #"^Too many attempts! You must wait 1\d seconds before trying again\.$"
++        (is (re= #"^Too many attempts! You must wait (9|1\d) seconds before trying again\.$"
+                  (error)))
+         (is (re= #"^Too many attempts! You must wait 4\d seconds before trying again\.$"
+                  (error)))))))
 diff --git a/test/metabase/api/table_test.clj b/test/metabase/api/table_test.clj
 index 495be5d570..36620d487e 100644
 --- a/test/metabase/api/table_test.clj
@@ -25,7 +38,7 @@ index 018ec0446b..accbb02ed1 100644
                (= driver/*driver* :presto)
                "2018-04-18"
 diff --git a/test/metabase/driver/sql_jdbc/connection_test.clj b/test/metabase/driver/sql_jdbc/connection_test.clj
-index f05ebd53a0..ff03a1b63c 100644
+index f05ebd53a0..1e8150181a 100644
 --- a/test/metabase/driver/sql_jdbc/connection_test.clj
 +++ b/test/metabase/driver/sql_jdbc/connection_test.clj
 @@ -1,5 +1,6 @@
