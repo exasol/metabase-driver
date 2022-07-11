@@ -180,7 +180,7 @@
   (testing "Driver version read from existing resource"
     (is (not (str/blank? (exasol/get-driver-version)))))
   (testing "Driver version read from existing resource equal to expected version"
-    (is (= "1.0.1" (exasol/get-driver-version)))))
+    (is (= "1.0.2" (exasol/get-driver-version)))))
 
 (deftest humanize-connection-error-message-test
   (testing "Driver translates connection error message"
