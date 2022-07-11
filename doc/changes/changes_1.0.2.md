@@ -1,6 +1,6 @@
 # metabase-driver 1.0.2, released 2022-07-11
 
-Code name: Adapt to Metabase 0.43.4 and prepare Manifest
+Code name: Adapt to Metabase 0.43.4 and prepare Manifest for partner driver.
 
 ## Summary
 
