@@ -33,6 +33,6 @@ The Exasol Driver for Metabase is an adapter, that allows you to query data from
 
 ## Runtime Dependencies
 
-To use the Exasol Driver, you need Metabase Version 0.43.4 or later.
+To use the Exasol Driver, you need Metabase Version 0.44.1 or later.
 
 Follow the [Metabase installation guide](https://www.metabase.com/docs/latest/operations-guide/installing-metabase.html) to download and install Metabase.
