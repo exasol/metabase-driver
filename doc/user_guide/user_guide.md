@@ -1,12 +1,14 @@
 # User Guide
 
-To use the Exasol driver for Metabase please first follow the [Metabase installation guide](https://www.metabase.com/docs/latest/operations-guide/installing-metabase.html) to download and install Metabase.
+The Exasol driver for Metabase is already included in Metabase Cloud (see [the Metabase documentation](https://www.metabase.com/docs/latest/developers-guide/partner-and-community-drivers#partner-drivers) for details), so you don't need to install it.
+
+If you want to use a self-hosted Metabase installation, please first follow the [Metabase installation guide](https://www.metabase.com/docs/latest/operations-guide/installing-metabase.html) to download and install Metabase. Then install the driver according the following instructions.
 
 ## Installing the Driver
 
 We assume that you installed the Metabase JAR file `metabase.jar` to directory `$METABASE_DIR`. Plugins are then located in the same directory under `./plugins`: `$METABASE_DIR/plugins`.
 
-Also see the [Metabase documentation](https://www.metabase.com/docs/latest/developers-guide-drivers.html#how-to-use-a-community-built-driver) about installing community plugins.
+Also see the [Metabase documentation](https://www.metabase.com/docs/latest/developers-guide/partner-and-community-drivers#how-to-use-a-third-party-driver) about installing third-party drivers.
 
 To install the Exasol driver follow these steps:
 

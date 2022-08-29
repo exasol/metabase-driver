@@ -8,7 +8,7 @@ An Exasol driver for [Metabase](https://www.metabase.com).
 
 [Metabase](https://www.metabase.com/) is a business intelligence tool. You can use Metabase to visualize data in [Exasol](https://www.exasol.com).
 
-The Exasol Driver for Metabase is an adapter, that allows you to query data from an Exasol database using Metabase.
+The Exasol Driver for Metabase is an adapter, that allows you to query data from an Exasol database using Metabase. It is available as a [Partner driver](https://www.metabase.com/docs/latest/developers-guide/partner-and-community-drivers#partner-drivers) for both Metabase Cloud and self-hosted Metabase installations.
 
 ## Features
 
