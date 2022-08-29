@@ -37,6 +37,29 @@ index 9dae81c3e5..a764e3e6bf 100644
      (is (= [(cond
                (= driver/*driver* :presto)
                "2018-04-18"
+diff --git a/test/metabase/driver/sql_jdbc/connection_test.clj b/test/metabase/driver/sql_jdbc/connection_test.clj
+index 6572ebd03a..58f607ffd0 100644
+--- a/test/metabase/driver/sql_jdbc/connection_test.clj
++++ b/test/metabase/driver/sql_jdbc/connection_test.clj
+@@ -1,5 +1,6 @@
+ (ns metabase.driver.sql-jdbc.connection-test
+   (:require [clojure.java.jdbc :as jdbc]
++            [clojure.string :as str]
+             [clojure.test :refer :all]
+             [metabase.db.spec :as mdb.spec]
+             [metabase.driver :as driver]
+@@ -102,7 +103,10 @@
+                 (assoc :host "localhost")
+ 
+                 :else
+-                (assoc :new-config "something"))))))
++                (assoc :new-config "something"))
++
++              :exasol ;; Test fail when using a hostname other than localhost or 127.0.0.1 e.g. when the DB runs in a VM.
++              (assoc details :certificate-fingerprint (str/lower-case (:certificate-fingerprint details)))))))
+ 
+ (deftest connection-pool-invalidated-on-details-change
+   (mt/test-drivers (sql-jdbc.tu/sql-jdbc-drivers)
 diff --git a/test/metabase/driver/sql_jdbc_test.clj b/test/metabase/driver/sql_jdbc_test.clj
 index dce2cb2600..f679a5a0e8 100644
 --- a/test/metabase/driver/sql_jdbc_test.clj
