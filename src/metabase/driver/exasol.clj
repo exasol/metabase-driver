@@ -82,13 +82,13 @@
   (when (not (nil? message))
     (condp re-matches message
       #"^java\.net\.ConnectException: Connection refused.*$"
-      (driver.common/connection-error-messages :cannot-connect-check-host-and-port)
+      :cannot-connect-check-host-and-port
 
       #"^Connection exception - authentication failed\..*$"
-      (driver.common/connection-error-messages :username-or-password-incorrect)
+      :username-or-password-incorrect
 
       #"^Unknown host name\..*$"
-      (driver.common/connection-error-messages :invalid-hostname)
+      :invalid-hostname
 
       #"^java\.io\.IOException: TLS connection to host .* failed: PKIX path building failed: sun\.security\.provider\.certpath\.SunCertPathBuilderException: unable to find valid certification path to requested target\. If you trust the server, you can include the fingerprint in the connection string: .*/(\w+):.*"
       :>>
