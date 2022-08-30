@@ -66,10 +66,10 @@ jobs:
         uses: shogo82148/actions-upload-release-asset@v1
         with:
           upload_url: ${{ github.event.inputs.upload_url }}
-          asset_path: "$GITHUB_WORKSPACE/metabase-driver/target/*.jar"
+          asset_path: metabase-driver/target/*.jar
 
       - name: Upload sha256sum files
         uses: shogo82148/actions-upload-release-asset@v1
         with:
           upload_url: ${{ github.event.inputs.upload_url }}
-          asset_path: "$GITHUB_WORKSPACE/metabase-driver/target/*.sha256"
+          asset_path: metabase-driver/target/*.sha256
