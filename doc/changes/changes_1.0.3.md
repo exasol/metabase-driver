@@ -1,4 +1,4 @@
-# metabase-driver 1.0.3, released 2022-??-??
+# metabase-driver 1.0.3, released 2022-08-30
 
 Code name: Adapt to Metabase 0.44.1 and update documentation
 
