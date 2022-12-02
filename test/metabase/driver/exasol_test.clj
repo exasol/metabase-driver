@@ -16,7 +16,7 @@
   (testing "Getting JDBC driver version succeeds"
     (is (not (str/blank? (exasol/get-jdbc-driver-version)))))
   (testing "Getting JDBC driver version returns expected value"
-    (is (= "7.1.10" (exasol/get-jdbc-driver-version)))))
+    (is (= "7.1.16" (exasol/get-jdbc-driver-version)))))
 
 (deftest timezone-id-test
   (mt/test-driver :exasol

@@ -4,7 +4,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-readonly jdbc_driver_version=7.1.10
+readonly jdbc_driver_version=7.1.16
 
 exasol_driver_dir="$( cd "$(dirname "$0")/.." >/dev/null 2>&1 ; pwd -P )"
 readonly exasol_driver_dir
@@ -83,7 +83,6 @@ install_jdbc_driver() {
     local exasol_driver_path="$metabase_plugin_dir/$exasol_driver_filename"
     if [ ! -f "$exasol_driver_path" ]; then
         mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get --batch-mode \
-          -DremoteRepositories=https://maven.exasol.com/artifactory/exasol-releases \
           -Dartifact=com.exasol:exasol-jdbc:$jdbc_driver_version
         log_info "Installing Exasol JDBC driver to $exasol_driver_path"
         cp -v "$HOME/.m2/repository/com/exasol/exasol-jdbc/$jdbc_driver_version/exasol-jdbc-$jdbc_driver_version.jar" "$exasol_driver_path"
@@ -138,8 +137,7 @@ cd "$metabase_dir"
 
 readonly dep_driver_dir="exasol/exasol-driver {:local/root \"$exasol_driver_dir\"}"
 readonly dep_test_dir="exasol/exasol-tests {:local/root \"$exasol_driver_dir/test\"}"
-readonly exasol_maven_repo=':mvn/repos {"Exasol" {:url "https://maven.exasol.com/artifactory/exasol-releases"}}'
-readonly sdeps_option="{:deps { $dep_driver_dir $dep_test_dir } $exasol_maven_repo }"
+readonly sdeps_option="{:deps { $dep_driver_dir $dep_test_dir } }"
 
 
 MB_EXASOL_TEST_HOST=$EXASOL_HOST \
