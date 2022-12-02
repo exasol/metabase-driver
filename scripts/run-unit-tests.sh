@@ -40,8 +40,7 @@ cd "$metabase_dir"
 
 readonly dep_driver_dir="exasol/exasol-driver {:local/root \"$exasol_driver_dir\"}"
 readonly dep_test_dir="exasol/exasol-tests {:local/root \"$exasol_driver_dir/test\"}"
-readonly exasol_maven_repo=':mvn/repos {"Exasol" {:url "https://maven.exasol.com/artifactory/exasol-releases"}}'
-readonly sdeps_option="{:deps { $dep_driver_dir $dep_test_dir } $exasol_maven_repo }"
+readonly sdeps_option="{:deps { $dep_driver_dir $dep_test_dir } }"
 
 clojure -J-Duser.country=US -J-Duser.language=en -J-Duser.timezone=UTC \
         -Sdeps "$sdeps_option" \
