@@ -106,7 +106,7 @@ get_exasol_certificate_fingerprint() {
 
     fingerprint=$(echo "$certificate" \
                 | openssl x509 -fingerprint -sha256 -noout -in /dev/stdin \
-                | sed 's/SHA256 Fingerprint=//' \
+                | sed 's/SHA256 Fingerprint=//i' \
                 | sed 's/://g')
 
     if [ -z "${fingerprint}" ]; then
