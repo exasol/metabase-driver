@@ -50,7 +50,9 @@
 
 (log-driver-version)
 
-(driver/register! :exasol, :parent #{:sql-jdbc ::sql.qp.empty-string-is-null/empty-string-is-null ::legacy/use-legacy-classes-for-read-and-set})
+(driver/register! :exasol :parent #{:sql-jdbc
+                                    ::sql.qp.empty-string-is-null/empty-string-is-null
+                                    ::legacy/use-legacy-classes-for-read-and-set})
 
 (defmethod driver/display-name :exasol [_]
   "Exasol")
@@ -62,7 +64,7 @@
 
 (defmethod sql-jdbc.conn/connection-details->spec :exasol
   [_ {:keys [user password host port certificate-fingerprint]
-      :or   {user "dbuser", password "dbpassword", host "localhost", port 8563}
+      :or   {user "dbuser" password "dbpassword" host "localhost" port 8563}
       :as   details}]
   (-> {:clientname         "Metabase"
        :clientversion      config/mb-version-string
