@@ -45,7 +45,7 @@ clojure --version
     git clone https://github.com/metabase/metabase.git
     cd metabase
     git fetch --all --tags
-    export METABASE_VERSION=0.44.6
+    export METABASE_VERSION=0.45.2
     git checkout "tags/v${METABASE_VERSION}" -b "v${METABASE_VERSION}-branch"
     # Build (this will take ~15min)
     ./bin/build
