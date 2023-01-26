@@ -35,7 +35,7 @@
              (sql-jdbc.conn/connection-details->spec :exasol details)) message))))
 
 
-(def ^:private unsupported-features [:nested-fields :nested-field-columns :persist-models :persist-models-enabled])
+(def ^:private unsupported-features [:nested-fields :nested-field-columns :persist-models :persist-models-enabled :actions :actions/custom :convert-timezone :datetime-diff])
 
 (deftest database-supports?-test
   (testing "Driver supports setting timezone"
