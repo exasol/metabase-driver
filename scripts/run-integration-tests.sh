@@ -4,7 +4,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-readonly jdbc_driver_version=7.1.16
+readonly jdbc_driver_version=7.1.17
 
 exasol_driver_dir="$( cd "$(dirname "$0")/.." >/dev/null 2>&1 ; pwd -P )"
 readonly exasol_driver_dir

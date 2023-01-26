@@ -13,5 +13,5 @@
 
 ; clojure -M:clj-kondo --lint src test --debug
   :clj-kondo
-  {:replace-deps {clj-kondo/clj-kondo {:mvn/version "2022.04.25"}}
+  {:replace-deps {clj-kondo/clj-kondo {:mvn/version "2023.01.20"}}
    :main-opts ["-m" "clj-kondo.main"]}}}
