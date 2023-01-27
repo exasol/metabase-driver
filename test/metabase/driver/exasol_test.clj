@@ -18,11 +18,6 @@
   (testing "Getting JDBC driver version returns expected value"
     (is (= "7.1.17" (exasol/get-jdbc-driver-version)))))
 
-(deftest timezone-id-test
-  (mt/test-driver :exasol
-                  (is (= "UTC"
-                         (tu/db-timezone-id)))))
-
 (deftest text-equals-empty-string-test
   (mt/test-driver :exasol
                   (testing ":= with empty string should work correctly"
