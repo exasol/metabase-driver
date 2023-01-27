@@ -192,9 +192,9 @@
 (defmethod sql.qp/date [:exasol :hour]           [_ _ date] (trunc-timestamp :hh date))
 (defmethod sql.qp/date [:exasol :hour-of-day]    [_ _ date] (extract-from-timestamp :hour date))
 (defmethod sql.qp/date [:exasol :day]            [_ _ date] (trunc-date :dd date))
-(defmethod sql.qp/date [:exasol :day-of-month]   [_ _ date] (extract :day date))
+(defmethod sql.qp/date [:exasol :day-of-month]   [_ _ date] (extract-from-timestamp :day date))
 (defmethod sql.qp/date [:exasol :month]          [_ _ date] (trunc-date :month date))
-(defmethod sql.qp/date [:exasol :month-of-year]  [_ _ date] (extract :month date))
+(defmethod sql.qp/date [:exasol :month-of-year]  [_ _ date] (extract-from-timestamp :month date))
 (defmethod sql.qp/date [:exasol :quarter]        [_ _ date] (trunc-date :q date))
 (defmethod sql.qp/date [:exasol :year]           [_ _ date] (trunc-date :year date))
 (defmethod sql.qp/date [:exasol :week-of-year]   [_ _ expr] (hsql/call :ceil (hx// (sql.qp/date :exasol :day-of-year (sql.qp/date :exasol :week expr)) 7.0)))
@@ -221,7 +221,7 @@
   [driver _ date]
   (sql.qp/adjust-day-of-week
    driver
-   (hx/->integer (hsql/call :to_char date (hx/literal :d)))
+   (hx/->integer (hsql/call :to_char (hx/->timestamp date) (hx/literal :d)))
    (driver.common/start-of-week-offset driver)
    (partial hsql/call (u/qualified-name ::mod))))
 
