@@ -36,6 +36,10 @@
 
 (defmethod tx/sorts-nil-first? :exasol [_ _] false)
 
+(defmethod tx/supports-time-type? :exasol [_] false)
+
+(defmethod tx/supports-timestamptz-type? :exasol [_] false)
+
 (defmethod tx/has-questionable-timezone-support? :exasol [_] true)
 
 (defonce ^:private number-column-type
