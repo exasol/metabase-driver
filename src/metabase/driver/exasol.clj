@@ -263,11 +263,11 @@
     :second  (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :second amount))
     :minute  (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :minute amount))
     :hour    (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :hour   amount))
-    :day     (hx/+ (cast-to-date-if-needed hsql-form)      (num-to-ds-interval :day    amount))
-    :week    (hx/+ (cast-to-date-if-needed hsql-form)      (num-to-ds-interval :day    (hx/* amount (hsql/raw 7))))
-    :month   (hx/+ (cast-to-date-if-needed hsql-form)      (num-to-ym-interval :month  amount))
-    :quarter (hx/+ (cast-to-date-if-needed hsql-form)      (num-to-ym-interval :month  (hx/* amount (hsql/raw 3))))
-    :year    (hx/+ (cast-to-date-if-needed hsql-form)      (num-to-ym-interval :year   amount))))
+    :day     (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :day    amount))
+    :week    (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :day    (hx/* amount (hsql/raw 7))))
+    :month   (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ym-interval :month  amount))
+    :quarter (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ym-interval :month  (hx/* amount (hsql/raw 3))))
+    :year    (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ym-interval :year   amount))))
 
 (defmethod sql.qp/cast-temporal-string [:exasol :Coercion/ISO8601->DateTime]
   [_ _ expr]
