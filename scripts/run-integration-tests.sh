@@ -81,14 +81,15 @@ install_jdbc_driver() {
 
     local exasol_driver_filename="exasol-jdbc.jar"
     local exasol_driver_path="$metabase_plugin_dir/$exasol_driver_filename"
-    if [ ! -f "$exasol_driver_path" ]; then
+    local repo_exasol_driver_path="$HOME/.m2/repository/com/exasol/exasol-jdbc/$jdbc_driver_version/exasol-jdbc-$jdbc_driver_version.jar"
+    if [ ! -f "$repo_exasol_driver_path" ]; then
         mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get --batch-mode \
           -Dartifact=com.exasol:exasol-jdbc:$jdbc_driver_version
-        log_info "Installing Exasol JDBC driver to $exasol_driver_path"
-        cp -v "$HOME/.m2/repository/com/exasol/exasol-jdbc/$jdbc_driver_version/exasol-jdbc-$jdbc_driver_version.jar" "$exasol_driver_path"
     else
-        log_trace "Exasol JDBC driver already exists in $exasol_driver_path"
+        log_trace "Exasol JDBC driver already exists in $repo_exasol_driver_path"
     fi
+    log_info "Installing Exasol JDBC driver to $exasol_driver_path"
+    cp -v "$repo_exasol_driver_path" "$exasol_driver_path"
 }
 
 get_exasol_certificate_fingerprint() {
