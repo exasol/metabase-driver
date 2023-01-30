@@ -53,9 +53,7 @@ jobs:
           clojure --version
 
       - name: Build driver
-        run: |
-          cd "$GITHUB_WORKSPACE/metabase-driver"
-          clojure -X:build :project-dir "\"$(pwd)\""
+        run: "$GITHUB_WORKSPACE/metabase-driver/scripts/build.sh"
 
       - name: Generate sha256sum files
         run: |

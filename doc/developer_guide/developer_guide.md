@@ -178,7 +178,7 @@ When the patch file has changed or you updated to a new Metabase release, do the
 
 ```shell
 cd $METABASE_DIR
-git reset --hard && rm -vf target/patch_excluded_test_applied
+git reset --hard && rm -vf target/patch_excluded_test_applied target/patch_fix_metabase_build_applied
 ```
 
 ## Linting
