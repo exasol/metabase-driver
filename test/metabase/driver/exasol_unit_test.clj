@@ -127,7 +127,6 @@
 (deftest add-interval-honeysql-form-test
   (let [hsql-form (hx/literal "5")
         amount 42
-        date-form (hx/with-type-info (hsql/call :cast hsql-form #sql/raw "date") #:metabase.util.honeysql-extensions{:database-type "date"})
         timestamp-form (hx/with-type-info (hsql/call :cast hsql-form #sql/raw "timestamp") #:metabase.util.honeysql-extensions{:database-type "timestamp"})]
     (doseq [[unit expected expected-type] [
                              [:second  (hsql/call :+ timestamp-form (hsql/call :numtodsinterval amount (hx/literal "second"))) "timestamp"]

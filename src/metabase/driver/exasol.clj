@@ -175,12 +175,6 @@
   [format-template date]
   (hsql/call :truncate (hx/->timestamp date) (hx/literal format-template)))
 
-(defn- extract
-  "Extract a date. See also this 
-      (extract :minute date) -> EXTRACT(MINUTE FROM date)"
-  [unit date]
-  (hsql/call :extract unit date))
-
 (defn- extract-from-timestamp
   "Extract a date. See also this 
       (extract :minute timestamp) -> EXTRACT(MINUTE FROM timestamp)"
@@ -251,11 +245,6 @@
   "If `hsql-form` isn't already one of the [[timestamp-types]], cast it to `timestamp`."
   [hsql-form]
   (hx/cast-unless-type-in "timestamp" timestamp-types hsql-form))
-
-(defn- cast-to-date-if-needed
-  "If `hsql-form` isn't already one of the [[timestamp-types]] *or* `date`, cast it to `date`."
-  [hsql-form]
-  (hx/cast-unless-type-in "date" (conj timestamp-types "date") hsql-form))
 
 (defmethod sql.qp/add-interval-honeysql-form :exasol
   [_ hsql-form amount unit]

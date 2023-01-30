@@ -8,8 +8,7 @@
             [metabase.test :as mt]
             [metabase.test.data :as td]
             [metabase.test.data.dataset-definitions :as dataset]
-            [metabase.test.data.exasol-dataset-definitions :as exasol-dataset]
-            [metabase.test.util :as tu])
+            [metabase.test.data.exasol-dataset-definitions :as exasol-dataset])
   (:import (java.util TimeZone)))
 
 (deftest get-jdbc-driver-version-test
