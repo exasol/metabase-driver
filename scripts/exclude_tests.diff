@@ -1,3 +1,19 @@
+diff --git a/modules/drivers/athena/deps.edn b/modules/drivers/athena/deps.edn
+index 5a5f08f1d9..0250bbd925 100644
+--- a/modules/drivers/athena/deps.edn
++++ b/modules/drivers/athena/deps.edn
+@@ -1,8 +1,5 @@
+ {:paths
+  ["src" "resources"]
+ 
+- :mvn/repos
+- {"athena" {:url "https://s3.amazonaws.com/maven-athena"}}
+-
+- :deps
+- {com.metabase/athena-jdbc {:mvn/version "2.0.33"}}}
++; Download of Athena JDBC driver from S3 fails in GitHub Action and it is not required for building.
++}
+\ No newline at end of file
 diff --git a/test/metabase/api/session_test.clj b/test/metabase/api/session_test.clj
 index 49446ef5c7..1e3eb3d330 100644
 --- a/test/metabase/api/session_test.clj
@@ -48,7 +64,7 @@ index 14762b8a95..847b9462c5 100644
  (deftest connection-pool-invalidated-on-details-change
    (mt/test-drivers (sql-jdbc.tu/sql-jdbc-drivers)
 diff --git a/test/metabase/query_processor/middleware/format_rows_test.clj b/test/metabase/query_processor/middleware/format_rows_test.clj
-index 128684daf2..7b893b1bf6 100644
+index 128684daf2..1b7544dc05 100644
 --- a/test/metabase/query_processor/middleware/format_rows_test.clj
 +++ b/test/metabase/query_processor/middleware/format_rows_test.clj
 @@ -17,7 +17,7 @@
@@ -114,7 +130,7 @@ index b4e3b6f471..fdc7705211 100644
        (let [expected-rows (mt/rows
                             (mt/run-mbql-query venues
 diff --git a/test/metabase/query_processor_test/timezones_test.clj b/test/metabase/query_processor_test/timezones_test.clj
-index 50f2822450..2a6bdaa57e 100644
+index 50f2822450..72586931af 100644
 --- a/test/metabase/query_processor_test/timezones_test.clj
 +++ b/test/metabase/query_processor_test/timezones_test.clj
 @@ -22,6 +22,7 @@
