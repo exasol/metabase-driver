@@ -79,6 +79,7 @@ get_exasol_certificate_fingerprint() {
 ###
 
 check_preconditions
+patch_metbase_build_scripts
 patch_excluded_tests
 install_jdbc_driver
 
