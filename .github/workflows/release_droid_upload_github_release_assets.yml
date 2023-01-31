@@ -11,7 +11,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      METABASE_TAG: v0.44.6
+      METABASE_TAG: v0.45.2.1
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
@@ -53,9 +53,7 @@ jobs:
           clojure --version
 
       - name: Build driver
-        run: |
-          cd "$GITHUB_WORKSPACE/metabase-driver"
-          clojure -X:build :project-dir "\"$(pwd)\""
+        run: "$GITHUB_WORKSPACE/metabase-driver/scripts/build.sh"
 
       - name: Generate sha256sum files
         run: |

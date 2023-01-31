@@ -8,20 +8,14 @@
             [metabase.test :as mt]
             [metabase.test.data :as td]
             [metabase.test.data.dataset-definitions :as dataset]
-            [metabase.test.data.exasol-dataset-definitions :as exasol-dataset]
-            [metabase.test.util :as tu])
+            [metabase.test.data.exasol-dataset-definitions :as exasol-dataset])
   (:import (java.util TimeZone)))
 
 (deftest get-jdbc-driver-version-test
   (testing "Getting JDBC driver version succeeds"
     (is (not (str/blank? (exasol/get-jdbc-driver-version)))))
   (testing "Getting JDBC driver version returns expected value"
-    (is (= "7.1.16" (exasol/get-jdbc-driver-version)))))
-
-(deftest timezone-id-test
-  (mt/test-driver :exasol
-                  (is (= "UTC"
-                         (tu/db-timezone-id)))))
+    (is (= "7.1.17" (exasol/get-jdbc-driver-version)))))
 
 (deftest text-equals-empty-string-test
   (mt/test-driver :exasol

@@ -45,7 +45,9 @@ clojure --version
     git clone https://github.com/metabase/metabase.git
     cd metabase
     git fetch --all --tags
-    export METABASE_VERSION=0.44.6
+    export METABASE_VERSION=0.45.2.1
+    git reset --hard
+    rm -vf target/patch_excluded_test_applied target/patch_fix_metabase_build_applied
     git checkout "tags/v${METABASE_VERSION}" -b "v${METABASE_VERSION}-branch"
     # Build (this will take ~15min)
     ./bin/build
@@ -178,8 +180,9 @@ When the patch file has changed or you updated to a new Metabase release, do the
 
 ```shell
 cd $METABASE_DIR
-git reset --hard && rm -vf target/patch_excluded_test_applied
+git reset --hard && rm -vf target/patch_excluded_test_applied target/patch_fix_metabase_build_applied
 ```
+
 ## Linting
 
 ```shell

@@ -175,12 +175,6 @@
   [format-template date]
   (hsql/call :truncate (hx/->timestamp date) (hx/literal format-template)))
 
-(defn- extract
-  "Extract a date. See also this 
-      (extract :minute date) -> EXTRACT(MINUTE FROM date)"
-  [unit date]
-  (hsql/call :extract unit date))
-
 (defn- extract-from-timestamp
   "Extract a date. See also this 
       (extract :minute timestamp) -> EXTRACT(MINUTE FROM timestamp)"
@@ -192,9 +186,9 @@
 (defmethod sql.qp/date [:exasol :hour]           [_ _ date] (trunc-timestamp :hh date))
 (defmethod sql.qp/date [:exasol :hour-of-day]    [_ _ date] (extract-from-timestamp :hour date))
 (defmethod sql.qp/date [:exasol :day]            [_ _ date] (trunc-date :dd date))
-(defmethod sql.qp/date [:exasol :day-of-month]   [_ _ date] (extract :day date))
+(defmethod sql.qp/date [:exasol :day-of-month]   [_ _ date] (extract-from-timestamp :day date))
 (defmethod sql.qp/date [:exasol :month]          [_ _ date] (trunc-date :month date))
-(defmethod sql.qp/date [:exasol :month-of-year]  [_ _ date] (extract :month date))
+(defmethod sql.qp/date [:exasol :month-of-year]  [_ _ date] (extract-from-timestamp :month date))
 (defmethod sql.qp/date [:exasol :quarter]        [_ _ date] (trunc-date :q date))
 (defmethod sql.qp/date [:exasol :year]           [_ _ date] (trunc-date :year date))
 (defmethod sql.qp/date [:exasol :week-of-year]   [_ _ expr] (hsql/call :ceil (hx// (sql.qp/date :exasol :day-of-year (sql.qp/date :exasol :week expr)) 7.0)))
@@ -221,7 +215,7 @@
   [driver _ date]
   (sql.qp/adjust-day-of-week
    driver
-   (hx/->integer (hsql/call :to_char date (hx/literal :d)))
+   (hx/->integer (hsql/call :to_char (hx/->timestamp date) (hx/literal :d)))
    (driver.common/start-of-week-offset driver)
    (partial hsql/call (u/qualified-name ::mod))))
 
@@ -252,22 +246,17 @@
   [hsql-form]
   (hx/cast-unless-type-in "timestamp" timestamp-types hsql-form))
 
-(defn- cast-to-date-if-needed
-  "If `hsql-form` isn't already one of the [[timestamp-types]] *or* `date`, cast it to `date`."
-  [hsql-form]
-  (hx/cast-unless-type-in "date" (conj timestamp-types "date") hsql-form))
-
 (defmethod sql.qp/add-interval-honeysql-form :exasol
   [_ hsql-form amount unit]
   (case unit
     :second  (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :second amount))
     :minute  (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :minute amount))
     :hour    (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :hour   amount))
-    :day     (hx/+ (cast-to-date-if-needed hsql-form)      (num-to-ds-interval :day    amount))
-    :week    (hx/+ (cast-to-date-if-needed hsql-form)      (num-to-ds-interval :day    (hx/* amount (hsql/raw 7))))
-    :month   (hx/+ (cast-to-date-if-needed hsql-form)      (num-to-ym-interval :month  amount))
-    :quarter (hx/+ (cast-to-date-if-needed hsql-form)      (num-to-ym-interval :month  (hx/* amount (hsql/raw 3))))
-    :year    (hx/+ (cast-to-date-if-needed hsql-form)      (num-to-ym-interval :year   amount))))
+    :day     (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :day    amount))
+    :week    (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :day    (hx/* amount (hsql/raw 7))))
+    :month   (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ym-interval :month  amount))
+    :quarter (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ym-interval :month  (hx/* amount (hsql/raw 3))))
+    :year    (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ym-interval :year   amount))))
 
 (defmethod sql.qp/cast-temporal-string [:exasol :Coercion/ISO8601->DateTime]
   [_ _ expr]
@@ -296,6 +285,7 @@
 (defmethod driver/db-default-timezone :exasol [_ _]
   "UTC")
 
+; First day of the week in Exasol is Sunday = 7 by default, see https://docs.exasol.com/db/latest/sql/alter_system.htm
 (defmethod driver/db-start-of-week :exasol
   [_]
   :sunday)

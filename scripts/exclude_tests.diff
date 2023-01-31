@@ -1,5 +1,5 @@
 diff --git a/test/metabase/api/session_test.clj b/test/metabase/api/session_test.clj
-index bd46465ed9..b1abad6dcb 100644
+index 49446ef5c7..1e3eb3d330 100644
 --- a/test/metabase/api/session_test.clj
 +++ b/test/metabase/api/session_test.clj
 @@ -177,7 +177,7 @@
@@ -11,24 +11,11 @@ index bd46465ed9..b1abad6dcb 100644
                   (error)))
          (is (re= #"^Too many attempts! You must wait 4\d seconds before trying again\.$"
                   (error)))))))
-diff --git a/test/metabase/api/table_test.clj b/test/metabase/api/table_test.clj
-index ca4bd8f6bd..147b0fe963 100644
---- a/test/metabase/api/table_test.clj
-+++ b/test/metabase/api/table_test.clj
-@@ -738,7 +738,7 @@
-                    (dimension-options-for-field response "timestamp"))))))
- 
-       (testing "time columns"
--        (mt/test-drivers (mt/normal-drivers-except #{:sparksql :mongo :oracle :redshift})
-+        (mt/test-drivers (mt/normal-drivers-except #{:sparksql :mongo :oracle :redshift :exasol}) ; Exasol does not support TIME data type
-           (mt/dataset test-data-with-time
-             (let [response (mt/user-http-request :rasta :get 200 (format "table/%d/query_metadata" (mt/id :users)))]
-               (is (= @#'api.table/time-dimension-indexes
 diff --git a/test/metabase/driver/sql/parameters/substitute_test.clj b/test/metabase/driver/sql/parameters/substitute_test.clj
-index 9dae81c3e5..a764e3e6bf 100644
+index c9336fd21a..d56783a333 100644
 --- a/test/metabase/driver/sql/parameters/substitute_test.clj
 +++ b/test/metabase/driver/sql/parameters/substitute_test.clj
-@@ -609,7 +609,7 @@
+@@ -610,7 +610,7 @@
                                   :value  "2015-07-01"}]))))))))
  
  (deftest e2e-parse-native-dates-test
@@ -38,7 +25,7 @@ index 9dae81c3e5..a764e3e6bf 100644
                (= driver/*driver* :presto)
                "2018-04-18"
 diff --git a/test/metabase/driver/sql_jdbc/connection_test.clj b/test/metabase/driver/sql_jdbc/connection_test.clj
-index 6572ebd03a..58f607ffd0 100644
+index 14762b8a95..847b9462c5 100644
 --- a/test/metabase/driver/sql_jdbc/connection_test.clj
 +++ b/test/metabase/driver/sql_jdbc/connection_test.clj
 @@ -1,5 +1,6 @@
@@ -60,39 +47,24 @@ index 6572ebd03a..58f607ffd0 100644
  
  (deftest connection-pool-invalidated-on-details-change
    (mt/test-drivers (sql-jdbc.tu/sql-jdbc-drivers)
-diff --git a/test/metabase/driver/sql_jdbc_test.clj b/test/metabase/driver/sql_jdbc_test.clj
-index dce2cb2600..f679a5a0e8 100644
---- a/test/metabase/driver/sql_jdbc_test.clj
-+++ b/test/metabase/driver/sql_jdbc_test.clj
-@@ -194,8 +194,8 @@
-           (is (= 3
-                  (spliced-count-of :checkins [:= $date "2014-03-05"]))))))
- 
--    ;; Oracle, Redshift, and SparkSQL don't have 'Time' types
--    (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :oracle :redshift :sparksql)
-+    ;; Oracle, Redshift, SparkSQL and Exasol don't have 'Time' types
-+    (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :oracle :redshift :sparksql :exasol) ; Exasol does not support TIME data type
-       (testing "splicing a time"
-         (is (= 2
-                (mt/dataset test-data-with-time
 diff --git a/test/metabase/query_processor/middleware/format_rows_test.clj b/test/metabase/query_processor/middleware/format_rows_test.clj
-index 504aa3b84a..359beb7eed 100644
+index 128684daf2..1b7544dc05 100644
 --- a/test/metabase/query_processor/middleware/format_rows_test.clj
 +++ b/test/metabase/query_processor/middleware/format_rows_test.clj
-@@ -14,7 +14,7 @@
- (def ^:private dbs-exempt-from-format-rows-tests
-   "DBs to skip the tests below for. TIMEZONE FIXME — why are so many databases not running these tests? Most of these
-   should be able to pass with a few tweaks."
--  #{:oracle :mongo :redshift :presto :sparksql :snowflake})
-+  #{:oracle :mongo :redshift :presto :sparksql :snowflake :exasol}) ; Exasol does not support TIME data type
+@@ -17,7 +17,7 @@
+   should be able to pass with a few tweaks. Some of them are excluded because they do not have a TIME data type and
+   can't load the `test-data-with-time` dataset; but that's not true of ALL of these. Please make sure you add a note
+   as to why a certain database is explicitly skipped if you skip it -- Cam"
+-  #{:bigquery-cloud-sdk :oracle :mongo :redshift :presto :sparksql :snowflake})
++  #{:bigquery-cloud-sdk :oracle :mongo :redshift :presto :sparksql :snowflake :exasol}) ; Exasol does not support TIME data type
  
  (deftest format-rows-test
-   (mt/test-drivers (mt/normal-drivers-except dbs-exempt-from-format-rows-tests)
+   (mt/test-drivers (filter mt/supports-time-type? (mt/normal-drivers-except dbs-exempt-from-format-rows-tests))
 diff --git a/test/metabase/query_processor_test/alternative_date_test.clj b/test/metabase/query_processor_test/alternative_date_test.clj
-index 0e5d38602c..c45a932dde 100644
+index 03bf3a3e19..c7ca9373f8 100644
 --- a/test/metabase/query_processor_test/alternative_date_test.clj
 +++ b/test/metabase/query_processor_test/alternative_date_test.clj
-@@ -32,7 +32,7 @@
+@@ -33,7 +33,7 @@
       [0 1433965860000000]]]])
  
  (deftest microseconds-test
@@ -101,31 +73,33 @@ index 0e5d38602c..c45a932dde 100644
      (let [results (get {:sqlite #{[1 4 "2015-06-06 10:40:00"] [2 0 "2015-06-10 19:51:00"]}
                          :oracle #{[1M 4M "2015-06-06T10:40:00Z"] [2M 0M "2015-06-10T19:51:00Z"]}}
                         driver/*driver*
-@@ -177,7 +177,7 @@
- (deftest iso-8601-text-fields
-   (testing "text fields with semantic_type :type/ISO8601DateTimeString"
+@@ -180,7 +180,7 @@
      (testing "return as dates"
--      (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :sqlite :oracle :sparksql)
-+      (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :sqlite :oracle :sparksql :exasol) ; Exasol does not support TIME data type
+       (mt/test-drivers (-> (sql-jdbc.tu/sql-jdbc-drivers)
+                            (conj :bigquery-cloud-sdk)
+-                           (disj :sqlite :oracle :sparksql))
++                           (disj :sqlite :oracle :sparksql :exasol)) ; Exasol does not support TIME data type
          (is (= [[1 "foo" #t "2004-10-19T10:23:54" #t "2004-10-19" #t "10:23:54"]
                  [2 "bar" #t "2008-10-19T10:23:54" #t "2008-10-19" #t "10:23:54"]
                  [3 "baz" #t "2012-10-19T10:23:54" #t "2012-10-19" #t "10:23:54"]]
-@@ -229,13 +229,13 @@
-     (testing "are queryable as dates"
-       (testing "a datetime field"
-         ;; TODO: why does this fail on oracle? gives a NPE
--        (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :oracle :sparksql)
-+        (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :oracle :sparksql :exasol) ; Exasol does not support TIME data type
-           (is (= 1
-                  (count (mt/rows (mt/dataset string-times
-                                    (mt/run-mbql-query times
-                                      {:filter   [:= [:datetime-field $ts :day] "2008-10-19"]}))))))))
-       (testing "a date field"
--        (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :oracle :sparksql)
-+        (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :oracle :sparksql :exasol) ; Exasol does not support TIME data type
-           (is (= 1
-                  (count (mt/rows (mt/dataset string-times
-                                    (mt/run-mbql-query times
+@@ -246,7 +246,7 @@
+       (mt/dataset string-times
+        (testing "a datetime field"
+          ;; TODO: why does this fail on oracle? gives a NPE
+-         (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :oracle :sparksql)
++         (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :oracle :sparksql :exasol) ; Exasol does not support TIME data type
+            (is (= 1
+                   (->> (mt/run-mbql-query times
+                          {:filter [:= !day.ts "2008-10-19"]})
+@@ -262,7 +262,7 @@
+                        count)))))
+ 
+        (testing "a date field"
+-         (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :oracle :sparksql)
++         (mt/test-drivers (disj (sql-jdbc.tu/sql-jdbc-drivers) :oracle :sparksql :exasol) ; Exasol does not support TIME data type
+            (is (= 1
+                   (->> (mt/run-mbql-query times
+                          {:filter [:= !day.d "2008-10-19"]})
 diff --git a/test/metabase/query_processor_test/explicit_joins_test.clj b/test/metabase/query_processor_test/explicit_joins_test.clj
 index b4e3b6f471..fdc7705211 100644
 --- a/test/metabase/query_processor_test/explicit_joins_test.clj
@@ -139,45 +113,19 @@ index b4e3b6f471..fdc7705211 100644
      (testing "Make sure our we handle (escape) double quotes in join aliases. Make sure we prevent SQL injection (#20307)"
        (let [expected-rows (mt/rows
                             (mt/run-mbql-query venues
-diff --git a/test/metabase/query_processor_test/parameters_test.clj b/test/metabase/query_processor_test/parameters_test.clj
-index 9dc121b109..5799d42068 100644
---- a/test/metabase/query_processor_test/parameters_test.clj
-+++ b/test/metabase/query_processor_test/parameters_test.clj
-@@ -116,7 +116,7 @@
-         ;; TIMEZONE FIXME — The excluded drivers below don't have TIME types, so the `attempted-murders` dataset doesn't
-         ;; currently work. We should use the closest equivalent types (e.g. `DATETIME` or `TIMESTAMP` so we can still
-         ;; load the dataset and run tests using this dataset such as these, which doesn't even use the TIME type.
--        (when-not (#{:oracle :presto :redshift :sparksql :snowflake} driver/*driver*)
-+        (when-not (#{:oracle :presto :redshift :sparksql :snowflake :exasol} driver/*driver*) ; Exasol does not support TIME data type
-           (mt/dataset attempted-murders
-             (doseq [field
-                     [:datetime
-diff --git a/test/metabase/query_processor_test/time_field_test.clj b/test/metabase/query_processor_test/time_field_test.clj
-index e8b2743998..49e268736c 100644
---- a/test/metabase/query_processor_test/time_field_test.clj
-+++ b/test/metabase/query_processor_test/time_field_test.clj
-@@ -14,7 +14,7 @@
- 
- ;; TIMEZONE FIXME
- (def ^:private skip-time-test-drivers
--  #{:oracle :mongo :redshift :sparksql})
-+  #{:oracle :mongo :redshift :sparksql :exasol}) ; Exasol does not support TIME data type
- 
- (deftest basic-test
-   (mt/test-drivers (mt/normal-drivers-except skip-time-test-drivers)
 diff --git a/test/metabase/query_processor_test/timezones_test.clj b/test/metabase/query_processor_test/timezones_test.clj
-index 50449e30fe..bda39e9fad 100644
+index 50f2822450..72586931af 100644
 --- a/test/metabase/query_processor_test/timezones_test.clj
 +++ b/test/metabase/query_processor_test/timezones_test.clj
-@@ -18,6 +18,7 @@
-   https://circleci.com/workflow-run/856f6dd0-3d95-4732-a56e-1af59e3ae4ba. The goal is to gradually remove these
-   one-by-one as they are fixed."
-   #{:oracle
+@@ -22,6 +22,7 @@
+   #{:athena
+     :bigquery-cloud-sdk
+     :oracle
 +    :exasol ; Timestamp/timezone covered by Exasol specific tests.
      :presto
      :redshift
      :snowflake
-@@ -222,7 +223,7 @@
+@@ -226,7 +227,7 @@
  (deftest time-timezone-handling-test
    ;; Actual value : "2019-11-01T00:23:18.331-07:00[America/Los_Angeles]"
    ;; Oracle doesn't have a time type
