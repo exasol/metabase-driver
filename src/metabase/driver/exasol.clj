@@ -285,6 +285,7 @@
 (defmethod driver/db-default-timezone :exasol [_ _]
   "UTC")
 
+; First day of the week in Exasol is Sunday = 7 by default, see https://docs.exasol.com/db/latest/sql/alter_system.htm
 (defmethod driver/db-start-of-week :exasol
   [_]
   :sunday)
