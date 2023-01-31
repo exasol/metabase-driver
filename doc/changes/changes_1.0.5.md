@@ -4,7 +4,7 @@ Code name: Upgrade to Metabase 0.45.2.1
 
 ## Summary
 
-In this release we adapted the driver to Metabase 0.45.2.1. New integration tests added to Metabase revealed some issues with date and timestamp calculations in the Exasol driver that we fixed in the new release.
+This release adapts the driver to Metabase 0.45.2.1. New integration tests added to Metabase revealed some issues with date and timestamp calculations in the Exasol driver that are fixed in the new release.
 
 ## Features
 
