@@ -246,36 +246,16 @@
     (str x)
     (int x)))
 
-
-
-;┌────────────────────┐
-;│ January ▒▒▒▒▒ 2023 │
-;├──┬──┬──┬──┬──┬──┬──┤
-;│Su│Mo│Tu│We│Th│Fr│Sa│
-;├──┼──┼──┼──┼──┼──┼──┤
-;│▒▒│▒▒│▒▒│▒▒│▒▒│▒▒│▒▒│
-;├──┼──┼──┼──┼──┼──┼──┤
-;│01│02│03│04│05│06│07│
-;├──┼──┼──┼──┼──┼──┼──┤
-;│08│09│10│11│12│13│14│
-;├──┼──┼──┼──┼──┼──┼──┤
-;│15│16│17│18│19│20│21│
-;├──┼──┼──┼──┼──┼──┼──┤
-;│22│23│24│25│26│27│28│
-;├──┼──┼──┼──┼──┼──┼──┤
-;│29│30│31│▒▒│▒▒│▒▒│▒▒│
-;└──┴──┴──┴──┴──┴──┴──┘
-
-(deftest bug-59-week-aggregation
-  (testing "#59: Week aggregation is inconsistent with setting 'Start of the week'"
+(deftest week-aggregation
+  (testing "Verify that week aggregation correctly uses 'Start of week' setting"
     ; 2023-01-01 is a Sunday, 2023-01-02 is a Monday
     (mt/test-drivers #{:exasol}
-                     (mt/dataset exasol-dataset/bug-59-week-aggregation-data
+                     (mt/dataset exasol-dataset/one-timestamp-per-day
                                  (letfn [(test-break-out [unit start-of-week-setting]
                                            (mt/with-temporary-setting-values [start-of-week start-of-week-setting]
-                                             (->> (mt/mbql-query bug59_timestamp_data
-                                                                 {:filter      [:between $created_at "2023-01-02" "2023-01-15"]
-                                                                  :breakout    [:field $created_at {:temporal-unit unit}]
+                                             (->> (mt/mbql-query timestamps
+                                                                 {:filter      [:between $col "2023-01-02" "2023-01-15"]
+                                                                  :breakout    [:field $col {:temporal-unit unit}]
                                                                   :aggregation [[:count]]})
                                                   mt/process-query
                                                   (mt/formatted-rows [fmt-str-or-int int]))))]
