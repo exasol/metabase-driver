@@ -238,3 +238,67 @@
                                                  (qp/process-query
                                                   (assoc (mt/mbql-query just-dates)
                                                          :middleware {:format-rows? false})))))))))
+
+
+(defn- fmt-str-or-int
+  [x]
+  (if (string? x)
+    (str x)
+    (int x)))
+
+
+(deftest week-of-year-and-week-count-should-be-consistent-test
+  (testing "consistent break out between weeks and week-of-year #4910"
+    (mt/test-drivers #{:exasol}
+      ;; 2019-01-01 is Tuesday, so set start-of-week to tuesday so
+      ;; breakout by week-of-year will have first row is the 1st week of year
+                     (mt/with-temporary-setting-values [start-of-week :tuesday]
+                       (mt/dataset sample-dataset
+                                   (letfn [(test-break-out [unit]
+                                             (->> (mt/mbql-query orders
+                                                                 {:filter      [:between $created_at "2019-01-01" "2019-12-31"]
+                                                                  :breakout    [:field $created_at {:temporal-unit unit}]
+                                                                  :aggregation [[:count]]})
+                                                  mt/process-query
+                                                  (mt/formatted-rows [fmt-str-or-int int])))]
+                                     (testing "count result should be the same between week and week-of-year"
+                                       (is (= (map second (test-break-out :week))
+                                              (map second (test-break-out :week-of-year))))
+                                       (is (= [127 124 136]
+                                              (->> (test-break-out :week)
+                                                   (map second)
+                                                   (take 3)))))
+                                     (testing "make sure all drivers returns the same week column"
+                                       (is (= ["2019-01-01T00:00:00Z" "2019-01-08T00:00:00Z" "2019-01-15T00:00:00Z"]
+                                              (->> (test-break-out :week)
+                                                   (map first)
+                                                   (take 3)))))
+                                     (testing "make sure all drivers returns the same week-of-year column"
+                                       (is (= [1 2 3]
+                                              (->> (test-break-out :week-of-year)
+                                                   (map first)
+                                                   (take 3)))))))))))
+
+
+(deftest week-of-year-and-week-count-should-be-consistent-test-bug
+  (testing "consistent break out between weeks and week-of-year #59"
+    (mt/test-drivers #{:exasol}
+                     (mt/dataset metabase.test.data.dataset-definitions/sample-dataset
+                                 (letfn [(test-break-out [start-of-week-setting]
+                                           (mt/with-temporary-setting-values [start-of-week start-of-week-setting]
+                                             (->> (mt/mbql-query orders
+                                                                 {:filter      [:between $created_at "2019-01-01" "2019-01-31"]
+                                                                  :breakout    [:field $created_at {:temporal-unit :week}]
+                                                                  :aggregation [[:count]]})
+                                                  mt/process-query
+                                                  (mt/formatted-rows [fmt-str-or-int int]))))]
+
+                                   (testing "monday"
+                                     (is (= ["2019-01-01T00:00:00Z" "2019-01-08T00:00:00Z" "2019-01-15T00:00:00Z"]
+                                            (test-break-out :monday))))
+                                   (testing "tuesday"
+                                     (is (= ["2019-01-01T00:00:00Z" "2019-01-08T00:00:00Z" "2019-01-15T00:00:00Z"]
+                                            (test-break-out :tuesday))))
+                                   (testing "sunday"
+                                     (is (= ["2019-01-01T00:00:00Z" "2019-01-08T00:00:00Z" "2019-01-15T00:00:00Z"]
+                                            (test-break-out :sunday)))))))))
