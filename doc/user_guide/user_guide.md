@@ -122,15 +122,15 @@ See issue [#20](https://github.com/exasol/metabase-driver/issues/20) for details
 
 ### Week Aggregation may Return Wrong Results
 
-When the Exasol database is configured to use a non-default value for parameter `NLS_FIRST_DAY_OF_WEEK`, week aggregations may return wrong results.
+By default Exasol database assumes weeks to start on Sunday. When users set Exasol configuration parameter `NLS_FIRST_DAY_OF_WEEK` to a value other than 7 then Metabase week aggregations (break-outs / group-by) may return wrong results.
 
-You can check the current value by executing
+You can check the currently configured value by executing
 
 ```sql
 SELECT * FROM EXA_PARAMETERS WHERE PARAMETER_NAME = 'NLS_FIRST_DAY_OF_WEEK';
 ```
 
-If this returns a value different from the default 7 (= Sunday), you can restore it by running
+If this returns a value different from the default 7 (= Sunday), you can change configuration by running
 
 ```sql
 ALTER SYSTEM SET NLS_FIRST_DAY_OF_WEEK = 7;
