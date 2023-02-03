@@ -238,3 +238,48 @@
                                                  (qp/process-query
                                                   (assoc (mt/mbql-query just-dates)
                                                          :middleware {:format-rows? false})))))))))
+
+
+(defn- fmt-str-or-int
+  [x]
+  (if (string? x)
+    (str x)
+    (int x)))
+
+(deftest week-aggregation
+  (testing "Verify that week aggregation correctly uses 'Start of week' setting"
+    ; 2023-01-01 is a Sunday, 2023-01-02 is a Monday
+    (mt/test-drivers #{:exasol}
+                     (mt/dataset exasol-dataset/one-timestamp-per-day
+                                 (letfn [(test-break-out [unit start-of-week-setting]
+                                           (mt/with-temporary-setting-values [start-of-week start-of-week-setting]
+                                             (->> (mt/mbql-query timestamps
+                                                                 {:filter      [:between $col "2023-01-02" "2023-01-15"]
+                                                                  :breakout    [:field $col {:temporal-unit unit}]
+                                                                  :aggregation [[:count]]})
+                                                  mt/process-query
+                                                  (mt/formatted-rows [fmt-str-or-int int]))))]
+
+                                   (testing "Break out by week, start of week = Monday"
+                                     (is (= [["2023-01-02T00:00:00Z" 7] ["2023-01-09T00:00:00Z" 7]]
+                                            (test-break-out :week :monday))))
+                                   (testing "Break out by week, start of week = Tuesday"
+                                     (is (= [["2022-12-27T00:00:00Z" 1]
+                                             ["2023-01-03T00:00:00Z" 7]
+                                             ["2023-01-10T00:00:00Z" 6]]
+                                            (test-break-out :week :tuesday))))
+                                   (testing "Break out by week, start of week = Sunday"
+                                     (is (= [["2023-01-01T00:00:00Z" 6]
+                                             ["2023-01-08T00:00:00Z" 7]
+                                             ["2023-01-15T00:00:00Z" 1]]
+                                            (test-break-out :week :sunday))))
+
+                                   (testing "Break out by week-of-year, start of week = Monday"
+                                     (is (= [[1 7] [2 7]]
+                                            (test-break-out :week-of-year :monday))))
+                                   (testing "Break out by week-of-year, start of week = Tuesday"
+                                     (is (= [[1 7] [2 6] [52 1]]
+                                            (test-break-out :week-of-year :tuesday))))
+                                   (testing "Break out by week-of-year, start of week = Sunday"
+                                     (is (= [[1 6] [2 7] [3 1]]
+                                            (test-break-out :week-of-year :sunday)))))))))

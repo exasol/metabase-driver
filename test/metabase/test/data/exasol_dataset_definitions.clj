@@ -34,6 +34,15 @@
      [0 "winter" winter-timestamp  winter-timestamp  winter-timestamp]
      [1 "summer" summer-timestamp  summer-timestamp  summer-timestamp]]]]))
 
+(tx/defdataset one-timestamp-per-day
+  "Test data for week aggregation bug https://github.com/exasol/metabase-driver/issues/59"
+  (let [timestamps (map #(.plus (java.time.Instant/parse "2022-12-01T12:00:00.000Z") % java.time.temporal.ChronoUnit/DAYS) (range 0 70))
+        rows (map (fn [timestamp] [timestamp]) timestamps)]
+
+    [["timestamps"
+    ; Columns
+      [{:field-name "col", :base-type {:native "TIMESTAMP"}}]
+      rows]]))
 
 (tx/defdataset geometry
   "Test data for testing geometry functions, see https://docs.exasol.com/sql_references/geospatialdata/geospatialdata_overview.htm#GeospatialObjects"
