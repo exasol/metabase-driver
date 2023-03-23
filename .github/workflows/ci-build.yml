@@ -53,8 +53,8 @@ jobs:
       - name: Cache clj-kondo
         uses: actions/cache@v3
         with:
-          path: .clj-kondo/.cache
-          key: clj-kondo-cache
+          path: metabase-driver/.clj-kondo/.cache
+          key: clj-kondo-cache-${{ hashFiles('metabase-driver/deps.edn') }}
           restore-keys: |
             clj-kondo-cache
 
@@ -63,6 +63,7 @@ jobs:
           java --version
           echo Clojure: $(clojure -M --eval "(clojure-version)")
           clojure --version
+          cd metabase-driver && clojure -M:clj-kondo --version
 
       - name: Build driver
         run: "$GITHUB_WORKSPACE/metabase-driver/scripts/build.sh"
