@@ -1,6 +1,6 @@
 {:paths
  ["src" "resources"]
- 
+
  :deps
  {org.clojure/core.logic {:mvn/version "1.0.0"}}
 
@@ -11,4 +11,9 @@
  :aliases
  {:dev
   {:extra-deps
-   {io.github.metabase/metabase {:git/tag "v0.46.0-RC3", :git/sha "32977a42"}}}}}
+   {io.github.metabase/metabase {:git/tag "v0.46.0-RC3", :git/sha "32977a42"}}}
+
+  ; clojure -M:clj-kondo --lint src test --debug
+  :clj-kondo
+  {:replace-deps {clj-kondo/clj-kondo {:mvn/version "2023.03.17"}}
+   :main-opts ["-m" "clj-kondo.main"]}}}
