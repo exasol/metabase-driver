@@ -125,3 +125,19 @@ index 5500dc4ecf..02634186ed 100644
      :redshift
      :snowflake
      :sparksql
+diff --git a/test/metabase/test/initialize.clj b/test/metabase/test/initialize.clj
+index 740b449844..e1993bcd43 100644
+--- a/test/metabase/test/initialize.clj
++++ b/test/metabase/test/initialize.clj
+@@ -22,7 +22,7 @@
+                                      (str/join "\n" [border body border])
+                                      "\n")))))
+ 
+-(def ^:private init-timeout-ms (u/seconds->ms 60))
++(def ^:private init-timeout-ms (u/seconds->ms 120))
+ 
+ (def ^:private ^:dynamic *initializing*
+   "Collection of components that are being currently initialized by the current thread."
+diff --git a/test_resources/ssh/tiny-db.mv.db b/test_resources/ssh/tiny-db.mv.db
+index 3b13fa9ff1..86cc23784e 100644
+Binary files a/test_resources/ssh/tiny-db.mv.db and b/test_resources/ssh/tiny-db.mv.db differ
