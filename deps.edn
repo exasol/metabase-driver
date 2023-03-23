@@ -11,4 +11,4 @@
  :aliases
  {:dev
   {:extra-deps
-   {io.github.metabase/metabase {:git/tag "v0.46.0-RC2", :git/sha "32977a42"}}}}}
+   {io.github.metabase/metabase {:git/tag "v0.46.0-RC3", :git/sha "32977a42"}}}}}
