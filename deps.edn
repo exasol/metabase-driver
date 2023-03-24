@@ -1,17 +1,19 @@
 {:paths
  ["src" "resources"]
 
- ;; Build the driver with clojure -X:build
- :aliases
- {:build
-  {:extra-deps {metabase/metabase-core {:local/root "../metabase"}
-                metabase/build-drivers {:local/root "../metabase/bin/build-drivers"}}
-   :exec-fn    build-drivers.build-driver/build-driver!
-   :exec-args  {:driver      :exasol
-                :project-dir "."
-                :target-dir  "./target"}}
+ :deps
+ {org.clojure/core.logic {:mvn/version "1.0.0"}}
 
-; clojure -M:clj-kondo --lint src test --debug
+ ;;; needed for Metabase as a local dep for local development
+ :mvn/repos
+ {"opensaml" {:url "https://build.shibboleth.net/nexus/content/repositories/releases/"}}
+
+ :aliases
+ {:dev
+  {:extra-deps
+   {io.github.metabase/metabase {:git/tag "v0.46.0-RC3", :git/sha "32977a42"}}}
+
+  ; clojure -M:clj-kondo --lint src test --debug
   :clj-kondo
-  {:replace-deps {clj-kondo/clj-kondo {:mvn/version "2023.01.20"}}
+  {:replace-deps {clj-kondo/clj-kondo {:mvn/version "2023.03.17"}}
    :main-opts ["-m" "clj-kondo.main"]}}}

@@ -45,12 +45,12 @@ clojure --version
     git clone https://github.com/metabase/metabase.git
     cd metabase
     git fetch --all --tags
-    export METABASE_VERSION=0.45.2.1
+    export METABASE_VERSION=v0.46.0-RC3
     git reset --hard
     rm -vf target/patch_excluded_test_applied target/patch_fix_metabase_build_applied
-    git checkout "tags/v${METABASE_VERSION}" -b "v${METABASE_VERSION}-branch"
+    git checkout "tags/${METABASE_VERSION}" -b "${METABASE_VERSION}-branch"
     # Build (this will take ~15min)
-    ./bin/build
+    ./bin/build.sh
     # Run
     clojure -M:run
     ```

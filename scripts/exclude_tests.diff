@@ -1,8 +1,8 @@
 diff --git a/test/metabase/api/session_test.clj b/test/metabase/api/session_test.clj
-index 49446ef5c7..1e3eb3d330 100644
+index 72a25bb4fe..cfc15ad5a4 100644
 --- a/test/metabase/api/session_test.clj
 +++ b/test/metabase/api/session_test.clj
-@@ -177,7 +177,7 @@
+@@ -186,7 +186,7 @@
                          :body
                          json/parse-string
                          (get-in ["errors" "username"])))]
@@ -12,30 +12,30 @@ index 49446ef5c7..1e3eb3d330 100644
          (is (re= #"^Too many attempts! You must wait 4\d seconds before trying again\.$"
                   (error)))))))
 diff --git a/test/metabase/driver/sql/parameters/substitute_test.clj b/test/metabase/driver/sql/parameters/substitute_test.clj
-index c9336fd21a..d56783a333 100644
+index 83b2ebf12f..2475a57389 100644
 --- a/test/metabase/driver/sql/parameters/substitute_test.clj
 +++ b/test/metabase/driver/sql/parameters/substitute_test.clj
-@@ -610,7 +610,7 @@
+@@ -717,7 +717,7 @@
                                   :value  "2015-07-01"}]))))))))
  
  (deftest e2e-parse-native-dates-test
 -  (mt/test-drivers (disj (sql-parameters-engines) :sqlite)
 +  (mt/test-drivers (disj (sql-parameters-engines) :sqlite :exasol) ; Timestamp/timezone covered by Exasol specific tests.
      (is (= [(cond
-               (= driver/*driver* :presto)
-               "2018-04-18"
+               ;; TIMEZONE FIXME — Busted
+               (= driver/*driver* :vertica)
 diff --git a/test/metabase/driver/sql_jdbc/connection_test.clj b/test/metabase/driver/sql_jdbc/connection_test.clj
-index 14762b8a95..847b9462c5 100644
+index 485b7dba85..c879be0976 100644
 --- a/test/metabase/driver/sql_jdbc/connection_test.clj
 +++ b/test/metabase/driver/sql_jdbc/connection_test.clj
 @@ -1,5 +1,6 @@
  (ns metabase.driver.sql-jdbc.connection-test
-   (:require [clojure.java.jdbc :as jdbc]
-+            [clojure.string :as str]
-             [clojure.test :refer :all]
-             [metabase.db.spec :as mdb.spec]
-             [metabase.driver :as driver]
-@@ -102,7 +103,10 @@
+   (:require
++   [clojure.string :as str]
+    [clojure.java.jdbc :as jdbc]
+    [clojure.test :refer :all]
+    [metabase.db.spec :as mdb.spec]
+@@ -105,7 +106,10 @@
                  (assoc :host "localhost")
  
                  :else
@@ -48,23 +48,23 @@ index 14762b8a95..847b9462c5 100644
  (deftest connection-pool-invalidated-on-details-change
    (mt/test-drivers (sql-jdbc.tu/sql-jdbc-drivers)
 diff --git a/test/metabase/query_processor/middleware/format_rows_test.clj b/test/metabase/query_processor/middleware/format_rows_test.clj
-index 128684daf2..1b7544dc05 100644
+index 3aa35e63ed..0951cad7b5 100644
 --- a/test/metabase/query_processor/middleware/format_rows_test.clj
 +++ b/test/metabase/query_processor/middleware/format_rows_test.clj
-@@ -17,7 +17,7 @@
+@@ -19,7 +19,7 @@
    should be able to pass with a few tweaks. Some of them are excluded because they do not have a TIME data type and
    can't load the `test-data-with-time` dataset; but that's not true of ALL of these. Please make sure you add a note
    as to why a certain database is explicitly skipped if you skip it -- Cam"
--  #{:bigquery-cloud-sdk :oracle :mongo :redshift :presto :sparksql :snowflake})
-+  #{:bigquery-cloud-sdk :oracle :mongo :redshift :presto :sparksql :snowflake :exasol}) ; Exasol does not support TIME data type
+-  #{:bigquery-cloud-sdk :oracle :mongo :redshift :sparksql :snowflake})
++  #{:bigquery-cloud-sdk :oracle :mongo :redshift :sparksql :snowflake :exasol}) ; Exasol does not support TIME data type
  
  (deftest format-rows-test
    (mt/test-drivers (filter mt/supports-time-type? (mt/normal-drivers-except dbs-exempt-from-format-rows-tests))
 diff --git a/test/metabase/query_processor_test/alternative_date_test.clj b/test/metabase/query_processor_test/alternative_date_test.clj
-index 03bf3a3e19..c7ca9373f8 100644
+index 773092a012..f92dd7e040 100644
 --- a/test/metabase/query_processor_test/alternative_date_test.clj
 +++ b/test/metabase/query_processor_test/alternative_date_test.clj
-@@ -33,7 +33,7 @@
+@@ -37,7 +37,7 @@
       [0 1433965860000000]]]])
  
  (deftest microseconds-test
@@ -73,7 +73,7 @@ index 03bf3a3e19..c7ca9373f8 100644
      (let [results (get {:sqlite #{[1 4 "2015-06-06 10:40:00"] [2 0 "2015-06-10 19:51:00"]}
                          :oracle #{[1M 4M "2015-06-06T10:40:00Z"] [2M 0M "2015-06-10T19:51:00Z"]}}
                         driver/*driver*
-@@ -180,7 +180,7 @@
+@@ -184,7 +184,7 @@
      (testing "return as dates"
        (mt/test-drivers (-> (sql-jdbc.tu/sql-jdbc-drivers)
                             (conj :bigquery-cloud-sdk)
@@ -82,7 +82,7 @@ index 03bf3a3e19..c7ca9373f8 100644
          (is (= [[1 "foo" #t "2004-10-19T10:23:54" #t "2004-10-19" #t "10:23:54"]
                  [2 "bar" #t "2008-10-19T10:23:54" #t "2008-10-19" #t "10:23:54"]
                  [3 "baz" #t "2012-10-19T10:23:54" #t "2012-10-19" #t "10:23:54"]]
-@@ -246,7 +246,7 @@
+@@ -250,7 +250,7 @@
        (mt/dataset string-times
         (testing "a datetime field"
           ;; TODO: why does this fail on oracle? gives a NPE
@@ -91,7 +91,7 @@ index 03bf3a3e19..c7ca9373f8 100644
             (is (= 1
                    (->> (mt/run-mbql-query times
                           {:filter [:= !day.ts "2008-10-19"]})
-@@ -262,7 +262,7 @@
+@@ -266,7 +266,7 @@
                         count)))))
  
         (testing "a date field"
@@ -101,10 +101,10 @@ index 03bf3a3e19..c7ca9373f8 100644
                    (->> (mt/run-mbql-query times
                           {:filter [:= !day.d "2008-10-19"]})
 diff --git a/test/metabase/query_processor_test/explicit_joins_test.clj b/test/metabase/query_processor_test/explicit_joins_test.clj
-index b4e3b6f471..fdc7705211 100644
+index 166598c4c6..50f5e608ea 100644
 --- a/test/metabase/query_processor_test/explicit_joins_test.clj
 +++ b/test/metabase/query_processor_test/explicit_joins_test.clj
-@@ -777,7 +777,7 @@
+@@ -783,7 +783,7 @@
                         results))))))))))
  
  (deftest double-quotes-in-join-alias-test
@@ -114,23 +114,27 @@ index b4e3b6f471..fdc7705211 100644
        (let [expected-rows (mt/rows
                             (mt/run-mbql-query venues
 diff --git a/test/metabase/query_processor_test/timezones_test.clj b/test/metabase/query_processor_test/timezones_test.clj
-index 50f2822450..72586931af 100644
+index 5500dc4ecf..02634186ed 100644
 --- a/test/metabase/query_processor_test/timezones_test.clj
 +++ b/test/metabase/query_processor_test/timezones_test.clj
-@@ -22,6 +22,7 @@
+@@ -24,6 +24,7 @@
    #{:athena
      :bigquery-cloud-sdk
      :oracle
 +    :exasol ; Timestamp/timezone covered by Exasol specific tests.
-     :presto
      :redshift
      :snowflake
-@@ -226,7 +227,7 @@
- (deftest time-timezone-handling-test
-   ;; Actual value : "2019-11-01T00:23:18.331-07:00[America/Los_Angeles]"
-   ;; Oracle doesn't have a time type
--  (mt/test-drivers (set-timezone-drivers)
-+  (mt/test-drivers (disj (set-timezone-drivers) :exasol) ; Exasol does not support TIME data type
-     (mt/dataset attempted-murders
-       (doseq [timezone [nil "US/Pacific" "US/Eastern" "Asia/Hong_Kong"]]
-         (mt/with-temporary-setting-values [report-timezone timezone]
+     :sparksql
+diff --git a/test/metabase/test/initialize.clj b/test/metabase/test/initialize.clj
+index 740b449844..e1993bcd43 100644
+--- a/test/metabase/test/initialize.clj
++++ b/test/metabase/test/initialize.clj
+@@ -22,7 +22,7 @@
+                                      (str/join "\n" [border body border])
+                                      "\n")))))
+ 
+-(def ^:private init-timeout-ms (u/seconds->ms 60))
++(def ^:private init-timeout-ms (u/seconds->ms 120)) ; Integration tests fail on GitHub Action with a timeout
+ 
+ (def ^:private ^:dynamic *initializing*
+   "Collection of components that are being currently initialized by the current thread."

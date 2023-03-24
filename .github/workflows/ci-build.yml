@@ -15,7 +15,7 @@ jobs:
       cancel-in-progress: true
     runs-on: ubuntu-latest
     env:
-      METABASE_TAG: v0.45.2.1
+      METABASE_TAG: v0.46.0-RC3
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
@@ -53,8 +53,8 @@ jobs:
       - name: Cache clj-kondo
         uses: actions/cache@v3
         with:
-          path: .clj-kondo/.cache
-          key: clj-kondo-cache
+          path: metabase-driver/.clj-kondo/.cache
+          key: clj-kondo-cache-${{ hashFiles('metabase-driver/deps.edn') }}
           restore-keys: |
             clj-kondo-cache
 
@@ -63,6 +63,7 @@ jobs:
           java --version
           echo Clojure: $(clojure -M --eval "(clojure-version)")
           clojure --version
+          cd metabase-driver && clojure -M:clj-kondo --version
 
       - name: Build driver
         run: "$GITHUB_WORKSPACE/metabase-driver/scripts/build.sh"
