@@ -1,8 +1,7 @@
 (ns metabase.driver.exasol
   (:require [clojure.java.io :as io]
             [clojure.tools.logging :as log]
-            [honeysql.core :as hsql]
-            [honeysql.format :as hformat]
+            [honey.sql :as sql]
             [java-time :as t]
             [metabase.config :as config]
             [metabase.driver :as driver]
@@ -16,7 +15,7 @@
             [metabase.driver.sql.query-processor.empty-string-is-null :as sql.qp.empty-string-is-null]
             [metabase.driver.sql.util.unprepare :as unprepare]
             [metabase.util :as u]
-            [metabase.util.honeysql-extensions :as hx]
+            [metabase.util.honey-sql-2 :as h2x]
             [metabase.util.i18n :refer [trs]]
             [yaml.core :as yaml]))
 
@@ -61,6 +60,11 @@
                               :nested-fields          false
                               :nested-field-columns   false}]
   (defmethod driver/database-supports? [:exasol feature] [_ _ _] supported?))
+
+; Opt-in to use Honey SQL 2
+(defmethod sql.qp/honey-sql-version :exasol
+  [_driver]
+  2)
 
 (defmethod sql-jdbc.conn/connection-details->spec :exasol
   [_ {:keys [user password host port certificate-fingerprint]
@@ -167,19 +171,19 @@
   "Truncate a date, e.g.:
       (trunc-date :day date) -> TRUNC(CAST(date AS DATE), 'day')"
   [format-template date]
-  (hsql/call :truncate (hx/->date date) (hx/literal format-template)))
+  (sql/call :truncate (h2x/->date date) (h2x/literal format-template)))
 
 (defn- trunc-timestamp
   "Truncate a timestamp, e.g.:
       (trunc-timestamp :day date) -> TRUNC(CAST(date AS TIMESTAMP), 'day')"
   [format-template date]
-  (hsql/call :truncate (hx/->timestamp date) (hx/literal format-template)))
+  (sql/call :truncate (h2x/->timestamp date) (h2x/literal format-template)))
 
 (defn- extract-from-timestamp
   "Extract a date. See also this 
       (extract :minute timestamp) -> EXTRACT(MINUTE FROM timestamp)"
   [unit timestamp]
-  (hsql/call :extract unit (hx/->timestamp timestamp)))
+  (sql/call :extract unit (h2x/->timestamp timestamp)))
 
 (defmethod sql.qp/date [:exasol :minute]         [_ _ date] (trunc-timestamp :mi date))
 (defmethod sql.qp/date [:exasol :minute-of-hour] [_ _ date] (extract-from-timestamp :minute date))
@@ -191,7 +195,7 @@
 (defmethod sql.qp/date [:exasol :month-of-year]  [_ _ date] (extract-from-timestamp :month date))
 (defmethod sql.qp/date [:exasol :quarter]        [_ _ date] (trunc-date :q date))
 (defmethod sql.qp/date [:exasol :year]           [_ _ date] (trunc-date :year date))
-(defmethod sql.qp/date [:exasol :week-of-year]   [_ _ expr] (hsql/call :ceil (hx// (sql.qp/date :exasol :day-of-year (sql.qp/date :exasol :week expr)) 7.0)))
+(defmethod sql.qp/date [:exasol :week-of-year]   [_ _ expr] (sql/call :ceil (h2x// (sql.qp/date :exasol :day-of-year (sql.qp/date :exasol :week expr)) 7.0)))
 
 (defmethod sql.qp/date [:exasol :week]
   [driver _ date]
@@ -199,15 +203,15 @@
 
 (defn- to-date
   [value]
-  (hsql/call :to_date value))
+  (sql/call :to_date value))
 
 (defmethod sql.qp/date [:exasol :day-of-year]
   [_ _ date]
-  (hx/inc  (hx/- (to-date (trunc-date :dd date)) (to-date (trunc-date :year date)))))
+  (h2x/inc  (h2x/- (to-date (trunc-date :dd date)) (to-date (trunc-date :year date)))))
 
 (defmethod sql.qp/date [:exasol :quarter-of-year]
   [driver _ date]
-  (hx// (hx/+ (sql.qp/date driver :month-of-year (sql.qp/date driver :quarter date))
+  (h2x// (h2x/+ (sql.qp/date driver :month-of-year (sql.qp/date driver :quarter date))
               2)
         3))
 
@@ -215,28 +219,35 @@
   [driver _ date]
   (sql.qp/adjust-day-of-week
    driver
-   (hx/->integer (hsql/call :to_char (hx/->timestamp date) (hx/literal :d)))
+   (h2x/->integer (sql/call :to_char (h2x/->timestamp date) (h2x/literal :d)))
    (driver.common/start-of-week-offset driver)
-   (partial hsql/call (u/qualified-name ::mod))))
+   (partial sql/call (u/qualified-name ::mod))))
 
 ;; Exasol mod is a function like mod(x, y) rather than an operator like x mod y
 ;; https://docs.exasol.com/sql_references/functions/alphabeticallistfunctions/mod.htm
-(defmethod hformat/fn-handler (u/qualified-name ::mod)
-  [_ x y]
-  (format "mod(%s, %s)" (hformat/to-sql x) (hformat/to-sql y)))
+(defn- format-mod
+  [_fn [x y]]
+  (let [[x-sql & x-args] (sql/format-expr x {:nested true})
+        [y-sql & y-args] (sql/format-expr y {:nested true})]
+    (into [(format "mod(%s, %s)" x-sql y-sql)]
+          cat
+          [x-args
+           y-args])))
+
+(sql/register-fn! ::mod #'format-mod)
 
 ;;;;
 
-(def ^:private now (hsql/raw "SYSTIMESTAMP"))
-
-(defmethod sql.qp/current-datetime-honeysql-form :exasol [_] now)
+(defmethod sql.qp/current-datetime-honeysql-form :exasol
+  [_]
+  (h2x/with-database-type-info [:raw "SYSTIMESTAMP"] "timestamp"))
 
 (defmethod sql.qp/->honeysql [:exasol :regex-match-first]
   [driver [_ arg pattern]]
-  (hsql/call :regexp_substr (sql.qp/->honeysql driver arg) (sql.qp/->honeysql driver pattern)))
+  (sql/call :regexp_substr (sql.qp/->honeysql driver arg) (sql.qp/->honeysql driver pattern)))
 
-(defn- num-to-ds-interval [unit value] (hsql/call :numtodsinterval value (hx/literal unit)))
-(defn- num-to-ym-interval [unit value] (hsql/call :numtoyminterval value (hx/literal unit)))
+(defn- num-to-ds-interval [unit value] (sql/call :numtodsinterval value (h2x/literal unit)))
+(defn- num-to-ym-interval [unit value] (sql/call :numtoyminterval value (h2x/literal unit)))
 
 (def ^:private timestamp-types
   #{"timestamp" "timestamp with local time zone"})
@@ -244,43 +255,43 @@
 (defn- cast-to-timestamp-if-needed
   "If `hsql-form` isn't already one of the [[timestamp-types]], cast it to `timestamp`."
   [hsql-form]
-  (hx/cast-unless-type-in "timestamp" timestamp-types hsql-form))
+  (h2x/cast-unless-type-in "timestamp" timestamp-types hsql-form))
 
 (defmethod sql.qp/add-interval-honeysql-form :exasol
   [_ hsql-form amount unit]
   (case unit
-    :second  (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :second amount))
-    :minute  (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :minute amount))
-    :hour    (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :hour   amount))
-    :day     (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :day    amount))
-    :week    (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :day    (hx/* amount (hsql/raw 7))))
-    :month   (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ym-interval :month  amount))
-    :quarter (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ym-interval :month  (hx/* amount (hsql/raw 3))))
-    :year    (hx/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ym-interval :year   amount))))
+    :second  (h2x/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :second amount))
+    :minute  (h2x/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :minute amount))
+    :hour    (h2x/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :hour   amount))
+    :day     (h2x/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :day    amount))
+    :week    (h2x/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ds-interval :day    (h2x/* amount [:inline 7])))
+    :month   (h2x/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ym-interval :month  amount))
+    :quarter (h2x/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ym-interval :month  (h2x/* amount [:inline 3])))
+    :year    (h2x/+ (cast-to-timestamp-if-needed hsql-form) (num-to-ym-interval :year   amount))))
 
 (defmethod sql.qp/cast-temporal-string [:exasol :Coercion/ISO8601->DateTime]
   [_ _ expr]
-  (hsql/call :to_timestamp expr "YYYY-MM-DD HH:mi:SS"))
+  (sql/call :to_timestamp expr "YYYY-MM-DD HH:mi:SS"))
 
 (defmethod sql.qp/cast-temporal-string [:exasol :Coercion/ISO8601->Date]
   [_ _ expr]
-  (hsql/call :to_date expr "YYYY-MM-DD"))
+  (sql/call :to_date expr "YYYY-MM-DD"))
 
 (defmethod sql.qp/cast-temporal-string [:exasol :Coercion/YYYYMMDDHHMMSSString->Temporal]
   [_ _ expr]
-  (hsql/call :to_timestamp expr "YYYYMMDDHH24miSS"))
+  (sql/call :to_timestamp expr "YYYYMMDDHH24miSS"))
 
 (defmethod sql.qp/unix-timestamp->honeysql [:exasol :seconds]
   [_ _ expr]
-  (hsql/call :from_posix_time expr))
+  (sql/call :from_posix_time expr))
 
 (defmethod sql.qp/unix-timestamp->honeysql [:exasol :milliseconds]
   [driver _ field-or-value]
-  (sql.qp/unix-timestamp->honeysql driver :seconds (hx// field-or-value (hsql/raw 1000))))
+  (sql.qp/unix-timestamp->honeysql driver :seconds (h2x// field-or-value [:inline 1000])))
 
 (defmethod sql.qp/unix-timestamp->honeysql [:exasol :microseconds]
   [driver _ field-or-value]
-  (sql.qp/unix-timestamp->honeysql driver :seconds (hx// field-or-value (hsql/raw 1000000))))
+  (sql.qp/unix-timestamp->honeysql driver :seconds (h2x// field-or-value [:inline 1000000])))
 
 (defmethod driver/db-default-timezone :exasol [_ _]
   "UTC")
