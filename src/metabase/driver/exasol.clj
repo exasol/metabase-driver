@@ -191,6 +191,11 @@
   [unit timestamp]
   [::h2x/extract unit (h2x/->timestamp timestamp)])
 
+(defmethod sql.qp/date [:exasol :second-of-minute]
+  [_driver _unit v]
+  (let [t (h2x/->timestamp v)]
+    (h2x/->integer [:floor [::h2x/extract :second t]])))
+
 (defmethod sql.qp/date [:exasol :minute]         [_ _ date] (trunc-timestamp :mi date))
 (defmethod sql.qp/date [:exasol :minute-of-hour] [_ _ date] (extract-from-timestamp :minute date))
 (defmethod sql.qp/date [:exasol :hour]           [_ _ date] (trunc-timestamp :hh date))
@@ -217,9 +222,7 @@
 
 (defmethod sql.qp/date [:exasol :quarter-of-year]
   [driver _ date]
-  (h2x// (h2x/+ (sql.qp/date driver :month-of-year (sql.qp/date driver :quarter date))
-              2)
-        3))
+  (h2x// (h2x/+ (sql.qp/date driver :month-of-year (sql.qp/date driver :quarter date)) 2) 3))
 
 (defmethod sql.qp/date [:exasol :day-of-week]
   [driver _ date]
@@ -255,8 +258,18 @@
 
 ; NUMTODSINTERVAL and NUMTOYMINTERVAL functions don't accept placeholder as arguments ("invalid data type for function NUMTODSINTERVAL")
 ; That's why we ensure that the argument is a number and inline the value.
-(defn- num-to-ds-interval [unit value] (when (number? value) [:numtodsinterval [:inline value] (h2x/literal unit)]))
-(defn- num-to-ym-interval [unit value] (when (number? value) [:numtoyminterval [:inline value] (h2x/literal unit)]))
+(defn- num-to-ds-interval [unit v]
+  (let [v (if (number? v)
+            [:inline v]
+            v)]
+    [:numtodsinterval v (h2x/literal unit)]))
+
+(defn- num-to-ym-interval [unit v]
+  (let [v (if (number? v)
+            [:inline v]
+            v)]
+    [:numtoyminterval v (h2x/literal unit)]))
+
 
 (def ^:private timestamp-types
   #{"timestamp" "timestamp with local time zone"})
