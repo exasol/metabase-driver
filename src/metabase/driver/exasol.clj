@@ -19,6 +19,8 @@
             [metabase.util.i18n :refer [trs]]
             [yaml.core :as yaml]))
 
+(set! *warn-on-reflection* true)
+
 (defn- invoke-static-method
   "Invoke a static method via reflection"
   [class-name method-name]
@@ -60,6 +62,10 @@
                               :nested-fields          false
                               :nested-field-columns   false}]
   (defmethod driver/database-supports? [:exasol feature] [_ _ _] supported?))
+
+(defmethod sql.qp/quote-style :oracle
+  [_driver]
+  :oracle)
 
 ; Opt-in to use Honey SQL 2
 (defmethod sql.qp/honey-sql-version :exasol
@@ -171,19 +177,19 @@
   "Truncate a date, e.g.:
       (trunc-date :day date) -> TRUNC(CAST(date AS DATE), 'day')"
   [format-template date]
-  (sql/call :truncate (h2x/->date date) (h2x/literal format-template)))
+  [:trunc (h2x/->date date) (h2x/literal format-template)])
 
 (defn- trunc-timestamp
   "Truncate a timestamp, e.g.:
       (trunc-timestamp :day date) -> TRUNC(CAST(date AS TIMESTAMP), 'day')"
   [format-template date]
-  (sql/call :truncate (h2x/->timestamp date) (h2x/literal format-template)))
+  [:trunc (h2x/->timestamp date) (h2x/literal format-template)])
 
 (defn- extract-from-timestamp
   "Extract a date. See also this 
       (extract :minute timestamp) -> EXTRACT(MINUTE FROM timestamp)"
   [unit timestamp]
-  (sql/call :extract unit (h2x/->timestamp timestamp)))
+  [::h2x/extract unit (h2x/->timestamp timestamp)])
 
 (defmethod sql.qp/date [:exasol :minute]         [_ _ date] (trunc-timestamp :mi date))
 (defmethod sql.qp/date [:exasol :minute-of-hour] [_ _ date] (extract-from-timestamp :minute date))
@@ -195,7 +201,7 @@
 (defmethod sql.qp/date [:exasol :month-of-year]  [_ _ date] (extract-from-timestamp :month date))
 (defmethod sql.qp/date [:exasol :quarter]        [_ _ date] (trunc-date :q date))
 (defmethod sql.qp/date [:exasol :year]           [_ _ date] (trunc-date :year date))
-(defmethod sql.qp/date [:exasol :week-of-year]   [_ _ expr] (sql/call :ceil (h2x// (sql.qp/date :exasol :day-of-year (sql.qp/date :exasol :week expr)) 7.0)))
+(defmethod sql.qp/date [:exasol :week-of-year]   [_ _ expr] [:ceil (h2x// (sql.qp/date :exasol :day-of-year (sql.qp/date :exasol :week expr)) 7.0)])
 
 (defmethod sql.qp/date [:exasol :week]
   [driver _ date]
@@ -203,7 +209,7 @@
 
 (defn- to-date
   [value]
-  (sql/call :to_date value))
+  [:to_date value])
 
 (defmethod sql.qp/date [:exasol :day-of-year]
   [_ _ date]
@@ -219,9 +225,10 @@
   [driver _ date]
   (sql.qp/adjust-day-of-week
    driver
-   (h2x/->integer (sql/call :to_char (h2x/->timestamp date) (h2x/literal :d)))
+   (h2x/->integer [:to_char (h2x/->timestamp date) (h2x/literal :d)])
    (driver.common/start-of-week-offset driver)
-   (partial sql/call (u/qualified-name ::mod))))
+   (fn mod-fn [& args]
+     (into [::mod] args))))
 
 ;; Exasol mod is a function like mod(x, y) rather than an operator like x mod y
 ;; https://docs.exasol.com/sql_references/functions/alphabeticallistfunctions/mod.htm
@@ -244,12 +251,12 @@
 
 (defmethod sql.qp/->honeysql [:exasol :regex-match-first]
   [driver [_ arg pattern]]
-  (sql/call :regexp_substr (sql.qp/->honeysql driver arg) (sql.qp/->honeysql driver pattern)))
+  [:regexp_substr (sql.qp/->honeysql driver arg) (sql.qp/->honeysql driver pattern)])
 
 ; NUMTODSINTERVAL and NUMTOYMINTERVAL functions don't accept placeholder as arguments ("invalid data type for function NUMTODSINTERVAL")
 ; That's why we ensure that the argument is a number and inline the value.
-(defn- num-to-ds-interval [unit value] (when (number? value) (sql/call :numtodsinterval [:inline value] (h2x/literal unit))))
-(defn- num-to-ym-interval [unit value] (when (number? value) (sql/call :numtoyminterval [:inline value] (h2x/literal unit))))
+(defn- num-to-ds-interval [unit value] (when (number? value) [:numtodsinterval [:inline value] (h2x/literal unit)]))
+(defn- num-to-ym-interval [unit value] (when (number? value) [:numtoyminterval [:inline value] (h2x/literal unit)]))
 
 (def ^:private timestamp-types
   #{"timestamp" "timestamp with local time zone"})
@@ -273,19 +280,19 @@
 
 (defmethod sql.qp/cast-temporal-string [:exasol :Coercion/ISO8601->DateTime]
   [_ _ expr]
-  (sql/call :to_timestamp expr "YYYY-MM-DD HH:mi:SS"))
+  [:to_timestamp expr "YYYY-MM-DD HH:mi:SS"])
 
 (defmethod sql.qp/cast-temporal-string [:exasol :Coercion/ISO8601->Date]
   [_ _ expr]
-  (sql/call :to_date expr "YYYY-MM-DD"))
+  [:to_date expr "YYYY-MM-DD"])
 
 (defmethod sql.qp/cast-temporal-string [:exasol :Coercion/YYYYMMDDHHMMSSString->Temporal]
   [_ _ expr]
-  (sql/call :to_timestamp expr "YYYYMMDDHH24miSS"))
+  [:to_timestamp expr "YYYYMMDDHH24miSS"])
 
 (defmethod sql.qp/unix-timestamp->honeysql [:exasol :seconds]
   [_ _ expr]
-  (sql/call :from_posix_time expr))
+  [:from_posix_time expr])
 
 (defmethod sql.qp/unix-timestamp->honeysql [:exasol :milliseconds]
   [driver _ field-or-value]
