@@ -4,7 +4,7 @@ Code name: Document known issue with `NLS_FIRST_DAY_OF_WEEK`
 
 ## Summary
 
-In this release we documented a known issue with non-default configuration settings for `NLS_FIRST_DAY_OF_WEEK` and adapted the driver to Metabase v0.46.
+In this release we documented a known issue with non-default configuration settings for `NLS_FIRST_DAY_OF_WEEK` and adapted the driver to Metabase v0.46.0.
 
 ## Documentation
 
