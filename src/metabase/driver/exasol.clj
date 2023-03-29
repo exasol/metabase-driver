@@ -246,8 +246,10 @@
   [driver [_ arg pattern]]
   (sql/call :regexp_substr (sql.qp/->honeysql driver arg) (sql.qp/->honeysql driver pattern)))
 
-(defn- num-to-ds-interval [unit value] (sql/call :numtodsinterval value (h2x/literal unit)))
-(defn- num-to-ym-interval [unit value] (sql/call :numtoyminterval value (h2x/literal unit)))
+; NUMTODSINTERVAL and NUMTOYMINTERVAL functions don't accept placeholder as arguments ("invalid data type for function NUMTODSINTERVAL")
+; That's why we ensure that the argument is a number and inline the value.
+(defn- num-to-ds-interval [unit value] (when (number? value) (sql/call :numtodsinterval [:inline value] (h2x/literal unit))))
+(defn- num-to-ym-interval [unit value] (when (number? value) (sql/call :numtoyminterval [:inline value] (h2x/literal unit))))
 
 (def ^:private timestamp-types
   #{"timestamp" "timestamp with local time zone"})
