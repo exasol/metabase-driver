@@ -11,7 +11,6 @@
             [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
             [metabase.driver.sql.query-processor :as sql.qp]
             [metabase.driver.sql.util.unprepare :as unprepare]
-            [metabase.util.honeysql-extensions :as hx]
             [metabase.util.honey-sql-2 :as h2x]))
 
 (deftest connection-details->spec-test
