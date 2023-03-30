@@ -82,14 +82,14 @@
           (let [existing-db-id (u/the-id existing-db)
                 all-schemas    (db/select-field :schema model/Table :db_id existing-db-id)]
             (when-not (= all-schemas #{session-schema})
-              (println (u/format-color 'yellow
-                                       (str "[exasol] At least one table's schema for the existing '%s' Database"
-                                            " (id %d), which include all of [%s], does not match current session-schema"
-                                            " of %s; deleting this DB so it can be recreated")
-                                       database-name
-                                       existing-db-id
-                                       (str/join "," all-schemas)
-                                       session-schema))
+              (println
+               (str "[exasol] At least one table's schema for the existing '%s' Database"
+                    " (id %d), which include all of [%s], does not match current session-schema"
+                    " of %s; deleting this DB so it can be recreated")
+               database-name
+               existing-db-id
+               (str/join "," all-schemas)
+               session-schema)
               (db/delete! model/Database :id existing-db-id))))
         (swap! exasol-test-dbs-created-by-this-instance conj database-name)))))
 
@@ -139,9 +139,9 @@
 ;;; Clear out the session schema before and after tests run
 (defn- execute! [format-string & args]
   (let [sql (apply format format-string args)]
-    (println (u/format-color 'blue "[exasol] %s" sql))
+    (println  "[exasol] %s" sql)
     (jdbc/execute! (dbspec) sql))
-  (println (u/format-color 'blue "[ok]")))
+  (println 'blue "[ok]"))
 
 (defn create-schema!
   ;; default to using session-password for all users created this session

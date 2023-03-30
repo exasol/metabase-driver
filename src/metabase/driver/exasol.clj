@@ -14,7 +14,6 @@
             [metabase.driver.sql.query-processor :as sql.qp]
             [metabase.driver.sql.query-processor.empty-string-is-null :as sql.qp.empty-string-is-null]
             [metabase.driver.sql.util.unprepare :as unprepare]
-            [metabase.util :as u]
             [metabase.util.honey-sql-2 :as h2x]
             [metabase.util.i18n :refer [trs]]
             [yaml.core :as yaml]))
@@ -46,8 +45,8 @@
        (get-in parsed-yaml [:info :version])))))
 
 (defn- log-driver-version []
-  (log/info (u/format-color 'green (format "Loading Exasol Metabase driver %s, Exasol JDBC driver: %s"
-                                           (get-driver-version) (get-jdbc-driver-version)))))
+  (log/info (format "Loading Exasol Metabase driver %s, Exasol JDBC driver: %s"
+                    (get-driver-version) (get-jdbc-driver-version))))
 
 (log-driver-version)
 
