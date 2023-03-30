@@ -85,20 +85,20 @@
 
 (deftest date-test
   (let [value :dummy-value]
-    (doseq [[type expected] [[:minute          (sql/call :truncate (h2x/->timestamp value) (h2x/literal "mi"))]
-                             [:minute-of-hour  (sql/call :extract :minute [:metabase.util.honey-sql-2/typed (sql/call :cast value [:raw "timestamp"]) {:metabase.util.honeysql-extensions/database-type "timestamp"}])]
-                             [:hour            (sql/call :truncate (h2x/->timestamp value) (h2x/literal "hh"))]
-                             [:hour-of-day     (sql/call :extract :hour [:metabase.util.honey-sql-2/typed (sql/call :cast value  [:raw "timestamp"]) {:metabase.util.honeysql-extensions/database-type "timestamp"}])]
-                             [:day             (sql/call :truncate (h2x/->date value) (h2x/literal "dd"))]
-                             [:day-of-month    (sql/call :extract :day (h2x/->timestamp value))]
-                             [:month           (sql/call :truncate (h2x/->date value) (h2x/literal "month"))]
-                             [:month-of-year   (sql/call :extract :month (h2x/->timestamp value))]
-                             [:quarter         (sql/call :truncate (h2x/->date value) (h2x/literal "q"))]
-                             [:year            (sql/call :truncate (h2x/->date value) (h2x/literal "year"))]
-                             [:week            (sql/call :truncate (h2x/->date value) (h2x/literal "day"))]
-                             [:week-of-year    (sql/call :ceil (sql/call :/ (sql/call :+ (sql/call :- (sql/call :to_date (sql/call :truncate (h2x/->date (sql/call :truncate (h2x/->date value) (h2x/literal "day"))) (h2x/literal "dd"))) (sql/call :to_date (sql/call :truncate (h2x/->date (sql/call :truncate (h2x/->date value) (h2x/literal "day"))) (h2x/literal "year")))) [:inline 1]) [:inline 7.0]))]
-                             [:day-of-year     (sql/call :+ (sql/call :- (sql/call :to_date (sql/call :truncate (h2x/->date value) (h2x/literal "dd"))) (sql/call :to_date (sql/call :truncate (h2x/->date value) (h2x/literal "year")))) [:inline 1])]
-                             [:quarter-of-year (sql/call :/ (sql/call :+ (sql/call :extract :month (h2x/->timestamp (sql/call :truncate (h2x/->date value) (h2x/literal "q")))) [:inline 2]) [:inline 3])]
+    (doseq [[type expected] [[:minute          (sql/call :trunc (h2x/->timestamp value) (h2x/literal "mi"))]
+                             [:minute-of-hour  (sql/call :metabase.util.honey-sql-2/extract :minute [:metabase.util.honey-sql-2/typed (sql/call :cast value [:raw "timestamp"]) {:metabase.util.honeysql-extensions/database-type "timestamp"}])]
+                             [:hour            (sql/call :trunc (h2x/->timestamp value) (h2x/literal "hh"))]
+                             [:hour-of-day     (sql/call :metabase.util.honey-sql-2/extract :hour [:metabase.util.honey-sql-2/typed (sql/call :cast value  [:raw "timestamp"]) {:metabase.util.honeysql-extensions/database-type "timestamp"}])]
+                             [:day             (sql/call :trunc (h2x/->date value) (h2x/literal "dd"))]
+                             [:day-of-month    (sql/call :metabase.util.honey-sql-2/extract :day (h2x/->timestamp value))]
+                             [:month           (sql/call :trunc (h2x/->date value) (h2x/literal "month"))]
+                             [:month-of-year   (sql/call :metabase.util.honey-sql-2/extract :month (h2x/->timestamp value))]
+                             [:quarter         (sql/call :trunc (h2x/->date value) (h2x/literal "q"))]
+                             [:year            (sql/call :trunc (h2x/->date value) (h2x/literal "year"))]
+                             [:week            (sql/call :trunc (h2x/->date value) (h2x/literal "day"))]
+                             [:week-of-year    (sql/call :ceil (sql/call :/ (sql/call :+ (sql/call :- (sql/call :to_date (sql/call :trunc (h2x/->date (sql/call :trunc (h2x/->date value) (h2x/literal "day"))) (h2x/literal "dd"))) (sql/call :to_date (sql/call :trunc (h2x/->date (sql/call :trunc (h2x/->date value) (h2x/literal "day"))) (h2x/literal "year")))) [:inline 1]) [:inline 7.0]))]
+                             [:day-of-year     (sql/call :+ (sql/call :- (sql/call :to_date (sql/call :trunc (h2x/->date value) (h2x/literal "dd"))) (sql/call :to_date (sql/call :trunc (h2x/->date value) (h2x/literal "year")))) [:inline 1])]
+                             [:quarter-of-year (sql/call :/ (sql/call :+ (sql/call :metabase.util.honey-sql-2/extract :month (h2x/->timestamp (sql/call :trunc (h2x/->date value) (h2x/literal "q")))) [:inline 2]) [:inline 3])]
                              [:day-of-week     [:metabase.util.honey-sql-2/typed (sql/call :cast (sql/call :to_char (h2x/->timestamp value) (h2x/literal "d")) [:raw "integer"]) {:metabase.util.honeysql-extensions/database-type "integer"}]]]]
       (testing (format "Date function %s" type)
         (is (= expected (sql.qp/date :exasol type value)))))))
@@ -129,18 +129,18 @@
   (let [hsql-form (h2x/literal "5")
         amount 42
         timestamp-form  [:metabase.util.honey-sql-2/typed (sql/call :cast hsql-form [:raw "timestamp"]) {:metabase.util.honeysql-extensions/database-type "timestamp"}]]
-    (doseq [[unit expected expected-type] [[:second  (sql/call :+ timestamp-form (sql/call :numtodsinterval amount (h2x/literal "second"))) "timestamp"]
-                                           [:minute  (sql/call :+ timestamp-form (sql/call :numtodsinterval amount (h2x/literal "minute"))) "timestamp"]
-                                           [:hour    (sql/call :+ timestamp-form (sql/call :numtodsinterval amount (h2x/literal "hour"))) "timestamp"]
-                                           [:day     (sql/call :+ timestamp-form (sql/call :numtodsinterval amount (h2x/literal "day"))) "timestamp"]
+    (doseq [[unit expected expected-type] [[:second  (sql/call :+ timestamp-form (sql/call :numtodsinterval [:inline amount] (h2x/literal "second"))) "timestamp"]
+                                           [:minute  (sql/call :+ timestamp-form (sql/call :numtodsinterval [:inline amount] (h2x/literal "minute"))) "timestamp"]
+                                           [:hour    (sql/call :+ timestamp-form (sql/call :numtodsinterval [:inline amount] (h2x/literal "hour"))) "timestamp"]
+                                           [:day     (sql/call :+ timestamp-form (sql/call :numtodsinterval [:inline amount] (h2x/literal "day"))) "timestamp"]
                                            [:week    (sql/call :+ timestamp-form (sql/call :numtodsinterval (sql/call :* [:inline amount] [:inline 7]) (h2x/literal "day"))) "timestamp"]
-                                           [:month   (sql/call :+ timestamp-form (sql/call :numtoyminterval amount (h2x/literal "month"))) "timestamp"]
+                                           [:month   (sql/call :+ timestamp-form (sql/call :numtoyminterval [:inline amount] (h2x/literal "month"))) "timestamp"]
                                            [:quarter (sql/call :+ timestamp-form (sql/call :numtoyminterval (sql/call :* [:inline amount] [:inline 3]) (h2x/literal "month"))) "timestamp"]
-                                           [:year    (sql/call :+ timestamp-form (sql/call :numtoyminterval amount (h2x/literal "year"))) "timestamp"]]]
+                                           [:year    (sql/call :+ timestamp-form (sql/call :numtoyminterval [:inline amount] (h2x/literal "year"))) "timestamp"]]]
       (testing (format "Add interval with unit %s" unit)
         (let [complete-expected [:metabase.util.honey-sql-2/typed expected #:metabase.util.honeysql-extensions{:database-type expected-type}]]
           (is (= complete-expected
-                 (sql.qp/add-interval-honeysql-form :exasol hsql-form amount unit))))))))
+                 (sql.qp/add-interval-honeysql-form :exasol hsql-form [:inline amount] unit))))))))
 
 (deftest cast-temporal-string-test
   (let [expr (h2x/literal "5")]
