@@ -139,9 +139,9 @@
 ;;; Clear out the session schema before and after tests run
 (defn- execute! [format-string & args]
   (let [sql (apply format format-string args)]
-    (println  "[exasol] %s" sql)
+    (println "[exasol] " sql))
     (jdbc/execute! (dbspec) sql))
-  (println 'blue "[ok]"))
+  (println "[ok]"))
 
 (defn create-schema!
   ;; default to using session-password for all users created this session
