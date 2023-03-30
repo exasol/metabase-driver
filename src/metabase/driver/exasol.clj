@@ -205,7 +205,7 @@
 (defmethod sql.qp/date [:exasol :month-of-year]  [_ _ date] (extract-from-timestamp :month date))
 (defmethod sql.qp/date [:exasol :quarter]        [_ _ date] (trunc-date :q date))
 (defmethod sql.qp/date [:exasol :year]           [_ _ date] (trunc-date :year date))
-(defmethod sql.qp/date [:exasol :week-of-year]   [_ _ expr] [:ceil (h2x// (sql.qp/date :exasol :day-of-year (sql.qp/date :exasol :week expr)) 7.0)])
+(defmethod sql.qp/date [:exasol :week-of-year]   [_ _ expr] [:ceil (h2x// (sql.qp/date :exasol :day-of-year (sql.qp/date :exasol :week expr)) 7)])
 
 (defmethod sql.qp/date [:exasol :week]
   [driver _ date]
