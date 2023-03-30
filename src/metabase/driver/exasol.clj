@@ -59,7 +59,8 @@
 
 (doseq [[feature supported?] {:set-timezone           true
                               :nested-fields          false
-                              :nested-field-columns   false}]
+                              :nested-field-columns   false
+                              :now                    true}]
   (defmethod driver/database-supports? [:exasol feature] [_ _ _] supported?))
 
 (defmethod sql.qp/quote-style :exasol
