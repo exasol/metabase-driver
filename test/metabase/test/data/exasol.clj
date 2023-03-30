@@ -139,7 +139,7 @@
 ;;; Clear out the session schema before and after tests run
 (defn- execute! [format-string & args]
   (let [sql (apply format format-string args)]
-    (println "[exasol] " sql))
+    (println "[exasol] " sql)
     (jdbc/execute! (dbspec) sql))
   (println "[ok]"))
 
