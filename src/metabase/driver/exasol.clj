@@ -62,7 +62,7 @@
                               :nested-field-columns   false}]
   (defmethod driver/database-supports? [:exasol feature] [_ _ _] supported?))
 
-(defmethod sql.qp/quote-style :oracle
+(defmethod sql.qp/quote-style :exasol
   [_driver]
   :oracle)
 
@@ -255,8 +255,8 @@
   [driver [_ arg pattern]]
   [:regexp_substr (sql.qp/->honeysql driver arg) (sql.qp/->honeysql driver pattern)])
 
-; NUMTODSINTERVAL and NUMTOYMINTERVAL functions don't accept placeholder as arguments ("invalid data type for function NUMTODSINTERVAL")
-; That's why we ensure that the argument is a number and inline the value.
+; NUMTODSINTERVAL and NUMTOYMINTERVAL functions don't accept placeholder as arguments (error: "invalid data type for function NUMTODSINTERVAL")
+; That's why we ensure that the argument is a number and inline it instead of using a placeholder.
 (defn- num-to-ds-interval [unit v]
   (let [v (if (number? v)
             [:inline v]
