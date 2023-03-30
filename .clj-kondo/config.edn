@@ -1,7 +1,5 @@
 {:linters {:unresolved-var {; False positive
-                            :exclude [honeysql.core/call
-                                      honeysql.core/raw
-                                      metabase.util.honeysql-extensions/with-type-info]}
+                            :exclude [metabase.util.honey-sql-2/with-database-type-info]}
            :unresolved-symbol {
                                :exclude [
                                          ; The defdataset macro expects a symbol as dataset name
