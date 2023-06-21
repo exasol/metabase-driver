@@ -15,7 +15,7 @@
   (testing "Getting JDBC driver version succeeds"
     (is (not (str/blank? (exasol/get-jdbc-driver-version)))))
   (testing "Getting JDBC driver version returns expected value"
-    (is (= "7.1.19" (exasol/get-jdbc-driver-version)))))
+    (is (= "7.1.20" (exasol/get-jdbc-driver-version)))))
 
 (deftest text-equals-empty-string-test
   (mt/test-driver :exasol

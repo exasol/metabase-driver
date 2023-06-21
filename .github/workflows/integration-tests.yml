@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        exasol_version: ["7.1.17", "8.18.1"]
+        exasol_version: ["7.1.21", "8.18.1"]
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.exasol_version }}
       cancel-in-progress: true
@@ -39,6 +39,7 @@ jobs:
         with:
           fetch-depth: 1
           repository: 'exasol/integration-test-docker-environment'
+          ref: "1.7.1"
           path: 'integration-test-docker-environment'
 
       - name: Set up JDK 11
