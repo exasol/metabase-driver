@@ -1,4 +1,4 @@
-# metabase-driver 1.0.6, released 2023-06-21
+# metabase-driver 1.0.6, released 2023-06-??
 
 Code name: Test with Exasol 8
 
