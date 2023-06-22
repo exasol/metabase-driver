@@ -10,12 +10,15 @@ jobs:
   integration-test:
     strategy:
       fail-fast: true
+      matrix:
+        exasol_version: ["7.1.17", "8.18.1"]
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.exasol_version }}
       cancel-in-progress: true
+    name: "Build with Exasol ${{ matrix.exasol_version }}"
     runs-on: ubuntu-latest
     env:
-      METABASE_TAG: v0.46.0
+      METABASE_TAG: v0.46.5
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
@@ -36,6 +39,7 @@ jobs:
         with:
           fetch-depth: 1
           repository: 'exasol/integration-test-docker-environment'
+          ref: "1.7.1"
           path: 'integration-test-docker-environment'
 
       - name: Set up JDK 11
@@ -78,7 +82,10 @@ jobs:
 
       - name: Spawn Exasol environment
         run: |
-          ./start-test-env spawn-test-environment --environment-name test --database-port-forward 8563
+          ./start-test-env spawn-test-environment \
+            --environment-name test \
+            --database-port-forward 8563 \
+            --docker-db-image-version ${{ matrix.exasol_version }}
         working-directory: integration-test-docker-environment
 
       - name: Run integration tests
