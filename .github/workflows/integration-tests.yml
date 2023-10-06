@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        exasol_version: ["7.1.23", "8.22.0"]
+        exasol_version: ["7.1.17", "8.18.1"] # Must be supported by integration-test-docker-environment
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.exasol_version }}
       cancel-in-progress: true
