@@ -1,8 +1,8 @@
 diff --git a/test/metabase/api/session_test.clj b/test/metabase/api/session_test.clj
-index 72a25bb4fe..cfc15ad5a4 100644
+index 8db4884433..d2c723d1a5 100644
 --- a/test/metabase/api/session_test.clj
 +++ b/test/metabase/api/session_test.clj
-@@ -186,7 +186,7 @@
+@@ -187,7 +187,7 @@
                          :body
                          json/parse-string
                          (get-in ["errors" "username"])))]
@@ -12,10 +12,10 @@ index 72a25bb4fe..cfc15ad5a4 100644
          (is (re= #"^Too many attempts! You must wait 4\d seconds before trying again\.$"
                   (error)))))))
 diff --git a/test/metabase/driver/sql/parameters/substitute_test.clj b/test/metabase/driver/sql/parameters/substitute_test.clj
-index 83b2ebf12f..2475a57389 100644
+index b7ab05c624..f482f5d9b7 100644
 --- a/test/metabase/driver/sql/parameters/substitute_test.clj
 +++ b/test/metabase/driver/sql/parameters/substitute_test.clj
-@@ -717,7 +717,7 @@
+@@ -776,7 +776,7 @@
                                   :value  "2015-07-01"}]))))))))
  
  (deftest e2e-parse-native-dates-test
@@ -25,7 +25,7 @@ index 83b2ebf12f..2475a57389 100644
                ;; TIMEZONE FIXME — Busted
                (= driver/*driver* :vertica)
 diff --git a/test/metabase/driver/sql_jdbc/connection_test.clj b/test/metabase/driver/sql_jdbc/connection_test.clj
-index 485b7dba85..c879be0976 100644
+index 322be366d1..f750576c4b 100644
 --- a/test/metabase/driver/sql_jdbc/connection_test.clj
 +++ b/test/metabase/driver/sql_jdbc/connection_test.clj
 @@ -1,5 +1,6 @@
@@ -34,21 +34,21 @@ index 485b7dba85..c879be0976 100644
 +   [clojure.string :as str]
     [clojure.java.jdbc :as jdbc]
     [clojure.test :refer :all]
-    [metabase.db.spec :as mdb.spec]
-@@ -105,7 +106,10 @@
+    [metabase.config :as config]
+@@ -114,7 +115,10 @@
                  (assoc :host "localhost")
  
                  :else
 -                (assoc :new-config "something"))))))
 +                (assoc :new-config "something"))
-+
++                
 +              :exasol ;; Test fail when using a hostname other than localhost or 127.0.0.1 e.g. when the DB runs in a VM.
 +              (assoc details :certificate-fingerprint (str/lower-case (:certificate-fingerprint details)))))))
  
  (deftest connection-pool-invalidated-on-details-change
    (mt/test-drivers (sql-jdbc.tu/sql-jdbc-drivers)
 diff --git a/test/metabase/query_processor/middleware/format_rows_test.clj b/test/metabase/query_processor/middleware/format_rows_test.clj
-index 3aa35e63ed..0951cad7b5 100644
+index 6f4902e876..65d2359b22 100644
 --- a/test/metabase/query_processor/middleware/format_rows_test.clj
 +++ b/test/metabase/query_processor/middleware/format_rows_test.clj
 @@ -19,7 +19,7 @@
@@ -101,20 +101,20 @@ index 773092a012..f92dd7e040 100644
                    (->> (mt/run-mbql-query times
                           {:filter [:= !day.d "2008-10-19"]})
 diff --git a/test/metabase/query_processor_test/explicit_joins_test.clj b/test/metabase/query_processor_test/explicit_joins_test.clj
-index 166598c4c6..50f5e608ea 100644
+index 0be99aad8d..401e31eea0 100644
 --- a/test/metabase/query_processor_test/explicit_joins_test.clj
 +++ b/test/metabase/query_processor_test/explicit_joins_test.clj
-@@ -783,7 +783,7 @@
+@@ -786,7 +786,7 @@
                         results))))))))))
  
- (deftest double-quotes-in-join-alias-test
+ (deftest ^:parallel double-quotes-in-join-alias-test
 -  (mt/test-drivers (mt/normal-drivers-with-feature :left-join)
 +  (mt/test-drivers (disj (mt/normal-drivers-with-feature :left-join) :exasol) ; Exasol does not support '.' in quoted identifiers: "Error executing query: '.' character is not allowed within quoted identifiers"
      (testing "Make sure our we handle (escape) double quotes in join aliases. Make sure we prevent SQL injection (#20307)"
        (let [expected-rows (mt/rows
                             (mt/run-mbql-query venues
 diff --git a/test/metabase/query_processor_test/timezones_test.clj b/test/metabase/query_processor_test/timezones_test.clj
-index 5500dc4ecf..02634186ed 100644
+index 677f56a1ad..59e1e4a583 100644
 --- a/test/metabase/query_processor_test/timezones_test.clj
 +++ b/test/metabase/query_processor_test/timezones_test.clj
 @@ -24,6 +24,7 @@
@@ -126,7 +126,7 @@ index 5500dc4ecf..02634186ed 100644
      :snowflake
      :sparksql
 diff --git a/test/metabase/test/initialize.clj b/test/metabase/test/initialize.clj
-index 740b449844..e1993bcd43 100644
+index 4b297fd5f1..b89be26588 100644
 --- a/test/metabase/test/initialize.clj
 +++ b/test/metabase/test/initialize.clj
 @@ -22,7 +22,7 @@
