@@ -43,7 +43,7 @@ jobs:
         with:
           fetch-depth: 1
           repository: 'exasol/integration-test-docker-environment'
-          ref: "1.7.1"
+          ref: "2.0.0"
           path: 'integration-test-docker-environment'
 
       - name: Set up JDK 11
