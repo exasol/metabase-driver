@@ -4,8 +4,8 @@
             [clojure.string :as str]
             [metabase.db :as mdb]
             [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
-            [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
             [metabase.driver.sql-jdbc.execute :as sql-jdbc.execute]
+            [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
             [metabase.models :as model]
             [metabase.test.data.impl :as data.impl]
             [metabase.test.data.interface :as tx]
@@ -39,8 +39,6 @@
 (defmethod tx/supports-time-type? :exasol [_] false)
 
 (defmethod tx/supports-timestamptz-type? :exasol [_] false)
-
-(defmethod tx/has-questionable-timezone-support? :exasol [_] true)
 
 (defonce ^:private number-column-type
   "DECIMAL(36,0)")
