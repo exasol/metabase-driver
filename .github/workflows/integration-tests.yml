@@ -21,13 +21,13 @@ jobs:
       METABASE_TAG: v0.47.3
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
           path: 'metabase-driver'
 
       - name: Checkout the Metabase repository at tag ${{ env.METABASE_TAG }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
           repository: 'metabase/metabase'
@@ -35,7 +35,7 @@ jobs:
           ref: ${{ env.METABASE_TAG }}
 
       - name: Checkout integration test docker environment
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
           repository: 'exasol/integration-test-docker-environment'
