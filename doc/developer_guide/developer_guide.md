@@ -45,7 +45,7 @@ clojure --version
     git clone https://github.com/metabase/metabase.git
     cd metabase
     git fetch --all --tags
-    export METABASE_VERSION=v0.46.5
+    export METABASE_VERSION=v0.47.3
     git reset --hard
     rm -vf target/patch_excluded_test_applied target/patch_fix_metabase_build_applied
     git checkout "tags/${METABASE_VERSION}" -b "${METABASE_VERSION}-branch"
@@ -55,7 +55,7 @@ clojure --version
     clojure -M:run
     ```
 
-2. Download the Exasol JDBC driver from the [Download Portal](https://www.exasol.com/portal/display/DOWNLOAD/) and install it:
+2. Download the Exasol JDBC driver from the [Download Portal](https://downloads.exasol.com/clients-and-drivers) and install it:
 
     ```bash
     cp exajdbc.jar "$METABASE_DIR/plugins"
@@ -111,6 +111,14 @@ clojure -M:run
 ## Running the Integration Tests
 
 You need to have metabase checked out next to this repository.
+
+Start Exasol docker container:
+
+```shell
+docker run --publish 8563:8563 --publish 2580:2580 --publish 443:443 --detach --privileged --stop-timeout 120 exasol/docker-db:7.1.23
+```
+
+Start integration tests:
 
 ```shell
 EXASOL_HOST=<hostname> EXASOL_PORT=8563 EXASOL_USER=sys EXASOL_PASSWORD=exasol ./scripts/run-integration-tests.sh

@@ -15,7 +15,7 @@ jobs:
       cancel-in-progress: true
     runs-on: ubuntu-latest
     env:
-      METABASE_TAG: v0.46.5
+      METABASE_TAG: v0.47.3
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
@@ -83,4 +83,3 @@ jobs:
           cd "$GITHUB_WORKSPACE/metabase-driver"
           mkdir -p .clj-kondo/.cache
           clojure -M:clj-kondo --lint src test --debug
-

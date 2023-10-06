@@ -1,10 +1,14 @@
-# metabase-driver 1.0.6, released 2023-06-??
+# metabase-driver 1.0.6, released 2023-10-06
 
-Code name: Test with Exasol 8
+Code name: Test with Exasol 8, upgrade to Metabase v0.47.3
 
 ## Summary
 
-This release adds tests for Exasol version 8 and adapts the driver to Metabase v0.46.5.
+This release adds tests for Exasol version 8 and adapts the driver to Metabase v0.47.3.
+
+## Features
+
+* #72: Upgraded to Metabase v0.47.3
 
 ## Tests
 

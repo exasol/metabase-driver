@@ -18,7 +18,7 @@ jobs:
     name: "Build with Exasol ${{ matrix.exasol_version }}"
     runs-on: ubuntu-latest
     env:
-      METABASE_TAG: v0.46.5
+      METABASE_TAG: v0.47.3
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
