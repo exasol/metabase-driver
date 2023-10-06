@@ -113,6 +113,18 @@ index 0be99aad8d..401e31eea0 100644
      (testing "Make sure our we handle (escape) double quotes in join aliases. Make sure we prevent SQL injection (#20307)"
        (let [expected-rows (mt/rows
                             (mt/run-mbql-query venues
+diff --git a/test/metabase/query_processor_test/parameters_test.clj b/test/metabase/query_processor_test/parameters_test.clj
+index 1b3fe265d9..f0b914d315 100644
+--- a/test/metabase/query_processor_test/parameters_test.clj
++++ b/test/metabase/query_processor_test/parameters_test.clj
+@@ -254,6 +254,7 @@
+                         ;; These do not support ParameterMetadata.getParameterCount
+                         (remove #{:athena
+                                   :bigquery-cloud-sdk
++                                  :exasol ; Fails with exception "Error preparing statement: object VENUES not found [line 4, column 2] (Session: 1779010379713609728) {:driver :exasol, :type :driver, :sql ["-- Metabase" "SELECT" "  *" "FROM" "  -- ?" "  VENUES" "WHERE" "  ? = price"], :params ["foobar" "foobar"]}"
+                                   :presto-jdbc
+                                   :redshift
+                                   :snowflake
 diff --git a/test/metabase/query_processor_test/timezones_test.clj b/test/metabase/query_processor_test/timezones_test.clj
 index 677f56a1ad..59e1e4a583 100644
 --- a/test/metabase/query_processor_test/timezones_test.clj
