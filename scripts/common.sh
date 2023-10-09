@@ -52,23 +52,3 @@ patch_excluded_tests() {
         log_trace "Test exclusion patch already applied"
     fi
 }
-
-patch_metbase_build_scripts() {
-    local patch_applied="$metabase_dir/target/patch_fix_metabase_build_applied"
-    if [ ! -f "$patch_applied" ]; then
-        local patch_file="$exasol_driver_dir/scripts/fix-metabase-build.diff"
-        cd "$metabase_dir"
-        log_info "Check if patch $patch_file can be applied..."
-        if ! git apply --check --verbose "$patch_file" ; then
-            log_error "Error applying patch $patch_file to $metabase_dir"
-            log_error "Please revert your local changes"
-            exit 1
-        fi
-        log_info "Applying patch $patch_file to fix build scripts"
-        git apply --apply --verbose "$patch_file"
-        mkdir -p "$(dirname "$patch_applied")"
-        touch "$patch_applied"
-    else
-        log_trace "Build script patch already applied"
-    fi
-}

@@ -1,5 +1,6 @@
 (ns metabase.driver.exasol
-  (:require [clojure.java.io :as io]
+  (:require [clj-yaml.core :as yaml]
+            [clojure.java.io :as io]
             [clojure.tools.logging :as log]
             [honey.sql :as sql]
             [java-time :as t]
@@ -15,8 +16,7 @@
             [metabase.driver.sql.query-processor.empty-string-is-null :as sql.qp.empty-string-is-null]
             [metabase.driver.sql.util.unprepare :as unprepare]
             [metabase.util.honey-sql-2 :as h2x]
-            [metabase.util.i18n :refer [trs]]
-            [yaml.core :as yaml]))
+            [metabase.util.i18n :refer [trs]]))
 
 (set! *warn-on-reflection* true)
 
@@ -59,7 +59,9 @@
 
 (doseq [[feature supported?] {:set-timezone           true
                               :nested-fields          false
-                              :nested-field-columns   false}]
+                              :nested-field-columns   false
+                              :schemas                true
+                              :uploads                false}]
   (defmethod driver/database-supports? [:exasol feature] [_ _ _] supported?))
 
 (defmethod sql.qp/quote-style :exasol

@@ -8,8 +8,6 @@ exasol_driver_dir="$( cd "$(dirname "$0")/.." >/dev/null 2>&1 ; pwd -P )"
 
 source "$exasol_driver_dir/scripts/common.sh"
 
-patch_metbase_build_scripts
-
 log_info "Building exasol driver in $exasol_driver_dir using Metabase $metabase_dir..."
 cd "$metabase_dir"
 DRIVER_PATH=$exasol_driver_dir

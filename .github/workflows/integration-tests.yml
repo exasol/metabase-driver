@@ -11,23 +11,27 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        exasol_version: ["7.1.17", "8.18.1"]
+        exasol_version: ["7.1.17", "8.18.1"] # Must be supported by integration-test-docker-environment
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.exasol_version }}
       cancel-in-progress: true
     name: "Build with Exasol ${{ matrix.exasol_version }}"
     runs-on: ubuntu-latest
     env:
-      METABASE_TAG: v0.46.5
+      METABASE_TAG: v0.47.3
     steps:
+      - name: Free Disk Space
+        run: |
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet
       - name: Checkout the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
           path: 'metabase-driver'
 
       - name: Checkout the Metabase repository at tag ${{ env.METABASE_TAG }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
           repository: 'metabase/metabase'
@@ -35,11 +39,11 @@ jobs:
           ref: ${{ env.METABASE_TAG }}
 
       - name: Checkout integration test docker environment
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
           repository: 'exasol/integration-test-docker-environment'
-          ref: "1.7.1"
+          ref: "2.0.0"
           path: 'integration-test-docker-environment'
 
       - name: Set up JDK 11
@@ -49,9 +53,9 @@ jobs:
           java-version: 11
 
       - name: Install clojure tools
-        uses: DeLaGuardo/setup-clojure@7.0
+        uses: DeLaGuardo/setup-clojure@12.1
         with:
-          cli: latest
+          cli: '1.11.1.1262'
 
       - name: Cache Maven repository
         uses: actions/cache@v3
@@ -90,8 +94,9 @@ jobs:
 
       - name: Run integration tests
         run: |
+          cat $GITHUB_WORKSPACE/integration-test-docker-environment/.build_output/cache/environments/test/environment_info.sh
           source $GITHUB_WORKSPACE/integration-test-docker-environment/.build_output/cache/environments/test/environment_info.sh
-          EXASOL_HOST=$ENVIRONMENT_DATABASE_HOST \
-            EXASOL_PORT=$ENVIRONMENT_DATABASE_DB_PORT \
+          EXASOL_HOST=$ITDE_DATABASE_HOST \
+            EXASOL_PORT=$ITDE_DATABASE_DB_PORT \
             EXASOL_USER=sys EXASOL_PASSWORD=exasol \
             $GITHUB_WORKSPACE/metabase-driver/scripts/run-integration-tests.sh
