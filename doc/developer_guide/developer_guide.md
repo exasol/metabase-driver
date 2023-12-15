@@ -11,19 +11,19 @@ To build Metabase itself you will need
 
 On Ubuntu you can install the dependencies by running
 
-```shell
+```sh
 sudo apt install nodejs yarnpkg
 ```
 
 Fedora:
 
-```shell
+```sh
 yum install perl-Digest-SHA nodejs yarnpkg
 ```
 
 On macOS you additionally need `gnu-sed`:
 
-```shell
+```sh
 brew install nodejs yarnpkg clojure gnu-sed
 # Then add gnubin to your PATH:
 # export PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
@@ -31,7 +31,7 @@ brew install nodejs yarnpkg clojure gnu-sed
 
 Run the following commands to check the current versions:
 
-```shell
+```sh
 clojure -M --eval "(clojure-version)"
 clojure --version
 ```
@@ -40,7 +40,7 @@ clojure --version
 
 1. Checkout Metabase at `$HOME/git/metabase` (= `$METABASE_DIR`) and build it:
 
-    ```bash
+    ```sh
     cd $HOME/git
     git clone https://github.com/metabase/metabase.git
     cd metabase
@@ -57,20 +57,20 @@ clojure --version
 
 2. Download the Exasol JDBC driver from the [Download Portal](https://downloads.exasol.com/clients-and-drivers) and install it:
 
-    ```bash
+    ```sh
     cp exajdbc.jar "$METABASE_DIR/plugins"
     ```
 
 3. Checkout the Exasol Metabase driver at `$HOME/git/metabase` (= `$METABASE_EXASOL_DRIVER`)
 
-    ```bash
+    ```sh
     git clone https://github.com/exasol/metabase-driver.git
     cd metabase-driver
     ```
 
 ## Run Driver Unit Tests
 
-```bash
+```sh
 ./scripts/run-unit-tests.sh
 ```
 
@@ -78,7 +78,7 @@ clojure --version
 
 To start Metabase with the Exasol driver from source:
 
-```bash
+```sh
 export METABASE_DIR="$HOME/git/metabase"
 export METABASE_EXASOL_DRIVER="$HOME/git/metabase-driver"
 cd $METABASE_DIR
@@ -92,7 +92,7 @@ After startup is complete (log message: `Metabase Initialization COMPLETE`) you 
 
 To start Metabase with the built Exasol driver:
 
-```bash
+```sh
 export METABASE_DIR="$HOME/git/metabase"
 export METABASE_EXASOL_DRIVER="$HOME/git/metabase-driver"
 cd $METABASE_EXASOL_DRIVER
@@ -114,13 +114,13 @@ You need to have metabase checked out next to this repository.
 
 Start Exasol docker container:
 
-```shell
+```sh
 docker run --publish 8563:8563 --publish 2580:2580 --publish 443:443 --detach --privileged --stop-timeout 120 exasol/docker-db:7.1.23
 ```
 
 Start integration tests:
 
-```shell
+```sh
 EXASOL_HOST=<hostname> EXASOL_PORT=8563 EXASOL_USER=sys EXASOL_PASSWORD=exasol ./scripts/run-integration-tests.sh
 ```
 
@@ -128,14 +128,14 @@ This script builds and installs the driver before running the integration tests.
 
 To run only a single tests or only tests in a namespace add arguments:
 
-```shell
+```sh
 ./scripts/run-integration-tests.sh :only name.space/single-test
 ./scripts/run-integration-tests.sh :only name.space
 ```
 
 ### Using the REPL
 
-```shell
+```sh
 export MB_EXASOL_TEST_HOST=<hostname>
 export MB_EXASOL_TEST_PORT=8563
 export MB_EXASOL_TEST_USER=sys
@@ -186,14 +186,14 @@ Script `run-integration-tests.sh` automatically applies this patch when file `$M
 
 When the patch file has changed or you updated to a new Metabase release, do the following and re-run the integration tests with `run-integration-tests.sh`.
 
-```shell
+```sh
 cd $METABASE_DIR
 git reset --hard && rm -vf target/patch_excluded_test_applied
 ```
 
 ## Linting
 
-```shell
+```sh
 clojure -M:clj-kondo --lint src test --debug
 ```
 
