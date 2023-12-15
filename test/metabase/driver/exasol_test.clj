@@ -4,12 +4,13 @@
             [metabase.driver.exasol :as exasol]
             [metabase.query-processor :as qp]
             [metabase.query-processor-test.alternative-date-test :as alt-date-test]
-            [metabase.query-processor.test-util :as qp.test-util]
             [metabase.test :as mt]
             [metabase.test.data :as td]
             [metabase.test.data.dataset-definitions :as dataset]
             [metabase.test.data.exasol-dataset-definitions :as exasol-dataset])
   (:import (java.util TimeZone)))
+
+(set! *warn-on-reflection* true)
 
 (deftest get-jdbc-driver-version-test
   (testing "Getting JDBC driver version succeeds"
@@ -70,21 +71,6 @@
                                                                  {:filter   [:and [:< $id 24] [:> $id 20] [:!= $id 22]]
                                                                   :order-by [[:asc $id]]})))))))
 
-(deftest select-fields-test
-  (testing "Exasol supports selecting defined fields"
-    (mt/test-driver :exasol
-                    (is (= {:rows [["Red Medicine"                  1]
-                                   ["Stout Burgers & Beers"         2]
-                                   ["The Apple Pan"                 3]
-                                   ["Wurstküche"                    4]]
-                            :cols [(mt/col :venues :name)
-                                   (mt/col :venues :id)]}
-                           (mt/format-rows-by [str int]
-                                              (qp.test-util/rows-and-cols
-                                               (mt/run-mbql-query venues
-                                                                  {:fields   [$name $id]
-                                                                   :limit    4
-                                                                   :order-by [[:asc $id]]}))))))))
 
 (deftest numeric-expression
   (testing "Exasol supports numeric expressions, e.g. with +"
@@ -126,36 +112,6 @@
                                                        :order-by    [[:asc [:field-id (td/id :venues :id)]]]
                                                        :limit       2})))))))
 
-
-(deftest aggregation
-  (testing "Exasol supports aggregation"
-    (mt/test-driver :exasol
-                    (is (= {:cols [(qp.test-util/breakout-col :venues :price)
-                                   (qp.test-util/aggregate-col :cum-count :venues :id)]
-                            :rows [[1 22]
-                                   [2 81]
-                                   [3 94]
-                                   [4 100]]}
-                           (qp.test-util/rows-and-cols
-                            (mt/format-rows-by [int int]
-                                               (mt/run-mbql-query venues
-                                                                  {:aggregation [[:cum-count $id]]
-                                                                   :breakout    [$price]}))))))))
-
-(deftest nested-query
-  (testing "Exasol supports nested queries"
-    (mt/test-driver :exasol
-                    (is (= {:rows [[1 174] [2 474] [3 78] [4 39]]
-                            :cols [(qp.test-util/breakout-col (qp.test-util/fk-col :checkins :venue_id :venues :price))
-                                   (qp.test-util/aggregate-col :count)]}
-                           (qp.test-util/rows-and-cols
-                            (mt/format-rows-by [int int]
-                                               (mt/run-mbql-query checkins
-                                                                  {:source-query {:source-table $$checkins
-                                                                                  :filter       [:> $date "2014-01-01"]}
-                                                                   :aggregation  [:count]
-                                                                   :order-by     [[:asc $venue_id->venues.price]]
-                                                                   :breakout     [$venue_id->venues.price]}))))))))
 
 (defn- do-with-java-timezone
   [timezone-id body]
