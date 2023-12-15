@@ -45,7 +45,7 @@ clojure --version
     git clone https://github.com/metabase/metabase.git
     cd metabase
     git fetch --all --tags
-    export METABASE_VERSION=v0.47.3
+    export METABASE_VERSION=v0.48.0
     git reset --hard
     rm -vf target/patch_excluded_test_applied
     git checkout "tags/${METABASE_VERSION}" -b "${METABASE_VERSION}-branch"

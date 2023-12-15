@@ -18,7 +18,7 @@ jobs:
     name: "Build with Exasol ${{ matrix.exasol_version }}"
     runs-on: ubuntu-latest
     env:
-      METABASE_TAG: v0.47.3
+      METABASE_TAG: v0.48.0
     steps:
       - name: Free Disk Space
         run: |
