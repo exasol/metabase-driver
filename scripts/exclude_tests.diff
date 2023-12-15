@@ -1,8 +1,8 @@
 diff --git a/test/metabase/api/session_test.clj b/test/metabase/api/session_test.clj
-index 8db4884433..d2c723d1a5 100644
+index 4e8bed208b..bf6d8aeb67 100644
 --- a/test/metabase/api/session_test.clj
 +++ b/test/metabase/api/session_test.clj
-@@ -187,7 +187,7 @@
+@@ -178,7 +178,7 @@
                          :body
                          json/parse-string
                          (get-in ["errors" "username"])))]
@@ -12,11 +12,11 @@ index 8db4884433..d2c723d1a5 100644
          (is (re= #"^Too many attempts! You must wait 4\d seconds before trying again\.$"
                   (error)))))))
 diff --git a/test/metabase/driver/sql/parameters/substitute_test.clj b/test/metabase/driver/sql/parameters/substitute_test.clj
-index b7ab05c624..f482f5d9b7 100644
+index bc6f1a3a30..aef97a5627 100644
 --- a/test/metabase/driver/sql/parameters/substitute_test.clj
 +++ b/test/metabase/driver/sql/parameters/substitute_test.clj
-@@ -776,7 +776,7 @@
-                                  :value  "2015-07-01"}]))))))))
+@@ -780,7 +780,7 @@
+                                 :value  "2015-07-01"}]))))))))
  
  (deftest e2e-parse-native-dates-test
 -  (mt/test-drivers (disj (sql-parameters-engines) :sqlite)
@@ -25,7 +25,7 @@ index b7ab05c624..f482f5d9b7 100644
                ;; TIMEZONE FIXME — Busted
                (= driver/*driver* :vertica)
 diff --git a/test/metabase/driver/sql_jdbc/connection_test.clj b/test/metabase/driver/sql_jdbc/connection_test.clj
-index 322be366d1..f750576c4b 100644
+index 4edb14cf98..cba3f0bb67 100644
 --- a/test/metabase/driver/sql_jdbc/connection_test.clj
 +++ b/test/metabase/driver/sql_jdbc/connection_test.clj
 @@ -1,5 +1,6 @@
@@ -124,7 +124,7 @@ index 276ccad5e2..563401fb82 100644
 +; Test fails
 +; IllegalArgumentException: No implementation of method: :-to-bytes of protocol: #'buddy.core.codecs/IByteArray found for class: clojure.lang.PersistentVector
 diff --git a/test/metabase/query_processor/middleware/format_rows_test.clj b/test/metabase/query_processor/middleware/format_rows_test.clj
-index 6f4902e876..65d2359b22 100644
+index 62e8b7fb88..e4049025f5 100644
 --- a/test/metabase/query_processor/middleware/format_rows_test.clj
 +++ b/test/metabase/query_processor/middleware/format_rows_test.clj
 @@ -19,7 +19,7 @@
@@ -137,13 +137,13 @@ index 6f4902e876..65d2359b22 100644
  (deftest format-rows-test
    (mt/test-drivers (filter mt/supports-time-type? (mt/normal-drivers-except dbs-exempt-from-format-rows-tests))
 diff --git a/test/metabase/query_processor_test/alternative_date_test.clj b/test/metabase/query_processor_test/alternative_date_test.clj
-index 773092a012..f92dd7e040 100644
+index 4e619b0f20..1adf67d420 100644
 --- a/test/metabase/query_processor_test/alternative_date_test.clj
 +++ b/test/metabase/query_processor_test/alternative_date_test.clj
 @@ -37,7 +37,7 @@
       [0 1433965860000000]]]])
  
- (deftest microseconds-test
+ (deftest ^:parallel microseconds-test
 -  (mt/test-drivers (disj (mt/normal-drivers) :sqlite)
 +  (mt/test-drivers (disj (mt/normal-drivers) :sqlite :exasol) ; Timestamp/timezone covered by Exasol specific tests.
      (let [results (get {:sqlite #{[1 4 "2015-06-06 10:40:00"] [2 0 "2015-06-10 19:51:00"]}
@@ -177,10 +177,10 @@ index 773092a012..f92dd7e040 100644
                    (->> (mt/run-mbql-query times
                           {:filter [:= !day.d "2008-10-19"]})
 diff --git a/test/metabase/query_processor_test/explicit_joins_test.clj b/test/metabase/query_processor_test/explicit_joins_test.clj
-index 0be99aad8d..401e31eea0 100644
+index 3e59b40630..23449bd2a2 100644
 --- a/test/metabase/query_processor_test/explicit_joins_test.clj
 +++ b/test/metabase/query_processor_test/explicit_joins_test.clj
-@@ -786,7 +786,7 @@
+@@ -859,7 +859,7 @@
                         results))))))))))
  
  (deftest ^:parallel double-quotes-in-join-alias-test
@@ -190,10 +190,10 @@ index 0be99aad8d..401e31eea0 100644
        (let [expected-rows (mt/rows
                             (mt/run-mbql-query venues
 diff --git a/test/metabase/query_processor_test/parameters_test.clj b/test/metabase/query_processor_test/parameters_test.clj
-index 1b3fe265d9..f0b914d315 100644
+index 2f81bd2f3d..d0dda23bb1 100644
 --- a/test/metabase/query_processor_test/parameters_test.clj
 +++ b/test/metabase/query_processor_test/parameters_test.clj
-@@ -254,6 +254,7 @@
+@@ -300,6 +300,7 @@
                          ;; These do not support ParameterMetadata.getParameterCount
                          (remove #{:athena
                                    :bigquery-cloud-sdk
@@ -202,10 +202,10 @@ index 1b3fe265d9..f0b914d315 100644
                                    :redshift
                                    :snowflake
 diff --git a/test/metabase/query_processor_test/timezones_test.clj b/test/metabase/query_processor_test/timezones_test.clj
-index 677f56a1ad..59e1e4a583 100644
+index fdc7d77a50..c3728e831c 100644
 --- a/test/metabase/query_processor_test/timezones_test.clj
 +++ b/test/metabase/query_processor_test/timezones_test.clj
-@@ -24,6 +24,7 @@
+@@ -25,6 +25,7 @@
    #{:athena
      :bigquery-cloud-sdk
      :oracle
@@ -214,7 +214,7 @@ index 677f56a1ad..59e1e4a583 100644
      :snowflake
      :sparksql
 diff --git a/test/metabase/test/initialize.clj b/test/metabase/test/initialize.clj
-index 4b297fd5f1..b89be26588 100644
+index f9b32da937..0cb97eda18 100644
 --- a/test/metabase/test/initialize.clj
 +++ b/test/metabase/test/initialize.clj
 @@ -22,7 +22,7 @@
