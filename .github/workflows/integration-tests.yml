@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  integration-test:
+  matrix-integration-test:
     strategy:
       fail-fast: true
       matrix:
@@ -100,3 +100,9 @@ jobs:
             EXASOL_PORT=$ITDE_DATABASE_DB_PORT \
             EXASOL_USER=sys EXASOL_PASSWORD=exasol \
             $GITHUB_WORKSPACE/metabase-driver/scripts/run-integration-tests.sh
+
+  integration-test:
+    needs: matrix-integration-test
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Build successful"
