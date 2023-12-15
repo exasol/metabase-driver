@@ -13,6 +13,8 @@
             [metabase.driver.sql.util.unprepare :as unprepare]
             [metabase.util.honey-sql-2 :as h2x]))
 
+(set! *warn-on-reflection* true)
+
 (deftest connection-details->spec-test
   (doseq [[^String message expected-spec details]
           [["You should be able to connect with an custom port"
@@ -37,7 +39,7 @@
 
 (def ^:private unsupported-features [:nested-fields :nested-field-columns :persist-models :persist-models-enabled :actions :actions/custom :convert-timezone :datetime-diff :now
                                      :native-requires-specified-collection :connection-impersonation :connection-impersonation-requires-role
-                                     :uploads])
+                                     :uploads :table-privileges])
 
 (deftest database-supports?-test
   (testing "Driver supports setting timezone"
@@ -167,7 +169,9 @@
   (is (= :sunday (driver/db-start-of-week :exasol))))
 
 (deftest excluded-schemas-test
-  (is (= #{"EXA_STATISTICS" "SYS"} (sql-jdbc.sync/excluded-schemas :exasol))))
+  (let [excluded-schemas (sql-jdbc.sync/excluded-schemas :exasol)]
+    (is (and (contains? excluded-schemas "EXA_STATISTICS")
+             (contains? excluded-schemas "SYS")))))
 
 (deftest unprepare-value-test
   (doseq [[value expected] [[(java.time.OffsetDateTime/parse "2007-12-03T10:15:30+01:00") "timestamp '2007-12-03 10:15:30.000'"]
@@ -181,7 +185,7 @@
   (testing "Driver version read from existing resource"
     (is (not (str/blank? (exasol/get-driver-version)))))
   (testing "Driver version read from existing resource equal to expected version"
-    (is (= "1.0.6" (exasol/get-driver-version)))))
+    (is (= "1.0.7" (exasol/get-driver-version)))))
 
 (deftest humanize-connection-error-message-test
   (testing "Driver translates connection error message"

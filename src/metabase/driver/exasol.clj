@@ -16,7 +16,8 @@
             [metabase.driver.sql.query-processor.empty-string-is-null :as sql.qp.empty-string-is-null]
             [metabase.driver.sql.util.unprepare :as unprepare]
             [metabase.util.honey-sql-2 :as h2x]
-            [metabase.util.i18n :refer [trs]]))
+            [metabase.util.i18n :refer [trs]])
+  (:import (java.sql Connection)))
 
 (set! *warn-on-reflection* true)
 
@@ -147,7 +148,7 @@
 
 (defn- set-time-zone!
   "Set the session timezone for the given connection"
-  [conn timezone-id]
+  [^Connection conn timezone-id]
   (when timezone-id
     (let [set-timezone-sql (create-set-timezone-sql timezone-id)]
       (with-open [stmt (.createStatement conn)]
