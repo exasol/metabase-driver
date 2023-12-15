@@ -13,6 +13,8 @@
             [metabase.driver.sql.util.unprepare :as unprepare]
             [metabase.util.honey-sql-2 :as h2x]))
 
+(set! *warn-on-reflection* true)
+
 (deftest connection-details->spec-test
   (doseq [[^String message expected-spec details]
           [["You should be able to connect with an custom port"

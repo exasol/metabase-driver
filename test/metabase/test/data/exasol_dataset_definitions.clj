@@ -2,6 +2,8 @@
   (:require
    [metabase.test.data.interface :as tx]))
 
+(set! *warn-on-reflection* true)
+
 (tx/defdataset exasol-data-types
   "Test data with all Exasol specific data types"
   [["data_types"
