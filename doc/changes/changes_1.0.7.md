@@ -1,4 +1,4 @@
-# metabase-driver 1.0.7, released 2023-12-??
+# metabase-driver 1.0.7, released 2023-12-15
 
 Code name: Upgrade to Metabase v0.48.0
 
