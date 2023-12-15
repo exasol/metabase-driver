@@ -51,8 +51,6 @@ clojure --version
     git checkout "tags/${METABASE_VERSION}" -b "${METABASE_VERSION}-branch"
     # Build (this will take ~15min)
     ./bin/build.sh
-    # Run
-    clojure -M:run
     ```
 
 2. Download the Exasol JDBC driver from the [Download Portal](https://downloads.exasol.com/clients-and-drivers) and install it:
@@ -68,7 +66,30 @@ clojure --version
     cd metabase-driver
     ```
 
-## Run Driver Unit Tests
+## Upgrading Metabase
+
+To ensure compatibility we need to regularly update the the latest Metabase version. You can find the latest Metabase version on the [GitHub release page](https://github.com/metabase/metabase/releases/).
+
+Metabase publishes two variants:
+* OSS: version numbers v0.x.y
+* Enterprise: version numbers v1.x.y
+
+We only use the OSS variant with version numbers v0.x.y.
+
+To upgrade Metabase follow these steps:
+1. Check the Metabase [driver changelog](https://www.metabase.com/docs/latest/developers-guide/driver-changelog.html) for breaking changes
+2. Replace the previous version in all files with the new version by searching for `v0.x.y`
+3. [Run unit tests](#running-driver-unit-tests)
+4. [Run integration tests](#running-integration-tests)
+
+The following things can go wrong:
+* Patch with excluded test fails to apply. See [excluded tests](#excluded-tests) for details.
+* Tests fail or abort
+  * If possible fix the problem in the driver
+  * If failures are related to Exasol specifics (e.g. missing `TIME` data type etc.) modify the test in Metabase and update the patch file, see [excluded tests](#excluded-tests) for details.
+  * If failures are unrelated to Exasol or the driver, you might delete it and update the patch file, see [excluded tests](#excluded-tests) for details.
+
+## Running Driver Unit Tests
 
 ```sh
 ./scripts/run-unit-tests.sh
@@ -108,7 +129,7 @@ cd $METABASE_DIR
 clojure -M:run
 ```
 
-## Running the Integration Tests
+## Running Integration Tests
 
 You need to have metabase checked out next to this repository.
 
@@ -173,7 +194,7 @@ In the REPL you can use the following commands:
 
 To increase the log level for integration tests, edit file `$METABASE_DIR/test_config/log4j2-test.xml`.
 
-### Unsupported Datasets / Excluded Tests
+### Excluded Tests
 
 Exasol does not support the `TIME` data type. That is why we can't load the following datasets from the Metabase integration tests:
 
@@ -190,6 +211,16 @@ When the patch file has changed or you updated to a new Metabase release, do the
 cd $METABASE_DIR
 git reset --hard && rm -vf target/patch_excluded_test_applied
 ```
+
+#### Applying Patch Fails
+
+If applying the patch fails after upgrading to a new Metabase version, follow these steps:
+
+1. Run `cd $METABASE_DIR && git reset --hard && rm -vf target/patch_excluded_test_applied`
+2. Remove the failed part from `exclude_tests.diff`
+3. Run integration tests `run-integration-tests.sh`. This will apply the patch.
+4. Modify Metabase tests to adapt them to Exasol
+5. Update patch by running `cd $METABASE_DIR && git diff > $METABASE_EXASOL_DRIVER/scripts/exclude_tests.diff`
 
 ## Linting
 
