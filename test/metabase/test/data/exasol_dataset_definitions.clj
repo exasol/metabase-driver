@@ -1,6 +1,5 @@
 (ns metabase.test.data.exasol-dataset-definitions
-  (:require
-   [metabase.test.data.interface :as tx]))
+  (:require [metabase.test.data.interface :as tx]))
 
 (set! *warn-on-reflection* true)
 
@@ -38,7 +37,7 @@
 
 (tx/defdataset one-timestamp-per-day
   "Test data for week aggregation bug https://github.com/exasol/metabase-driver/issues/59"
-  (let [timestamps (map #(.plus (java.time.Instant/parse "2022-12-01T12:00:00.000Z") % java.time.temporal.ChronoUnit/DAYS) (range 0 70))
+  (let [timestamps (map #(.plus (java.time.Instant/parse "2022-12-01T12:00:00.000Z") ^int % java.time.temporal.ChronoUnit/DAYS) (range 0 70))
         rows (map (fn [timestamp] [timestamp]) timestamps)]
 
     [["timestamps"

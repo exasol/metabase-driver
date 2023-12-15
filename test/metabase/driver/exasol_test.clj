@@ -114,7 +114,7 @@
 
 
 (defn- do-with-java-timezone
-  [timezone-id body]
+  [^String timezone-id body]
   (let [org-timezone (TimeZone/getDefault)]
     (try
       (TimeZone/setDefault (when (not (nil? timezone-id)) (TimeZone/getTimeZone timezone-id)))
