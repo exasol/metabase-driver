@@ -3,8 +3,8 @@
             [clojure.test :refer [deftest is testing]]
             [metabase.driver.exasol :as exasol]
             [metabase.query-processor :as qp]
-            [metabase.query-processor-test :as qp.test]
             [metabase.query-processor-test.alternative-date-test :as alt-date-test]
+            [metabase.query-processor.test-util :as qp.test-util]
             [metabase.test :as mt]
             [metabase.test.data :as td]
             [metabase.test.data.dataset-definitions :as dataset]
@@ -80,7 +80,7 @@
                             :cols [(mt/col :venues :name)
                                    (mt/col :venues :id)]}
                            (mt/format-rows-by [str int]
-                                              (qp.test/rows-and-cols
+                                              (qp.test-util/rows-and-cols
                                                (mt/run-mbql-query venues
                                                                   {:fields   [$name $id]
                                                                    :limit    4
@@ -130,13 +130,13 @@
 (deftest aggregation
   (testing "Exasol supports aggregation"
     (mt/test-driver :exasol
-                    (is (= {:cols [(qp.test/breakout-col :venues :price)
-                                   (qp.test/aggregate-col :cum-count :venues :id)]
+                    (is (= {:cols [(qp.test-util/breakout-col :venues :price)
+                                   (qp.test-util/aggregate-col :cum-count :venues :id)]
                             :rows [[1 22]
                                    [2 81]
                                    [3 94]
                                    [4 100]]}
-                           (qp.test/rows-and-cols
+                           (qp.test-util/rows-and-cols
                             (mt/format-rows-by [int int]
                                                (mt/run-mbql-query venues
                                                                   {:aggregation [[:cum-count $id]]
@@ -146,9 +146,9 @@
   (testing "Exasol supports nested queries"
     (mt/test-driver :exasol
                     (is (= {:rows [[1 174] [2 474] [3 78] [4 39]]
-                            :cols [(qp.test/breakout-col (qp.test/fk-col :checkins :venue_id :venues :price))
-                                   (qp.test/aggregate-col :count)]}
-                           (qp.test/rows-and-cols
+                            :cols [(qp.test-util/breakout-col (qp.test-util/fk-col :checkins :venue_id :venues :price))
+                                   (qp.test-util/aggregate-col :count)]}
+                           (qp.test-util/rows-and-cols
                             (mt/format-rows-by [int int]
                                                (mt/run-mbql-query checkins
                                                                   {:source-query {:source-table $$checkins
