@@ -68,7 +68,7 @@ clojure --version
 
 ## Upgrading Metabase
 
-To ensure compatibility we need to regularly update the the latest Metabase version. You can find the latest Metabase version on the [GitHub release page](https://github.com/metabase/metabase/releases/).
+To ensure compatibility we need to regularly update to the latest Metabase version. You can find the latest Metabase version on the [GitHub release page](https://github.com/metabase/metabase/releases/).
 
 Metabase publishes two variants:
 * OSS: version numbers v0.x.y
@@ -83,7 +83,7 @@ To upgrade Metabase follow these steps:
 4. [Run integration tests](#running-integration-tests)
 
 The following things can go wrong:
-* Patch with excluded test fails to apply. See [excluded tests](#excluded-tests) for details.
+* The patch excluding inapproriate tests cannot be applied. See [excluded tests](#excluded-tests) for details.
 * Tests fail or abort
   * If possible fix the problem in the driver
   * If failures are related to Exasol specifics (e.g. missing `TIME` data type etc.) modify the test in Metabase and update the patch file, see [excluded tests](#excluded-tests) for details.
