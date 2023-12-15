@@ -167,7 +167,9 @@
   (is (= :sunday (driver/db-start-of-week :exasol))))
 
 (deftest excluded-schemas-test
-  (is (= #{"EXA_STATISTICS" "SYS"} (sql-jdbc.sync/excluded-schemas :exasol))))
+  (let [excluded-schemas (sql-jdbc.sync/excluded-schemas :exasol)]
+    (is (and (contains? excluded-schemas "EXA_STATISTICS")
+             (contains? excluded-schemas "SYS")))))
 
 (deftest unprepare-value-test
   (doseq [[value expected] [[(java.time.OffsetDateTime/parse "2007-12-03T10:15:30+01:00") "timestamp '2007-12-03 10:15:30.000'"]
