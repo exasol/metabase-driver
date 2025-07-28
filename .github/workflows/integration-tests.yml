@@ -11,7 +11,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        exasol_version: ["7.1.17", "8.18.1"] # Must be supported by integration-test-docker-environment
+        exasol_version: ["7.1.30", "8.34.0"] # Must be supported by integration-test-docker-environment
+        # See https://github.com/exasol/integration-test-docker-environment/tree/main/docker_db_config_template
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.exasol_version }}
       cancel-in-progress: true
@@ -43,7 +44,7 @@ jobs:
         with:
           fetch-depth: 1
           repository: 'exasol/integration-test-docker-environment'
-          ref: "2.0.0"
+          ref: "4.2.0"
           path: 'integration-test-docker-environment'
 
       - name: Set up JDK 11
@@ -53,12 +54,12 @@ jobs:
           java-version: 11
 
       - name: Install clojure tools
-        uses: DeLaGuardo/setup-clojure@12.1
+        uses: DeLaGuardo/setup-clojure@13.4
         with:
           cli: '1.11.1.1262'
 
       - name: Cache Maven repository
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('metabase-driver/deps.edn', 'metabase-driver/scripts/run-integration-tests.sh', 'metabase/**/deps.edn') }}
@@ -66,7 +67,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Cache node modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
