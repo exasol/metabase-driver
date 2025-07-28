@@ -83,7 +83,7 @@
 
 (defmethod load-data/load-data! :exasol
   [driver dbdef tabledef]
-  (load-data/load-data-add-ids-chunked! driver dbdef tabledef))
+  (load-data/load-data-maybe-add-ids-chunked! driver dbdef tabledef))
 
 (defn- dbspec [& _]
   (sql-jdbc.conn/connection-details->spec :exasol (connection-details)))
