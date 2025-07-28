@@ -45,7 +45,7 @@ clojure --version
     git clone https://github.com/metabase/metabase.git
     cd metabase
     git fetch --all --tags
-    export METABASE_VERSION=v0.48.0
+    export METABASE_VERSION=v0.50.36
     git reset --hard
     rm -vf target/patch_excluded_test_applied
     git checkout "tags/${METABASE_VERSION}" -b "${METABASE_VERSION}-branch"
@@ -53,7 +53,7 @@ clojure --version
     ./bin/build.sh
     ```
 
-2. Download the Exasol JDBC driver from the [Download Portal](https://downloads.exasol.com/clients-and-drivers) and install it:
+2. Download the Exasol JDBC driver from the [Download Portal](https://downloads.exasol.com/clients-and-drivers) or get it from `~/.m2/repository/com/exasol/exasol-jdbc/$v/exasol-jdbc-$v.jar` and install it:
 
     ```sh
     cp exajdbc.jar "$METABASE_DIR/plugins"
@@ -119,7 +119,7 @@ export METABASE_EXASOL_DRIVER="$HOME/git/metabase-driver"
 cd $METABASE_EXASOL_DRIVER
 
 # Build driver
-clojure -X:build :project-dir "\"$(pwd)\""
+./scripts/build.sh
 
 # Install driver
 cp -v "$METABASE_EXASOL_DRIVER/target/exasol.metabase-driver.jar" "$METABASE_DIR/plugins/"
@@ -136,7 +136,7 @@ You need to have metabase checked out next to this repository.
 Start Exasol docker container:
 
 ```sh
-docker run --publish 8563:8563 --publish 2580:2580 --publish 443:443 --detach --privileged --stop-timeout 120 exasol/docker-db:7.1.23
+docker run --publish 8563:8563 --publish 2580:2580 --publish 443:443 --detach --privileged --stop-timeout 120 exasol/docker-db:8.34.0
 ```
 
 Start integration tests:
@@ -253,3 +253,20 @@ Solution: run tests under Linux with English locale or pass arguments `-J-Duser.
 ### Time Dependent Tests
 
 Some Metabase integration tests depend on the current timestamp and will fail when the year changes. See [issue #14](https://github.com/exasol/metabase-driver/issues/14) for details.
+
+## Timeout During Build of Metabase
+
+Metabase build using script `./bin/build.sh` fails with a timeout in `yarn`:
+
+```
+...
+        Step "$ \"yarn\"" failed with error "Timed out after 900000 ms."
+What would you like to do?
+[T]ry this step again
+[F]ail -- pass the failure of this step to the parent step (which can be retried)
+[S]kip this step
+[R]EPL -- open a REPL so you can debug things
+[Q]uit the build script (or return to the top level if running from the REPL) [T/F/S/R/Q] t
+```
+
+Type `t` to try again. It should work at a second try.
