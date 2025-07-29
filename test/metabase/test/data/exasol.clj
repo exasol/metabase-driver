@@ -141,3 +141,7 @@
     ((get-method tx/aggregate-column-info ::tx/test-extensions) driver ag-type field)
     (when (#{:count :cum-count} ag-type)
       {:base_type :type/Decimal}))))
+
+; Exasol does not allow creating or dropping databases, there is only one DB called "exasol-db"
+(defmethod sql.tx/drop-db-if-exists-sql :exasol [& _] nil)
+(defmethod sql.tx/create-db-sql         :exasol [& _] nil)
