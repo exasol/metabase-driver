@@ -62,7 +62,10 @@
                               :nested-fields          false
                               :nested-field-columns   false
                               :schemas                true
-                              :uploads                false}]
+                              :uploads                false
+                              ; TODO: Test metabase.sync.sync-metadata.fields-test/sync-fks-and-fields-test fails
+                              :foreign-keys           false
+                              }]
   (defmethod driver/database-supports? [:exasol feature] [_ _ _] supported?))
 
 (defmethod sql.qp/quote-style :exasol

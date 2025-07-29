@@ -91,13 +91,12 @@ else
 fi
 
 log_info "Using Exasol database $EXASOL_HOST:$EXASOL_PORT with certificate fingerprint '$fingerprint'"
-log_info "Starting integration tests in $metabase_dir..."
+log_info "Starting integration tests in $metabase_dir with args '$*'..."
 cd "$metabase_dir"
 
 readonly dep_driver_dir="exasol/exasol-driver {:local/root \"$exasol_driver_dir\"}"
 readonly dep_test_dir="exasol/exasol-tests {:local/root \"$exasol_driver_dir/test\"}"
 readonly sdeps_option="{:deps { $dep_driver_dir $dep_test_dir } }"
-
 
 MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_EXASOL_TEST_PORT=$EXASOL_PORT \
@@ -105,7 +104,6 @@ MB_EXASOL_TEST_HOST=$EXASOL_HOST \
   MB_EXASOL_TEST_USER=$EXASOL_USER \
   MB_EXASOL_TEST_PASSWORD=$EXASOL_PASSWORD \
   MB_DEV_ADDITIONAL_DRIVER_MANIFEST_PATHS="$exasol_driver_dir/resources/metabase-plugin.yaml" \
-  MB_ENCRYPTION_SECRET_KEY=$(openssl rand -base64 32) \
   DRIVERS=exasol \
   clojure -J-Duser.country=US -J-Duser.language=en -J-Duser.timezone=UTC \
           -Sdeps "$sdeps_option" \
