@@ -9,6 +9,7 @@
             [metabase.test.data.sql-jdbc :as sql-jdbc.tx]
             [metabase.test.data.sql-jdbc.execute :as execute]
             [metabase.test.data.sql-jdbc.load-data :as load-data]
+            [metabase.util.log :as log]
             [metabase.util :as u]))
 
 (set! *warn-on-reflection* true)
@@ -119,10 +120,31 @@
   (u/ignore-exceptions
    (execute! "DROP SCHEMA \"%s\" CASCADE" schema-name)))
 
-#_{:clj-kondo/ignore [:deprecated-var]} ; method is deprecated but required for setting UTC timezone when loading test data
-(defmethod sql-jdbc.execute/set-timezone-sql :exasol
-  [_]
-  "ALTER SESSION SET TIME_ZONE = %s")
+(defn- set-time-zone!
+  [^java.sql.Connection conn ^String timezone-id]
+  (when timezone-id
+      (try
+        (let [sql (format "ALTER SESSION SET TIME_ZONE = %s" (str \' timezone-id \'))]
+          (log/debugf "Setting Exasol session timezone to %s" timezone-id)
+          (try
+            (.setReadOnly conn false)
+            (catch Throwable e
+              (log/debug e "Error setting connection to readwrite")))
+          (with-open [stmt (.createStatement conn)]
+            (.execute stmt sql)
+            (log/tracef "Successfully set session timezone for Exasol to %s" timezone-id)))
+        (catch Throwable e
+          (log/errorf e "Failed to set session timezone '%s' for Exasol" timezone-id)))))
+
+
+; set-timezone-sql is deprecated in favor of metabase.driver.sql-jdbc.execute/do-with-connection-with-options
+(defmethod sql-jdbc.execute/do-with-connection-with-options :exasol
+  [driver db-or-id-or-spec options f]
+  (sql-jdbc.execute/do-with-resolved-connection driver db-or-id-or-spec options
+   (fn [^java.sql.Connection conn]
+     (sql-jdbc.execute/set-default-connection-options! driver db-or-id-or-spec conn options)
+     (set-time-zone! conn (get options "session-timezone" nil))
+     (f conn))))
 
 (defmethod tx/before-run :exasol
   [_]
