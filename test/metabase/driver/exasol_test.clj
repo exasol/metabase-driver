@@ -206,7 +206,7 @@
   (testing "Verify that week aggregation correctly uses 'Start of week' setting"
     ; 2023-01-01 is a Sunday, 2023-01-02 is a Monday
     (mt/test-drivers #{:exasol}
-                     (mt/dataset exasol-dataset/one-timestamp-per-day
+                     (mt/dataset exasol-dataset/one-ts-per-day
                                  (letfn [(test-break-out [unit start-of-week-setting]
                                            (mt/with-temporary-setting-values [start-of-week start-of-week-setting]
                                              (->> (mt/mbql-query timestamps
