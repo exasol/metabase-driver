@@ -41,16 +41,15 @@ clojure --version
 1. Checkout Metabase at `$HOME/git/metabase` (= `$METABASE_DIR`) and build it:
 
     ```sh
-    cd $HOME/git
-    git clone https://github.com/metabase/metabase.git
-    cd metabase
-    git fetch --all --tags
+    export METABASE_DIR=$HOME/git/metabase
     export METABASE_VERSION=v0.50.36
-    git reset --hard
-    rm -vf target/patch_excluded_test_applied
-    git checkout "tags/${METABASE_VERSION}" -b "${METABASE_VERSION}-branch"
+    git clone https://github.com/metabase/metabase.git $METABASE_DIR
+    git -C $METABASE_DIR fetch --all --tags
+    git -C $METABASE_DIR reset --hard
+    rm -vf $METABASE_DIR/target/patch_excluded_test_applied
+    git -C $METABASE_DIR checkout "tags/${METABASE_VERSION}" -b "${METABASE_VERSION}-branch"
     # Build (this will take ~15min)
-    ./bin/build.sh
+    $METABASE_DIR/bin/build.sh
     ```
 
 2. Download the Exasol JDBC driver from the [Download Portal](https://downloads.exasol.com/clients-and-drivers) or get it from `~/.m2/repository/com/exasol/exasol-jdbc/$v/exasol-jdbc-$v.jar` and install it:
@@ -208,19 +207,19 @@ Script `run-integration-tests.sh` automatically applies this patch when file `$M
 When the patch file has changed or you updated to a new Metabase release, do the following and re-run the integration tests with `run-integration-tests.sh`.
 
 ```sh
-cd $METABASE_DIR
-git reset --hard && rm -vf target/patch_excluded_test_applied
+git -C $METABASE_DIR reset --hard && rm -fv $METABASE_DIR/target/patch_excluded_test_applied
 ```
 
 #### Applying Patch Fails
 
 If applying the patch fails after upgrading to a new Metabase version, follow these steps:
 
-1. Run `cd $METABASE_DIR && git reset --hard && rm -vf target/patch_excluded_test_applied`
-2. Remove the failed part from `exclude_tests.diff`
-3. Run integration tests `run-integration-tests.sh`. This will apply the patch.
-4. Modify Metabase tests to adapt them to Exasol
-5. Update patch by running `cd $METABASE_DIR && git diff > $METABASE_EXASOL_DRIVER/scripts/exclude_tests.diff`
+1. Run `export METABASE_DIR="$HOME/git/metabase" && export METABASE_EXASOL_DRIVER="$HOME/git/metabase-driver"`
+2. Run `git -C $METABASE_DIR reset --hard && rm -vf $METABASE_DIR/target/patch_excluded_test_applied`
+3. Remove the failed part from `exclude_tests.diff`
+4. Run integration tests `run-integration-tests.sh`. This will apply the patch.
+5. Modify Metabase tests to adapt them to Exasol
+6. Update patch by running `git -C $METABASE_DIR diff > $METABASE_EXASOL_DRIVER/scripts/exclude_tests.diff`
 
 ## Linting
 
