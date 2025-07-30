@@ -231,6 +231,7 @@ Script `run-integration-tests.sh` automatically applies this patch when file `$M
 When the patch file has changed or you updated to a new Metabase release, do the following and re-run the integration tests with `run-integration-tests.sh`.
 
 ```sh
+export METABASE_DIR="$HOME/git/metabase"
 git -C $METABASE_DIR reset --hard && rm -fv $METABASE_DIR/target/patch_excluded_test_applied
 ```
 
