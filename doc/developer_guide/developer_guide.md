@@ -142,13 +142,21 @@ clojure -M:run
 
 ## Running Integration Tests
 
-You need to have metabase checked out next to this repository.
+### Preconditions
 
-Start Exasol docker container:
+* You need to have metabase checked out next to this repository.
 
-```sh
-docker run --publish 8563:8563 --publish 2580:2580 --publish 443:443 --detach --privileged --stop-timeout 120 exasol/docker-db:8.34.0
-```
+* Start Exasol docker container:
+   ```sh
+   docker run --publish 8563:8563 --publish 2580:2580 --publish 443:443 --detach --privileged --stop-timeout 120 exasol/docker-db:8.34.0
+   ```
+
+* Build frontend code required for running integration tests:
+   ```sh
+   cd $METABASE_DIR && yarn build-static-viz
+   ```
+
+### Running
 
 Start integration tests:
 
@@ -249,11 +257,21 @@ Releases are built using [release-droid](https://github.com/exasol/release-droid
 
 # Troubleshooting
 
-## `FileNotFoundException: Could not locate metabase/test/data/exasol__init.class, metabase/test/data/exasol.clj or metabase/test/data/exasol.cljc on classpath.`
-
-Verify that `$METABASE_DIR/modules/drivers/exasol` is a symlink to the `metabase-driver` directory.
-
 ## Failing Integration Tests
+
+### Error `Javascript resource not found`
+
+Tests fail with the following error
+
+```
+Javascript resource not found: frontend_client/app/dist/lib-static-viz.bundle.js
+```
+
+then run
+
+```sh
+cd $METABASE_DIR && yarn build-static-viz
+```
 
 ### Different Decimal Point
 
@@ -272,6 +290,19 @@ Solution: run tests under Linux with English locale or pass arguments `-J-Duser.
 ### Time Dependent Tests
 
 Some Metabase integration tests depend on the current timestamp and will fail when the year changes. See [issue #14](https://github.com/exasol/metabase-driver/issues/14) for details.
+
+### Inconsistent Test Results in CI and Locally
+
+If a tests fails in CI and succeeds locally or vice versa, ensure you have a clean working copy of `$METABASE_DIR`:
+
+```sh
+export METABASE_DIR="$HOME/git/metabase"
+git -C $METABASE_DIR clean --no-quiet --force -d -x
+# Rebuild UI, required by integration tests.
+cd $METABASE_DIR && yarn build-static-viz
+```
+
+This will delete all ignored files.
 
 ## Timeout During Build of Metabase
 
