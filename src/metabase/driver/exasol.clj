@@ -89,8 +89,7 @@
        :password           password
        :user               user
        :fingerprint        certificate-fingerprint
-       :feedbackinterval   "1"
-       :additional-options ""}
+       :feedbackinterval   "1"}
 
       (sql-jdbc.common/handle-additional-options details, :seperator-style :semicolon)))
 
