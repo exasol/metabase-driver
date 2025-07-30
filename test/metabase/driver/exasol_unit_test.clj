@@ -41,10 +41,7 @@
                                      :native-requires-specified-collection :connection-impersonation :connection-impersonation-requires-role
                                      :uploads :table-privileges
                                      ; New in v0.50.x
-                                     :describe-fks :index-info :connection/multiple-databases :describe-fields :identifiers-with-spaces :uuid-type :temporal/requires-default-unit 
-                                     ; TODO: Deactivated because of failing test metabase.sync.sync-metadata.fields-test/sync-fks-and-fields-test
-                                     :foreign-keys :full-join :right-join :left-join :inner-join
-                                     ])
+                                     :index-info :connection/multiple-databases :describe-fields :identifiers-with-spaces :uuid-type :temporal/requires-default-unit])
 
 (deftest database-supports?-test
   (testing "Driver supports setting timezone"
@@ -194,3 +191,25 @@
                                          "Unknown error messages are unchanged"]
                                         [nil nil]]]
       (is (= expected-message (driver/humanize-connection-error-message :exasol message))))))
+
+(deftest describe-fks-sql-test
+  (testing "Driver generates correct SQL statement for retrieving foreign keys without filter"
+    (is (= ["SELECT \"c\".\"REFERENCED_SCHEMA\" \"pk-table-schema\", \"c\".\"REFERENCED_TABLE\" \"pk-table-name\", \"c\".\"REFERENCED_COLUMN\" \"pk-column-name\", \"c\".\"CONSTRAINT_SCHEMA\" \"fk-table-schema\", \"c\".\"CONSTRAINT_TABLE\" \"fk-table-name\", \"c\".\"COLUMN_NAME\" \"fk-column-name\" FROM \"SYS\".\"EXA_DBA_CONSTRAINT_COLUMNS\" \"c\" WHERE (\"c\".\"CONSTRAINT_TYPE\" = 'FOREIGN KEY') AND (\"c\".\"REFERENCED_SCHEMA\" IS NOT NULL) ORDER BY \"fk-table-schema\" ASC, \"fk-table-name\" ASC"]
+           (sql-jdbc.sync/describe-fks-sql :exasol))))
+  (testing "Driver generates correct SQL statement for retrieving foreign keys with schema filter"
+    (is (= ["SELECT \"c\".\"REFERENCED_SCHEMA\" \"pk-table-schema\", \"c\".\"REFERENCED_TABLE\" \"pk-table-name\", \"c\".\"REFERENCED_COLUMN\" \"pk-column-name\", \"c\".\"CONSTRAINT_SCHEMA\" \"fk-table-schema\", \"c\".\"CONSTRAINT_TABLE\" \"fk-table-name\", \"c\".\"COLUMN_NAME\" \"fk-column-name\" FROM \"SYS\".\"EXA_DBA_CONSTRAINT_COLUMNS\" \"c\" WHERE (\"c\".\"CONSTRAINT_TYPE\" = 'FOREIGN KEY') AND (\"c\".\"REFERENCED_SCHEMA\" IS NOT NULL) AND (\"c\".\"CONSTRAINT_SCHEMA\" IN (?, ?)) ORDER BY \"fk-table-schema\" ASC, \"fk-table-name\" ASC"
+            "sch1"
+            "sch2"]
+           (sql-jdbc.sync/describe-fks-sql :exasol {:schema-names ["sch1" "sch2"]}))))
+  (testing "Driver generates correct SQL statement for retrieving foreign keys with table filter"
+    (is (= ["SELECT \"c\".\"REFERENCED_SCHEMA\" \"pk-table-schema\", \"c\".\"REFERENCED_TABLE\" \"pk-table-name\", \"c\".\"REFERENCED_COLUMN\" \"pk-column-name\", \"c\".\"CONSTRAINT_SCHEMA\" \"fk-table-schema\", \"c\".\"CONSTRAINT_TABLE\" \"fk-table-name\", \"c\".\"COLUMN_NAME\" \"fk-column-name\" FROM \"SYS\".\"EXA_DBA_CONSTRAINT_COLUMNS\" \"c\" WHERE (\"c\".\"CONSTRAINT_TYPE\" = 'FOREIGN KEY') AND (\"c\".\"REFERENCED_SCHEMA\" IS NOT NULL) AND (\"c\".\"CONSTRAINT_TABLE\" IN (?, ?)) ORDER BY \"fk-table-schema\" ASC, \"fk-table-name\" ASC"
+            "tab2"
+            "tab2"]
+           (sql-jdbc.sync/describe-fks-sql :exasol {:table-names ["tab2" "tab2"]}))))
+  (testing "Driver generates correct SQL statement for retrieving foreign keys with schema and table filter"
+    (is (= ["SELECT \"c\".\"REFERENCED_SCHEMA\" \"pk-table-schema\", \"c\".\"REFERENCED_TABLE\" \"pk-table-name\", \"c\".\"REFERENCED_COLUMN\" \"pk-column-name\", \"c\".\"CONSTRAINT_SCHEMA\" \"fk-table-schema\", \"c\".\"CONSTRAINT_TABLE\" \"fk-table-name\", \"c\".\"COLUMN_NAME\" \"fk-column-name\" FROM \"SYS\".\"EXA_DBA_CONSTRAINT_COLUMNS\" \"c\" WHERE (\"c\".\"CONSTRAINT_TYPE\" = 'FOREIGN KEY') AND (\"c\".\"REFERENCED_SCHEMA\" IS NOT NULL) AND (\"c\".\"CONSTRAINT_SCHEMA\" IN (?, ?)) AND (\"c\".\"CONSTRAINT_TABLE\" IN (?, ?)) ORDER BY \"fk-table-schema\" ASC, \"fk-table-name\" ASC"
+            "sch1"
+            "sch2"
+            "tab2"
+            "tab2"]
+           (sql-jdbc.sync/describe-fks-sql :exasol {:schema-names ["sch1" "sch2"] :table-names ["tab2" "tab2"]})))))

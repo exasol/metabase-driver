@@ -63,8 +63,8 @@
                               :nested-field-columns   false
                               :schemas                true
                               :uploads                false
-                              ; TODO: Test metabase.sync.sync-metadata.fields-test/sync-fks-and-fields-test fails
-                              :foreign-keys           false
+                              :foreign-keys           true
+                              :describe-fks           true
                               }]
   (defmethod driver/database-supports? [:exasol feature] [_ _ _] supported?))
 
@@ -340,3 +340,20 @@
 (defmethod unprepare/unprepare-value [:exasol java.time.ZonedDateTime]
   [_ t]
   (format "timestamp '%s'" (t/format "yyyy-MM-dd HH:mm:ss.SSS" t)))
+
+; Required to support features :foreign-keys and :describe-fks
+(defmethod sql-jdbc.sync/describe-fks-sql :exasol
+  [driver & {:keys [schema-names table-names]}]
+  (sql/format {:select [[:c.REFERENCED_SCHEMA :pk-table-schema]
+                        [:c.REFERENCED_TABLE :pk-table-name]
+                        [:c.REFERENCED_COLUMN :pk-column-name]
+                        [:c.CONSTRAINT_SCHEMA :fk-table-schema]
+                        [:c.CONSTRAINT_TABLE :fk-table-name]
+                        [:c.COLUMN_NAME :fk-column-name]]
+               :from [[:SYS.EXA_DBA_CONSTRAINT_COLUMNS :c]]
+               :where [:and [:= :c.CONSTRAINT_TYPE [:inline "FOREIGN KEY"]]
+                       [:!= :c.REFERENCED_SCHEMA nil]
+                       (when (seq schema-names) [:in :c.CONSTRAINT_SCHEMA schema-names])
+                       (when (seq table-names) [:in :c.CONSTRAINT_TABLE table-names])]
+               :order-by [:fk-table-schema :fk-table-name]}
+              :dialect (sql.qp/quote-style driver)))
