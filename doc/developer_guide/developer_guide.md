@@ -153,6 +153,10 @@ To run only a single tests or only tests in a namespace add arguments:
 ./scripts/run-integration-tests.sh :only name.space
 ```
 
+### Evaluating Test Results
+
+When tests fail locally or in CI, search the log output for `ERROR in` or `FAIL in` to find test errors/failures.
+
 ### Using the REPL
 
 ```sh
