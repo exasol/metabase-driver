@@ -79,6 +79,7 @@ jobs:
           java --version
           echo Clojure: $(clojure -M --eval "(clojure-version)")
           clojure --version
+          clojure -M --eval '(println "Java" (System/getProperty "java.version") "Clojure" (clojure-version))'
 
       - name: Build Metabase static viz
         run: |

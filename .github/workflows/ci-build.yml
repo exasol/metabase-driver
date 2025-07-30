@@ -62,6 +62,7 @@ jobs:
         run: |
           java --version
           echo Clojure: $(clojure -M --eval "(clojure-version)")
+          clojure -M --eval '(println "Java" (System/getProperty "java.version") "Clojure" (clojure-version))'
           clojure --version
           cd metabase-driver && clojure -M:clj-kondo --version
 

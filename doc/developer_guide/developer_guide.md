@@ -36,6 +36,18 @@ clojure -M --eval "(clojure-version)"
 clojure --version
 ```
 
+### Verify Correct Java Version
+
+Metabase uses Java 11 by default. Check which Java version is used by Clojure:
+
+```sh
+clojure -M --eval '(println "Java" (System/getProperty "java.version") "Clojure" (clojure-version))'
+# Only major java version:
+clojure -M --eval '(println (. (Runtime/version) major))'
+```
+
+If this reports another Java version, update `JAVA_HOME` and check again.
+
 ## Setup Development Environment
 
 1. Checkout Metabase at `$HOME/git/metabase` (= `$METABASE_DIR`) and build it:
@@ -230,6 +242,10 @@ If applying the patch fails after upgrading to a new Metabase version, follow th
 ```sh
 clojure -M:clj-kondo --lint src test --debug
 ```
+
+# Building a Release
+
+Releases are built using [release-droid](https://github.com/exasol/release-droid).
 
 # Troubleshooting
 
