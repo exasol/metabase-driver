@@ -228,6 +228,20 @@ index 81cad26525..4e2e9a8f5e 100644
                                    :presto-jdbc
                                    :redshift
                                    :snowflake
+diff --git a/test/metabase/query_processor_test/remapping_test.clj b/test/metabase/query_processor_test/remapping_test.clj
+index 470e607e01..0b9edd7cd2 100644
+--- a/test/metabase/query_processor_test/remapping_test.clj
++++ b/test/metabase/query_processor_test/remapping_test.clj
+@@ -205,7 +205,8 @@
+   ;;
+   ;; Having a self-referencing FK is currently broken with the Redshift and Oracle backends. The issue related to fix
+   ;; this is https://github.com/metabase/metabase/issues/8510
+-  (mt/test-drivers (disj (mt/normal-drivers-with-feature :foreign-keys) :redshift :oracle :vertica)
++  ; Fails with AssertionError in metabase.test.data.interface/db-qualified-table-name because table name is longer than 30 chars. Unrelated to Exasol.
++  (mt/test-drivers (disj (mt/normal-drivers-with-feature :foreign-keys) :redshift :oracle :vertica :exasol)
+     (mt/dataset test-data-self-referencing-user
+       (qp.store/with-metadata-provider (-> (lib.metadata.jvm/application-database-metadata-provider (mt/id))
+                                            (lib.tu/remap-metadata-provider (mt/id :users :created_by)
 diff --git a/test/metabase/query_processor_test/timezones_test.clj b/test/metabase/query_processor_test/timezones_test.clj
 index 1b3c39c1a4..1ac0587913 100644
 --- a/test/metabase/query_processor_test/timezones_test.clj
