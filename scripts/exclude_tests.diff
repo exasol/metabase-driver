@@ -15,6 +15,41 @@ index 30628799bf..1a0d9e6ce0 100644
  
  (defn can-connect?
    "Default implementation of [[driver/can-connect?]] for SQL JDBC drivers. Checks whether we can perform a simple
+diff --git a/src/metabase/plugins/jdbc_proxy.clj b/src/metabase/plugins/jdbc_proxy.clj
+index 1893f8cf3c..56538a0f92 100644
+--- a/src/metabase/plugins/jdbc_proxy.clj
++++ b/src/metabase/plugins/jdbc_proxy.clj
+@@ -34,7 +34,9 @@
+     (acceptsURL [_ url]
+       (.acceptsURL driver url))
+     (connect [_ url info]
+-      (.connect driver url info))
++      (do
++        (println "++++++++ Driver proxy connect to driver " driver " / url " url " / info " info)
++        (.connect driver url info)))
+     (getMajorVersion [_]
+       (.getMajorVersion driver))
+     (getMinorVersion [_]
+@@ -60,16 +62,16 @@
+     ;; some situations -- Oracle for example doesn't seem to behave properly when you do this. This mainly affects dev
+     ;; which merges driver dependencies into the core project deps.
+     (if loaded-by-system-classloader?
+-      (log/debug (u/format-color 'cyan
++      (log/warn (u/format-color 'cyan
+                                  "Not creating proxy JDBC driver for class %s -- original driver was loaded by system ClassLoader"
+                                  class-name))
+       (let [driver (proxy-driver (.newInstance klass))]
+-        (log/debug (u/format-color 'blue "Registering JDBC proxy driver for %s..." class-name))
++        (log/warn (u/format-color 'blue "Registering JDBC proxy driver for %s..." class-name))
+         (DriverManager/registerDriver driver)
+ 
+         ;; deregister the non-proxy version of the driver so it doesn't try to handle our URLs. Most JDBC drivers register
+         ;; themseleves when the classes are loaded
+         (doseq [driver (enumeration-seq (DriverManager/getDrivers))
+                 :when  (instance? klass driver)]
+-          (log/debug (u/format-color 'cyan "Deregistering original JDBC driver %s..." driver))
++          (log/warn (u/format-color 'cyan "Deregistering original JDBC driver %s..." driver))
+           (DriverManager/deregisterDriver driver))))))
 diff --git a/test/metabase/api/dashboard_test.clj b/test/metabase/api/dashboard_test.clj
 index c7eacf1e72..159de5e5d0 100644
 --- a/test/metabase/api/dashboard_test.clj
