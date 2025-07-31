@@ -124,6 +124,20 @@ index 58121dda9d..0c800f316b 100644
        (mt/with-report-timezone-id! "America/Los_Angeles"
          (let [query {:database   (mt/id)
                       :type       :native
+diff --git a/test/metabase/driver/sql_jdbc/connection_test.clj b/test/metabase/driver/sql_jdbc/connection_test.clj
+index ba6609f3d5..8e6703ad48 100644
+--- a/test/metabase/driver/sql_jdbc/connection_test.clj
++++ b/test/metabase/driver/sql_jdbc/connection_test.clj
+@@ -115,6 +115,9 @@
+             (case driver/*driver*
+               :redshift
+               (assoc details :additional-options "defaultRowFetchSize=1000")
++              
++              :exasol ;; Test fails when using a hostname other than localhost or 127.0.0.1 e.g. when the DB runs in a VM.
++              (assoc details :additional-options "querytimeout=5")
+ 
+               (cond-> details
+                 ;; swap localhost and 127.0.0.1
 diff --git a/test/metabase/driver_test.clj b/test/metabase/driver_test.clj
 index 6b35385cf6..2a708a7683 100644
 --- a/test/metabase/driver_test.clj
