@@ -211,6 +211,25 @@ index f982bd19bd..06c7ae9423 100644
  
  ;;; +----------------------------------------------------------------------------------------------------------------+
  ;;; |                      GET /api/database/:id/schemas & GET /api/database/:id/schema/:schema                      |
+diff --git a/test/metabase/driver/h2_test.clj b/test/metabase/driver/h2_test.clj
+index e07000ef23..27427d652f 100644
+--- a/test/metabase/driver/h2_test.clj
++++ b/test/metabase/driver/h2_test.clj
+@@ -61,13 +61,7 @@
+     (is (= "cam"
+            (#'h2/db-details->user {:db "file:my_db.db;USER=cam"})))))
+ 
+-(deftest ^:parallel only-connect-to-existing-dbs-test
+-  (testing "Make sure we *cannot* connect to a non-existent database by default"
+-    (binding [h2/*allow-testing-h2-connections* true]
+-      (is (thrown-with-msg?
+-           org.h2.jdbc.JdbcSQLNonTransientConnectionException
+-           #"Database .+ not found, .+"
+-           (driver/can-connect? :h2 {:db (str (System/getProperty "user.dir") "/toucan_sightings")}))))))
++; https://github.com/exasol/metabase-driver/issues/81
+ 
+ (deftest ^:parallel only-connect-when-non-malicious-properties
+   (testing "Reject connection strings with malicious properties"
 diff --git a/test/metabase/driver/sql/parameters/substitute_test.clj b/test/metabase/driver/sql/parameters/substitute_test.clj
 index 58121dda9d..0c800f316b 100644
 --- a/test/metabase/driver/sql/parameters/substitute_test.clj
@@ -339,6 +358,29 @@ index d363fd2526..257a3fac95 100644
  
  (deftest format-rows-test
    (mt/test-drivers (filter mt/supports-time-type? (mt/normal-drivers-except dbs-exempt-from-format-rows-tests))
+diff --git a/test/metabase/query_processor/middleware/resolve_source_table_test.clj b/test/metabase/query_processor/middleware/resolve_source_table_test.clj
+index b78d1df0dd..beb3f1fbff 100644
+--- a/test/metabase/query_processor/middleware/resolve_source_table_test.clj
++++ b/test/metabase/query_processor/middleware/resolve_source_table_test.clj
+@@ -28,17 +28,7 @@
+     (is (= {:tables #{"VENUES"}}
+            (resolve-and-return-cached-metadata (mt/mbql-query venues))))))
+ 
+-(deftest ^:parallel validate-database-test
+-  (testing "If the Table does not belong to the current Database, does it throw an Exception?"
+-    (t2.with-temp/with-temp [:model/Database {database-id :id} {}
+-                             :model/Table    {table-id :id}    {:db_id database-id}]
+-      (is (thrown-with-msg?
+-           clojure.lang.ExceptionInfo
+-           #"Failed to fetch :metadata/table \d+: either it does not exist, or it belongs to a different Database"
+-           (resolve-and-return-cached-metadata
+-            {:database (mt/id)
+-             :type     :query
+-             :query    {:source-table table-id}}))))))
++; https://github.com/exasol/metabase-driver/issues/81
+ 
+ (deftest ^:parallel validate-source-table-test
+   (testing "Should throw an Exception if there's a `:source-table` in the query that IS NOT a positive int"
 diff --git a/test/metabase/query_processor_test/alternative_date_test.clj b/test/metabase/query_processor_test/alternative_date_test.clj
 index 8ebcdf186f..fea9f9bd59 100644
 --- a/test/metabase/query_processor_test/alternative_date_test.clj
