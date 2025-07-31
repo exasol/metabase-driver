@@ -157,25 +157,21 @@
         (.execute stmt set-timezone-sql)
         (log/tracef "Successfully set timezone for Exasol to %s using statement %s" timezone-id set-timezone-sql)))))
 
-;; Same as default implementation but without calling the unsupported setHoldability() method
-(defmethod sql-jdbc.execute/connection-with-timezone :exasol
-  [driver database ^String timezone-id]
-  (let [conn (.getConnection (sql-jdbc.execute/datasource-with-diagnostic-info! driver database))]
-    (try
-      (sql-jdbc.execute/set-best-transaction-level! driver conn)
-      (set-time-zone! conn timezone-id)
-      (try
-        (.setReadOnly conn true)
-        (catch Throwable e
-          (log/warn e (trs "Error setting connection to read-only"))))
-      (try
-        (.setAutoCommit conn false)
-        (catch Throwable e
-          (log/warn e (trs "Error setting connection to autoCommit false"))))
-      conn
-      (catch Throwable e
-        (.close conn)
-        (throw e)))))
+(defmethod sql-jdbc.execute/do-with-connection-with-options :exasol
+  [driver db-or-id-or-spec {:keys [session-timezone], :as options} f]
+  (sql-jdbc.execute/do-with-resolved-connection driver db-or-id-or-spec options
+   (fn [^java.sql.Connection conn]
+     (sql-jdbc.execute/set-best-transaction-level! driver conn)
+     (set-time-zone! conn session-timezone)
+     (try
+       (.setReadOnly conn true)
+       (catch Throwable e
+         (log/warn e (trs "Error setting connection to read-only"))))
+     (try
+       (.setAutoCommit conn false)
+       (catch Throwable e
+         (log/warn e (trs "Error setting connection to autoCommit false"))))
+     (f conn))))
 
 (defn- trunc-date
   "Truncate a date, e.g.:
