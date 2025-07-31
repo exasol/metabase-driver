@@ -1,4 +1,4 @@
-# metabase-driver 1.0.8, released 2025-08-31
+# metabase-driver 1.0.8, released 2025-08-01
 
 Code name: Upgrade to Metabase v0.50.36
 
