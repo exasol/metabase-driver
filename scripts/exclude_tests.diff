@@ -94,6 +94,123 @@ index c7eacf1e72..159de5e5d0 100644
  
  (deftest dashboard-query-metadata-no-tables-test
    (testing "Don't throw an error if users doesn't have access to any tables #44043"
+diff --git a/test/metabase/api/database_test.clj b/test/metabase/api/database_test.clj
+index f982bd19bd..06c7ae9423 100644
+--- a/test/metabase/api/database_test.clj
++++ b/test/metabase/api/database_test.clj
+@@ -463,64 +463,7 @@
+     (mt/user-http-request :crowberto :put expected-status-code (format "database/%d" (u/the-id db-or-id))
+                           changes)))
+ 
+-(deftest update-database-test
+-  (testing "PUT /api/database/:id"
+-    (testing "Check that we can update fields in a Database"
+-      (t2.with-temp/with-temp [Database {db-id :id}]
+-        (let [updates {:name         "Cam's Awesome Toucan Database"
+-                       :engine       "h2"
+-                       :is_full_sync false
+-                       :details      {:host "localhost", :port 5432, :dbname "fakedb", :user "rastacan"}}
+-              update! (fn [expected-status-code]
+-                        (api-update-database! expected-status-code db-id updates))]
+-          (testing "Should check that connection details are valid on save"
+-            (is (=? {:errors {:db "check your connection string"}}
+-                    (update! 400))))
+-          (testing "If connection details are valid, we should be able to update the Database"
+-            (with-redefs [driver/can-connect? (constantly true)]
+-              (is (= nil
+-                     (:valid (update! 200))))
+-              (let [curr-db (t2/select-one [Database :name :engine :details :is_full_sync], :id db-id)]
+-                (is (=
+-                     {:details      {:host "localhost", :port 5432, :dbname "fakedb", :user "rastacan"}
+-                      :engine       :h2
+-                      :name         "Cam's Awesome Toucan Database"
+-                      :is_full_sync false
+-                      :features     (driver.u/features :h2 curr-db)}
+-                     (into {} curr-db)))))))))
+-
+-    (testing "should be able to set `auto_run_queries`"
+-      (testing "when creating a Database"
+-        (is (= {:auto_run_queries false}
+-               (select-keys (create-db-via-api! {:auto_run_queries false}) [:auto_run_queries]))))
+-      (testing "when updating a Database"
+-        (t2.with-temp/with-temp [Database {db-id :id} {:engine ::test-driver}]
+-          (let [updates {:auto_run_queries false}]
+-            (mt/user-http-request :crowberto :put 200 (format "database/%d" db-id) updates))
+-          (is (= false
+-                 (t2/select-one-fn :auto_run_queries Database, :id db-id))))))
+-
+-    (testing "should not be able to modify `cache_ttl` in OSS"
+-      (with-redefs [premium-features/enable-cache-granular-controls? (constantly false)]
+-        (t2.with-temp/with-temp [Database {db-id :id} {:engine ::test-driver}]
+-          (let [updates {:cache_ttl 13}]
+-            (mt/user-http-request :crowberto :put 200 (format "database/%d" db-id) updates))
+-          (is (= nil
+-                 (t2/select-one-fn :cache_ttl Database, :id db-id))))))
+-
+-    (testing "should be able to set and unset `cache_ttl` in EE"
+-      (with-redefs [premium-features/enable-cache-granular-controls? (constantly true)]
+-        (t2.with-temp/with-temp [Database {db-id :id} {:engine ::test-driver}]
+-          (let [updates1 {:cache_ttl 1337}
+-                updates2 {:cache_ttl nil}
+-                updates1! (fn [] (mt/user-http-request :crowberto :put 200 (format "database/%d" db-id) updates1))
+-                updates2! (fn [] (mt/user-http-request :crowberto :put 200 (format "database/%d" db-id) updates2))]
+-            (updates1!)
+-            (let [curr-db (t2/select-one [Database :cache_ttl], :id db-id)]
+-              (is (= 1337 (:cache_ttl curr-db))))
+-            (updates2!)
+-            (let [curr-db (t2/select-one [Database :cache_ttl], :id db-id)]
+-              (is (= nil (:cache_ttl curr-db))))))))))
++; https://github.com/exasol/metabase-driver/issues/81
+ 
+ (deftest update-database-audit-log-test
+   (testing "Check that we get audit log entries that match the db when updating a Database"
+@@ -1444,45 +1387,7 @@
+                 :valid   false}
+                (api-validate-database {:details {:engine :h2, :details {:db "ABC"}}})))))))
+ 
+-(deftest validate-database-test-2
+-  (testing "POST /api/database/validate"
+-    (let [call-count (atom 0)
+-          ssl-values (atom [])
+-          valid?     (atom false)]
+-      (with-redefs [api.database/test-database-connection (fn [_ details & _]
+-                                                            (swap! call-count inc)
+-                                                            (swap! ssl-values conj (:ssl details))
+-                                                            (if @valid? nil {:valid false}))]
+-        (testing "with SSL enabled, do not allow non-SSL connections"
+-          (#'api.database/test-connection-details "postgres" {:ssl true})
+-          (is (= 1 @call-count))
+-          (is (= [true] @ssl-values)))
+-
+-        (reset! call-count 0)
+-        (reset! ssl-values [])
+-
+-        (testing "with SSL disabled, try twice (once with, once without SSL)"
+-          (#'api.database/test-connection-details "postgres" {:ssl false})
+-          (is (= 2 @call-count))
+-          (is (= [true false] @ssl-values)))
+-
+-        (reset! call-count 0)
+-        (reset! ssl-values [])
+-
+-        (testing "with SSL unspecified, try twice (once with, once without SSL)"
+-          (#'api.database/test-connection-details "postgres" {})
+-          (is (= 2 @call-count))
+-          (is (= [true nil] @ssl-values)))
+-
+-        (reset! call-count 0)
+-        (reset! ssl-values [])
+-        (reset! valid? true)
+-
+-        (testing "with SSL disabled, but working try once (since SSL work we don't try without SSL)"
+-          (is (= {:ssl true}
+-                 (#'api.database/test-connection-details "postgres" {:ssl false})))
+-          (is (= 1 @call-count))
+-          (is (= [true] @ssl-values)))))))
++; https://github.com/exasol/metabase-driver/issues/81
+ 
+ ;;; +----------------------------------------------------------------------------------------------------------------+
+ ;;; |                      GET /api/database/:id/schemas & GET /api/database/:id/schema/:schema                      |
 diff --git a/test/metabase/driver/sql/parameters/substitute_test.clj b/test/metabase/driver/sql/parameters/substitute_test.clj
 index 58121dda9d..0c800f316b 100644
 --- a/test/metabase/driver/sql/parameters/substitute_test.clj
