@@ -169,8 +169,12 @@ This script builds and installs the driver before running the integration tests.
 To run only a single tests or only tests in a namespace add arguments:
 
 ```sh
+# Run single test
 ./scripts/run-integration-tests.sh :only name.space/single-test
+# Run all tests in a name space
 ./scripts/run-integration-tests.sh :only name.space
+# Run tests from multiple namespaces
+./scripts/run-integration-tests.sh :only "[name.space1 name.space2]"
 ```
 
 ### Evaluating Test Results
