@@ -16,12 +16,17 @@ index 30628799bf..1a0d9e6ce0 100644
  (defn can-connect?
    "Default implementation of [[driver/can-connect?]] for SQL JDBC drivers. Checks whether we can perform a simple
 diff --git a/src/metabase/plugins/jdbc_proxy.clj b/src/metabase/plugins/jdbc_proxy.clj
-index 1893f8cf3c..21a638d6d6 100644
+index 1893f8cf3c..358c3d9a63 100644
 --- a/src/metabase/plugins/jdbc_proxy.clj
 +++ b/src/metabase/plugins/jdbc_proxy.clj
-@@ -34,7 +34,9 @@
+@@ -32,9 +32,14 @@
+ 
+     Driver
      (acceptsURL [_ url]
++      (do
++      (println "++++++++ Driver proxy acceptsUrl driver " driver " / url " url " = " (.acceptsURL driver url))
        (.acceptsURL driver url))
++      )
      (connect [_ url info]
 -      (.connect driver url info))
 +      (do
@@ -30,7 +35,23 @@ index 1893f8cf3c..21a638d6d6 100644
      (getMajorVersion [_]
        (.getMajorVersion driver))
      (getMinorVersion [_]
-@@ -60,16 +62,16 @@
+@@ -42,9 +47,15 @@
+     (getParentLogger [_]
+       (.getParentLogger driver))
+     (getPropertyInfo [_ url info]
++      (do
++      (println "++++++++ Driver proxy getPropertyInfo driver " driver " / url " url " / info" info " = "  (.getPropertyInfo driver url info))
+       (.getPropertyInfo driver url info))
++      )
+     (jdbcCompliant [_]
++    (do
++    (println "++++++++ Driver proxy jdbcCompliant driver " driver " = "  (.jdbcCompliant driver))
+       (.jdbcCompliant driver))))
++    )
+ 
+ (defn create-and-register-proxy-driver!
+   "Create a new JDBC proxy driver to wrap driver with `class-name`, but only if that class WAS NOT loaded by the System
+@@ -60,16 +71,16 @@
      ;; some situations -- Oracle for example doesn't seem to behave properly when you do this. This mainly affects dev
      ;; which merges driver dependencies into the core project deps.
      (if loaded-by-system-classloader?
@@ -41,7 +62,7 @@ index 1893f8cf3c..21a638d6d6 100644
                                   class-name))
        (let [driver (proxy-driver (.newInstance klass))]
 -        (log/debug (u/format-color 'blue "Registering JDBC proxy driver for %s..." class-name))
-+        (println (u/format-color 'blue "##### Registering JDBC proxy driver for %s..." class-name))
++        (println (u/format-color 'blue "##### Registering JDBC proxy driver %s for class name %s..." driver class-name))
          (DriverManager/registerDriver driver)
  
          ;; deregister the non-proxy version of the driver so it doesn't try to handle our URLs. Most JDBC drivers register
