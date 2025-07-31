@@ -175,10 +175,10 @@ index ba6609f3d5..8e6703ad48 100644
                (cond-> details
                  ;; swap localhost and 127.0.0.1
 diff --git a/test/metabase/driver_test.clj b/test/metabase/driver_test.clj
-index 6b35385cf6..2a708a7683 100644
+index 6b35385cf6..c8ebfbed5f 100644
 --- a/test/metabase/driver_test.clj
 +++ b/test/metabase/driver_test.clj
-@@ -82,37 +82,7 @@
+@@ -82,81 +82,9 @@
                           :field-definitions [{:field-name "foo", :base-type :type/Text}]
                           :rows              [["bar"]]}]}))
  
@@ -215,8 +215,53 @@ index 6b35385cf6..2a708a7683 100644
 -            (t2/delete! :model/Database (u/the-id db))))))))
 +; Test can-connect-with-destroy-db-test is not relevant as Exasol does not support creating or dropping databases.
  
- (deftest check-can-connect-before-sync-test
-   (testing "Database sync should short-circuit and fail if the database at the connection has been deleted (metabase#7526)"
+-(deftest check-can-connect-before-sync-test
+-  (testing "Database sync should short-circuit and fail if the database at the connection has been deleted (metabase#7526)"
+-    (mt/test-drivers (mt/normal-drivers-without-feature :connection/multiple-databases)
+-      (let [database-name (mt/random-name)
+-            dbdef         (basic-db-definition database-name)]
+-        (mt/dataset dbdef
+-          (let [db (mt/db)
+-                cant-sync-logged? (fn []
+-                                    (some?
+-                                     (some
+-                                      (fn [[log-level throwable message]]
+-                                        (and (= log-level :warn)
+-                                             (instance? clojure.lang.ExceptionInfo throwable)
+-                                             (re-matches #"^Cannot sync Database ([\s\S]+): ([\s\S]+)" message)))
+-                                      (mt/with-log-messages-for-level :warn
+-                                        (#'task.sync-databases/sync-and-analyze-database*! (u/the-id db))))))]
+-            (testing "sense checks before deleting the database"
+-              (testing "sense check 1: sync-and-analyze-database! should not log a warning"
+-                (is (false? (cant-sync-logged?))))
+-              (testing "sense check 2: triggering the sync via the POST /api/database/:id/sync_schema endpoint should succeed"
+-                (is (= {:status "ok"}
+-                       (mt/user-http-request :crowberto :post 200 (str "/database/" (u/the-id db) "/sync_schema"))))))
+-            ;; release db resources like connection pools so we don't have to wait to finish syncing before destroying the db
+-            (driver/notify-database-updated driver/*driver* db)
+-            ;; destroy the db
+-            (if (contains? #{:redshift :snowflake :vertica :presto-jdbc :oracle} driver/*driver*)
+-              ;; in the case of some cloud databases, the test database is never created, and can't or shouldn't be destroyed.
+-              ;; so fake it by changing the database details
+-              (let [details     (:details (mt/db))
+-                    new-details (case driver/*driver*
+-                                  (:redshift :snowflake :vertica) (assoc details :db (mt/random-name))
+-                                  :oracle                         (assoc details :service-name (mt/random-name))
+-                                  :presto-jdbc                    (assoc details :catalog (mt/random-name)))]
+-                (t2/update! :model/Database (u/the-id db) {:details new-details}))
+-              ;; otherwise destroy the db and use the original details
+-              (tx/destroy-db! driver/*driver* dbdef))
+-            (testing "after deleting a database, sync should fail"
+-              (testing "1: sync-and-analyze-database! should log a warning and fail early"
+-                (is (true? (cant-sync-logged?))))
+-              (testing "2: triggering the sync via the POST /api/database/:id/sync_schema endpoint should fail"
+-                (mt/user-http-request :crowberto :post 422 (str "/database/" (u/the-id db) "/sync_schema"))))
+-            ;; clean up the database
+-            (t2/delete! :model/Database (u/the-id db))))))))
++; Test check-can-connect-before-sync-test is not relevant as Exasol does not support creating or dropping databases.
+ 
+ (deftest supports-table-privileges-matches-implementations-test
+   (mt/test-drivers (mt/normal-drivers-with-feature :table-privileges)
 diff --git a/test/metabase/query_processor/middleware/format_rows_test.clj b/test/metabase/query_processor/middleware/format_rows_test.clj
 index d363fd2526..257a3fac95 100644
 --- a/test/metabase/query_processor/middleware/format_rows_test.clj
