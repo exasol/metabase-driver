@@ -15,7 +15,7 @@ jobs:
       cancel-in-progress: true
     runs-on: ubuntu-latest
     env:
-      METABASE_TAG: v0.51.9.5
+      METABASE_TAG: v0.52.17.1
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4

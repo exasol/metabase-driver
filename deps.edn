@@ -11,7 +11,7 @@
  :aliases
  {:dev
   {:extra-deps
-   {io.github.metabase/metabase {:git/tag "v0.51.9.5" :git/sha "0ca7df3"}}}
+   {io.github.metabase/metabase {:git/tag "v0.52.17.1" :git/sha "0ca7df3"}}}
 
   ; clojure -M:clj-kondo --lint src test --debug
   :clj-kondo
