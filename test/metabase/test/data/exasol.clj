@@ -119,7 +119,6 @@
   (u/ignore-exceptions
    (execute! "DROP SCHEMA \"%s\" CASCADE" schema-name)))
 
-#_{:clj-kondo/ignore [:deprecated-var]} ; method is deprecated but required for setting UTC timezone when loading test data
 (defmethod sql-jdbc.execute/set-timezone-sql :exasol
   [_]
   "ALTER SESSION SET TIME_ZONE = %s")
