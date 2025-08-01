@@ -9,6 +9,7 @@
             [metabase.test.data.sql-jdbc :as sql-jdbc.tx]
             [metabase.test.data.sql-jdbc.execute :as execute]
             [metabase.test.data.sql-jdbc.load-data :as load-data]
+            [metabase.query-processor-test.alternative-date-test :as alt-date-test]
             [metabase.util :as u]))
 
 (set! *warn-on-reflection* true)
@@ -162,7 +163,7 @@
 
 ; Expected values for test metabase.query-processor-test.alternative-date-test/microseconds-test
 ; are different because of timezone issues.
-(defmethod metabase.query-processor-test.alternative-date-test/microseconds-test-expected-rows :exasol
+(defmethod alt-date-test/microseconds-test-expected-rows :exasol
   [_driver]
   [[1 4 "2015-06-06T12:40:00Z"]
    [2 0 "2015-06-10T21:51:00Z"]])
