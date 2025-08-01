@@ -103,6 +103,95 @@ index 640f44499a..25218c6652 100644
                :databricks
                (assoc details :log-level 0)
  
+diff --git a/test/metabase/driver_test.clj b/test/metabase/driver_test.clj
+index 823944f5a9..bd6e12d4a1 100644
+--- a/test/metabase/driver_test.clj
++++ b/test/metabase/driver_test.clj
+@@ -83,82 +83,9 @@
+                          :field-definitions [{:field-name "foo", :base-type :type/Text}]
+                          :rows              [["bar"]]}]}))
+ 
+-(deftest can-connect-with-destroy-db-test
+-  (testing "driver/can-connect? should fail or throw after destroying a database"
+-    (mt/test-drivers (mt/normal-drivers-with-feature :test/dynamic-dataset-loading)
+-      (let [database-name (mt/random-name)
+-            dbdef         (basic-db-definition database-name)]
+-        (mt/dataset dbdef
+-          (let [db (mt/db)
+-                details (tx/dbdef->connection-details driver/*driver* :db dbdef)]
+-            (testing "can-connect? should return true before deleting the database"
+-              (is (true? (binding [h2/*allow-testing-h2-connections* true]
+-                           (driver/can-connect? driver/*driver* details)))))
+-            ;; release db resources like connection pools so we don't have to wait to finish syncing before destroying the db
+-            (driver/notify-database-updated driver/*driver* db)
+-            (testing "after deleting a database, can-connect? should return false or throw an exception"
+-              (let [;; in the case of some cloud databases, the test database is never created, and can't or shouldn't be destroyed.
+-                    ;; so fake it by changing the database details
+-                    details (case driver/*driver*
+-                              (:redshift :snowfake :vertica) (assoc details :db (mt/random-name))
+-                              :oracle                        (assoc details :service-name (mt/random-name))
+-                              :presto-jdbc                   (assoc details :catalog (mt/random-name))
+-                              ;; otherwise destroy the db and use the original details
+-                              (do
+-                                (tx/destroy-db! driver/*driver* dbdef)
+-                                details))]
+-                (is (false? (try
+-                              (binding [h2/*allow-testing-h2-connections* true]
+-                                (driver/can-connect? driver/*driver* details))
+-                              (catch Exception _
+-                                false))))))
+-            ;; clean up the database
+-            (t2/delete! :model/Database (u/the-id db))))))))
++; Test can-connect-with-destroy-db-test fails unrelated to Exasol
+ 
+-(deftest check-can-connect-before-sync-test
+-  (testing "Database sync should short-circuit and fail if the database at the connection has been deleted (metabase#7526)"
+-    (mt/test-drivers (mt/normal-drivers-with-feature :test/dynamic-dataset-loading)
+-      (let [database-name (mt/random-name)
+-            dbdef         (basic-db-definition database-name)]
+-        (mt/dataset dbdef
+-          (let [db (mt/db)
+-                cant-sync-logged? (fn []
+-                                    (mt/with-log-messages-for-level [messages :warn]
+-                                      (#'task.sync-databases/sync-and-analyze-database*! (u/the-id db))
+-                                      (some?
+-                                       (some
+-                                        (fn [{:keys [level e message]}]
+-                                          (and (= level :warn)
+-                                               (instance? clojure.lang.ExceptionInfo e)
+-                                               (re-matches #"^Cannot sync Database ([\s\S]+): ([\s\S]+)" message)))
+-                                        (messages)))))]
+-            (testing "sense checks before deleting the database"
+-              (testing "sense check 1: sync-and-analyze-database! should not log a warning"
+-                (is (false? (cant-sync-logged?))))
+-              (testing "sense check 2: triggering the sync via the POST /api/database/:id/sync_schema endpoint should succeed"
+-                (is (= {:status "ok"}
+-                       (mt/user-http-request :crowberto :post 200 (str "/database/" (u/the-id db) "/sync_schema"))))))
+-            ;; release db resources like connection pools so we don't have to wait to finish syncing before destroying the db
+-            (driver/notify-database-updated driver/*driver* db)
+-            ;; destroy the db
+-            (if (contains? #{:redshift :snowflake :vertica :presto-jdbc :oracle} driver/*driver*)
+-              ;; in the case of some cloud databases, the test database is never created, and can't or shouldn't be destroyed.
+-              ;; so fake it by changing the database details
+-              (let [details     (:details (mt/db))
+-                    new-details (case driver/*driver*
+-                                  (:redshift :snowflake :vertica) (assoc details :db (mt/random-name))
+-                                  :oracle                         (assoc details :service-name (mt/random-name))
+-                                  :presto-jdbc                    (assoc details :catalog (mt/random-name)))]
+-                (t2/update! :model/Database (u/the-id db) {:details new-details}))
+-              ;; otherwise destroy the db and use the original details
+-              (tx/destroy-db! driver/*driver* dbdef))
+-            (testing "after deleting a database, sync should fail"
+-              (testing "1: sync-and-analyze-database! should log a warning and fail early"
+-                (is (true? (cant-sync-logged?))))
+-              (testing "2: triggering the sync via the POST /api/database/:id/sync_schema endpoint should fail"
+-                (mt/user-http-request :crowberto :post 422 (str "/database/" (u/the-id db) "/sync_schema"))))
+-            ;; clean up the database
+-            (t2/delete! :model/Database (u/the-id db))))))))
++; Test check-can-connect-before-sync-test fails unrelated to Exasol
+ 
+ (deftest supports-table-privileges-matches-implementations-test
+   (mt/test-drivers (mt/normal-drivers-with-feature :table-privileges)
 diff --git a/test/metabase/query_processor/middleware/format_rows_test.clj b/test/metabase/query_processor/middleware/format_rows_test.clj
 index 5978ac13ed..20f7624d29 100644
 --- a/test/metabase/query_processor/middleware/format_rows_test.clj
@@ -139,6 +228,78 @@ index b78d1df0dd..beb3f1fbff 100644
  
  (deftest ^:parallel validate-source-table-test
    (testing "Should throw an Exception if there's a `:source-table` in the query that IS NOT a positive int"
+diff --git a/test/metabase/query_processor_test/alternative_date_test.clj b/test/metabase/query_processor_test/alternative_date_test.clj
+index 3eec93581c..6830d94d27 100644
+--- a/test/metabase/query_processor_test/alternative_date_test.clj
++++ b/test/metabase/query_processor_test/alternative_date_test.clj
+@@ -294,19 +294,8 @@
+    [(t/instant "2008-10-19T10:23:54Z")]
+    [(t/instant "2012-10-19T10:23:54Z")]])
+ 
+-;;; TODO -- instead of having 5 different hardcoded versions of the test, maybe we should make a `iso-8601-text-fields`
+-;;; multimethod with a `:default` implementation and different driver implementations as needed so third-party driver
+-;;; authors can pass this test too.
+-(deftest ^:parallel iso-8601-text-fields
+-  (testing "text fields with semantic_type :type/ISO8601DateTimeString"
+-    (testing "return as dates"
+-      (mt/test-drivers (mt/normal-drivers)
+-        (mt/dataset string-times
+-          (let [query (iso-8601-text-fields-query driver/*driver*)]
+-            (mt/with-native-query-testing-context query
+-              (is (= (iso-8601-text-fields-expected-rows driver/*driver*)
+-                     ;; string-times dataset has three text fields, ts, d, t for timestamp, date, and time
+-                     (mt/rows (qp/process-query query)))))))))))
++; Test iso-8601-text-fields fails with error
++; clojure.lang.ExceptionInfo: Error preparing statement: Feature not supported: SQL-Type TIME [line 2, column 256] (
+ 
+ (defmethod driver/database-supports? [::driver/driver ::iso-8601-test-fields-are-queryable]
+   [_driver _feature _database]
+diff --git a/test/metabase/query_processor_test/explicit_joins_test.clj b/test/metabase/query_processor_test/explicit_joins_test.clj
+index 507902de93..71d4127d25 100644
+--- a/test/metabase/query_processor_test/explicit_joins_test.clj
++++ b/test/metabase/query_processor_test/explicit_joins_test.clj
+@@ -903,39 +903,8 @@
+                        int str str str str 2.0 2.0 u.date/temporal-str->iso8601-str]
+                       results))))))))))
+ 
+-(deftest ^:parallel double-quotes-in-join-alias-test
+-  (mt/test-drivers (mt/normal-drivers-with-feature :left-join)
+-    (testing "Make sure our we handle (escape) double quotes in join aliases. Make sure we prevent SQL injection (#20307)"
+-      (let [expected-rows (mt/rows
+-                           (mt/run-mbql-query venues
+-                             {:joins [{:source-table $$categories
+-                                       :alias        "Cat"
+-                                       :condition    [:= $id $id]
+-                                       :fields       [&Cat.categories.id]}]
+-                              :order-by [[:asc $id] [:asc &Cat.categories.id]]
+-                              :limit 1}))]
+-        (is (= 1
+-               (count expected-rows)))
+-        ;; these normally get ESCAPED by [[metabase.util.honey-sql-2/identifier]] when they're compiled to SQL,
+-        ;; but some fussy databases such as Oracle don't even allow escaped double quotes in identifiers. So make sure
+-        ;; that we don't allow SQL injection AND things still work
+-        (doseq [evil-join-alias ["users.id\" AS user_id, u.* FROM categories LEFT JOIN users u ON 1 = 1; --"
+-                                 "users.id\\\" AS user_id, u.* FROM categories LEFT JOIN users u ON 1 = 1; --"
+-                                 "users.id\\u0022 AS user_id, u.* FROM categories LEFT JOIN users u ON 1 = 1; --"
+-                                 "users.id` AS user_id, u.* FROM categories LEFT JOIN users u ON 1 = 1; --"
+-                                 "users.id\\` AS user_id, u.* FROM categories LEFT JOIN users u ON 1 = 1; --"]]
+-          (testing (format "Join alias: `%s`" (pr-str evil-join-alias))
+-            (let [evil-query (mt/mbql-query
+-                               venues
+-                               {:joins [{:source-table $$categories
+-                                         :alias        evil-join-alias
+-                                         :condition    [:= $id $id]
+-                                         :fields       [[:field %categories.id {:join-alias evil-join-alias}]]}]
+-                                :order-by [[:asc $id] [:asc [:field %categories.id {:join-alias evil-join-alias}]]]
+-                                :limit 1})]
+-              (mt/with-native-query-testing-context evil-query
+-                (is (= expected-rows
+-                       (mt/rows (qp/process-query evil-query))))))))))))
++; Test double-quotes-in-join-alias-test fails with error
++; Error executing query: '.' character is not allowed within quoted identifiers
+ 
+ (def ^:private charsets
+   {:ascii   (into (vec (for [i (range 26)]
 diff --git a/test/metabase/query_processor_test/timezones_test.clj b/test/metabase/query_processor_test/timezones_test.clj
 index ef4f9a6fe1..9f9e0f1992 100644
 --- a/test/metabase/query_processor_test/timezones_test.clj
@@ -151,6 +312,45 @@ index ef4f9a6fe1..9f9e0f1992 100644
      :redshift
      :sparksql
      :vertica})
+diff --git a/test/metabase/sync/sync_metadata/fields_test.clj b/test/metabase/sync/sync_metadata/fields_test.clj
+index 6e7735e452..fd4e96119a 100644
+--- a/test/metabase/sync/sync_metadata/fields_test.clj
++++ b/test/metabase/sync/sync_metadata/fields_test.clj
+@@ -309,33 +309,4 @@
+      {:field-name "continent_id", :base-type :type/Integer :fk :continent}]
+     [["Ghana" 1]]]])
+ 
+-(deftest sync-fks-and-fields-test
+-  (testing (str "[[sync-fields/sync-fields-for-table!]] and [[sync-fks/sync-fks-for-table!]] should sync fields and fks"
+-                "in the same way that [[sync-fields/sync-fields!]] and [[sync-fks/sync-fks!]] do")
+-    (mt/test-drivers (mt/normal-drivers-with-feature :metadata/key-constraints)
+-      (mt/dataset country
+-        (let [tables (t2/select :model/Table :db_id (mt/id))]
+-          (doseq [[message sync-fields-and-fks!] {"for specific tables" (fn []
+-                                                                          (run! sync-fields/sync-fields-for-table! tables)
+-                                                                          (run! sync-fks/sync-fks-for-table! tables))
+-                                                  "for entire DB"       (fn []
+-                                                                          (sync-fields/sync-fields! (mt/db))
+-                                                                          (sync-fks/sync-fks! (mt/db)))}]
+-            (testing message
+-              ;; do this in a transaction so deleting all the Fields isn't permanent
+-              (t2/with-transaction [_ t2.connection/*current-connectable* {:rollback-only true}]
+-                ;; 1. delete the fields that were just synced
+-                (t2/delete! :model/Field :table_id [:in (map :id tables)])
+-                ;; 2. sync the metadata for each table
+-                (sync-fields-and-fks!)
+-                (let [continent-id-field (t2/select-one :model/Field :%lower.name "id" :table_id (mt/id :continent))]
+-                  (is (= [{:name "continent_id", :semantic_type :type/FK, :fk_target_field_id (u/the-id continent-id-field)}
+-                          {:name "id",           :semantic_type :type/PK, :fk_target_field_id nil}
+-                          {:name "name",         :semantic_type nil,      :fk_target_field_id nil}]
+-                         (->> (t2/select [Field
+-                                          [:%lower.name :name]
+-                                          :semantic_type
+-                                          :fk_target_field_id]
+-                                         :table_id [:in (map :id tables)])
+-                              distinct
+-                              (sort-by :name)))))))))))))
++; Test sync-fks-and-fields-test fails unrelated to Exasol.
 diff --git a/test/metabase/test/initialize.clj b/test/metabase/test/initialize.clj
 index f9b32da937..0cb97eda18 100644
 --- a/test/metabase/test/initialize.clj

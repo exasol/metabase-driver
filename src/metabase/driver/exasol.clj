@@ -66,7 +66,13 @@
                               :describe-fks           true
                               :test/time-type         false
                               :test/timestamptz-type  false
-                              }]
+                              ; Test metabase.query-processor-test.alternative-date-test/iso-8601-text-fields-should-be-queryable-datetime-test fails with error
+                              ; clojure.lang.ExceptionInfo: Error preparing statement: Feature not supported: SQL-Type TIME [line 2, column 256]
+                              ::iso-8601-test-fields-are-queryable false
+                              ; Test metabase.query-processor-test.parameters-test/better-error-when-parameter-mismatch fails with error
+                              ; Error preparing statement: object VENUES not found [line 4, column 2] (Session: 1839241727755943936) {:driver :exasol, :type :driver, :sql ["-- Metabase" "SELECT" "  *" "FROM" "  -- ?" "  VENUES" "WHERE" "  ? = price"], :params ["foobar" "foobar"]}>
+                              ; Exasol JDBC driver seems to have problems with ParameterMetadata.getParameterCount()
+                              ::get-parameter-count false}]
   (defmethod driver/database-supports? [:exasol feature] [_ _ _] supported?))
 
 (defmethod sql.qp/quote-style :exasol
