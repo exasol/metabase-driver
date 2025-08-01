@@ -65,7 +65,8 @@
                               :metadata/keys-constraints true
                               :describe-fks           true
                               :test/time-type         false
-                              :test/timestamptz-type  false}]
+                              :test/timestamptz-type  false
+                              :test/cannot-destroy-db false}]
   (defmethod driver/database-supports? [:exasol feature] [_ _ _] supported?))
 
 (defmethod sql.qp/quote-style :exasol
