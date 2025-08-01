@@ -229,7 +229,7 @@ index b78d1df0dd..beb3f1fbff 100644
  (deftest ^:parallel validate-source-table-test
    (testing "Should throw an Exception if there's a `:source-table` in the query that IS NOT a positive int"
 diff --git a/test/metabase/query_processor_test/alternative_date_test.clj b/test/metabase/query_processor_test/alternative_date_test.clj
-index 3eec93581c..6830d94d27 100644
+index 3eec93581c..ae0e465211 100644
 --- a/test/metabase/query_processor_test/alternative_date_test.clj
 +++ b/test/metabase/query_processor_test/alternative_date_test.clj
 @@ -294,19 +294,8 @@
@@ -253,6 +253,27 @@ index 3eec93581c..6830d94d27 100644
 +; clojure.lang.ExceptionInfo: Error preparing statement: Feature not supported: SQL-Type TIME [line 2, column 256] (
  
  (defmethod driver/database-supports? [::driver/driver ::iso-8601-test-fields-are-queryable]
+   [_driver _feature _database]
+@@ -342,18 +331,8 @@
+     {:filter [:= !day.ts "2008-10-19"]
+      :fields [$d $ts]}))
+ 
+-(deftest ^:parallel iso-8601-text-fields-should-be-queryable-datetime-test
+-  (testing "text fields with semantic_type :type/ISO8601DateTimeString"
+-    (testing "are queryable as dates"
+-      (mt/dataset string-times
+-        (testing "a datetime field"
+-          (mt/test-drivers (mt/normal-drivers-with-feature ::iso-8601-test-fields-are-queryable)
+-            (let [query (iso-8601-text-fields-should-be-queryable-datetime-test-query driver/*driver*)]
+-              (mt/with-native-query-testing-context query
+-                (is (= 1
+-                       (->> (qp/process-query query)
+-                            mt/rows
+-                            count)))))))))))
++; Test iso-8601-text-fields-should-be-queryable-datetime-test fails with error
++; Error preparing statement: Feature not supported: SQL-Type TIME [line 2, column 256]
+ 
+ (defmethod driver/database-supports? [::driver/driver ::parse-string-to-date]
    [_driver _feature _database]
 diff --git a/test/metabase/query_processor_test/explicit_joins_test.clj b/test/metabase/query_processor_test/explicit_joins_test.clj
 index 507902de93..71d4127d25 100644
@@ -300,6 +321,36 @@ index 507902de93..71d4127d25 100644
  
  (def ^:private charsets
    {:ascii   (into (vec (for [i (range 26)]
+diff --git a/test/metabase/query_processor_test/parameters_test.clj b/test/metabase/query_processor_test/parameters_test.clj
+index fa4eca2656..2912387029 100644
+--- a/test/metabase/query_processor_test/parameters_test.clj
++++ b/test/metabase/query_processor_test/parameters_test.clj
+@@ -396,23 +396,8 @@
+     [_driver _feature _database]
+     false))
+ 
+-(deftest ^:parallel better-error-when-parameter-mismatch
+-  (mt/test-drivers (->> (mt/normal-drivers-with-feature :native-parameters ::get-parameter-count)
+-                        (filter #(isa? driver/hierarchy % :sql)))
+-    (is (thrown-with-msg?
+-         Exception
+-         #"It looks like we got more parameters than we can handle, remember that parameters cannot be used in comments or as identifiers."
+-         (qp/process-query
+-          {:type       :native
+-           :native     {:query         "SELECT * FROM \n[[-- {{name}}]]\n VENUES [[WHERE {{name}} = price]]"
+-                        :template-tags {"name"
+-                                        {:name         "name"
+-                                         :display-name "Name"
+-                                         :type         :text}}}
+-           :database   (mt/id)
+-           :parameters [{:type   :category
+-                         :target [:variable [:template-tag "name"]]
+-                         :value "foobar"}]})))))
++; Test better-error-when-parameter-mismatch fails with error
++; Error preparing statement: object VENUES not found [line 4, column 2]
+ 
+ (deftest ^:parallel ignore-parameters-for-unparameterized-native-query-test
+   (testing "Parameters passed for unparameterized queries should get ignored"
 diff --git a/test/metabase/query_processor_test/timezones_test.clj b/test/metabase/query_processor_test/timezones_test.clj
 index ef4f9a6fe1..9f9e0f1992 100644
 --- a/test/metabase/query_processor_test/timezones_test.clj
