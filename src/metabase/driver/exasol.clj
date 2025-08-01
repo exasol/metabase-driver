@@ -14,7 +14,6 @@
             [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
             [metabase.driver.sql.query-processor :as sql.qp]
             [metabase.driver.sql.query-processor.empty-string-is-null :as sql.qp.empty-string-is-null]
-            [metabase.driver.sql.util.unprepare :as unprepare]
             [metabase.util.honey-sql-2 :as h2x]
             [metabase.util.i18n :refer [trs]])
   (:import (java.sql Connection)))
@@ -328,11 +327,11 @@
   #{"EXA_STATISTICS"
     "SYS"})
 
-(defmethod unprepare/unprepare-value [:exasol java.time.OffsetDateTime]
+(defmethod sql.qp/inline-value [:exasol java.time.OffsetDateTime]
   [_ t]
   (format "timestamp '%s'" (t/format "yyyy-MM-dd HH:mm:ss.SSS" t)))
 
-(defmethod unprepare/unprepare-value [:exasol java.time.ZonedDateTime]
+(defmethod sql.qp/inline-value [:exasol java.time.ZonedDateTime]
   [_ t]
   (format "timestamp '%s'" (t/format "yyyy-MM-dd HH:mm:ss.SSS" t)))
 

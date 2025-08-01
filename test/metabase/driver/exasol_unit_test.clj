@@ -10,7 +10,6 @@
             [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
             [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
             [metabase.driver.sql.query-processor :as sql.qp]
-            [metabase.driver.sql.util.unprepare :as unprepare]
             [metabase.util.honey-sql-2 :as h2x]))
 
 (set! *warn-on-reflection* true)
@@ -161,11 +160,11 @@
     (is (and (contains? excluded-schemas "EXA_STATISTICS")
              (contains? excluded-schemas "SYS")))))
 
-(deftest unprepare-value-test
+(deftest inline-value-test
   (doseq [[value expected] [[(java.time.OffsetDateTime/parse "2007-12-03T10:15:30+01:00") "timestamp '2007-12-03 10:15:30.000'"]
                             [(java.time.ZonedDateTime/parse "2007-12-03T10:15:30+01:00[Europe/Paris]") "timestamp '2007-12-03 10:15:30.000'"]]]
-    (testing (format "Unprepare %s" (.getClass value))
-      (is (= expected (unprepare/unprepare-value :exasol value))))))
+    (testing (format "Inline %s" (.getClass value))
+      (is (= expected (sql.qp/inline-value :exasol value))))))
 
 (deftest get-driver-version-test
   (testing "Reading driver version from non existing resource returns nil"
