@@ -62,8 +62,10 @@
                               :nested-field-columns   false
                               :schemas                true
                               :uploads                false
-                              :foreign-keys           true
+                              :metadata/keys-constraints true
                               :describe-fks           true
+                              :test/time-type         false
+                              :test/timestamptz-type  false
                               }]
   (defmethod driver/database-supports? [:exasol feature] [_ _ _] supported?))
 
@@ -335,7 +337,7 @@
   [_ t]
   (format "timestamp '%s'" (t/format "yyyy-MM-dd HH:mm:ss.SSS" t)))
 
-; Required to support features :foreign-keys and :describe-fks
+; Required to support features :metadata/keys-constraints and :describe-fks
 (defmethod sql-jdbc.sync/describe-fks-sql :exasol
   [driver & {:keys [schema-names table-names]}]
   (sql/format {:select [[:c.REFERENCED_SCHEMA :pk-table-schema]

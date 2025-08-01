@@ -33,10 +33,6 @@
 
 (defmethod tx/sorts-nil-first? :exasol [_ _] false)
 
-(defmethod tx/supports-time-type? :exasol [_] false)
-
-(defmethod tx/supports-timestamptz-type? :exasol [_] false)
-
 (defonce ^:private number-column-type
   "DECIMAL(36,0)")
 
@@ -81,9 +77,9 @@
 
 (defmethod tx/id-field-type :exasol [_] :type/Decimal)
 
-(defmethod load-data/load-data! :exasol
-  [driver dbdef tabledef]
-  (load-data/load-data-maybe-add-ids-chunked! driver dbdef tabledef))
+(defmethod load-data/row-xform :exasol
+  [_driver _dbdef tabledef]
+  (load-data/maybe-add-ids-xform tabledef))
 
 (defn- dbspec [& _]
   (sql-jdbc.conn/connection-details->spec :exasol (connection-details)))
