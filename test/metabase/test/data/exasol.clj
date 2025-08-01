@@ -137,6 +137,25 @@
     (when (#{:count :cum-count} ag-type)
       {:base_type :type/Decimal}))))
 
+(defmethod tx/dataset-already-loaded? :exasol
+  [driver dbdef]
+  ;; check and make sure the first table in the dbdef has been created.
+  (let [tabledef       (first (:table-definitions dbdef))
+        ;; table-name should be something like test_data_venues
+        table-name     (tx/db-qualified-table-name (:database-name dbdef) (:table-name tabledef))]
+    (sql-jdbc.execute/do-with-connection-with-options
+     driver
+     (sql-jdbc.conn/connection-details->spec driver (connection-details))
+     {:write? false}
+     (fn [^java.sql.Connection conn]
+       (with-open [rset (.getTables (.getMetaData conn)
+                                    #_catalog        nil
+                                    #_schema-pattern session-schema
+                                    #_table-pattern  table-name
+                                    #_types          (into-array String ["TABLE"]))]
+         ;; if the ResultSet returns anything we know the table is already loaded.
+         (.next rset))))))
+
 ; Exasol does not allow creating or dropping databases, there is only one DB called "exasol-db"
 (defmethod sql.tx/drop-db-if-exists-sql :exasol [& _] nil)
 (defmethod sql.tx/create-db-sql         :exasol [& _] nil)
