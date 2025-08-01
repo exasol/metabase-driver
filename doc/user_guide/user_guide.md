@@ -14,9 +14,17 @@ To install the Exasol driver follow these steps:
 
 1. Download the latest Exasol JDBC driver for your operating system from the [Exasol download page](https://www.exasol.com/portal/display/DOWNLOAD/).
 2. Copy the Exasol JDBC driver `exajdbc.jar` to `$METABASE_DIR/plugins`.
-3. Download the latest Exasol Metabase driver from the [GitHub release page](https://github.com/exasol/metabase-driver/releases).
+3. Download the latest Exasol Metabase driver from the [GitHub release page](https://github.com/exasol/metabase-driver/releases) that supports your Metabase version.
 4. Copy the Exasol Metabase driver `exasol.metabase-driver_<version>.jar` to `$METABASE_DIR/plugins`.
 5. Restart the Metabase server.
+
+### Supported Metabase Versions
+
+Metabase Version | Exasol Metabase Driver Version
+-----------------|-------------------------------
+v0.48.0          | 1.0.7
+v0.50.36         | 1.0.8
+v0.51.9.5        | 1.0.9
 
 ### Upgrading the Driver
 
@@ -150,7 +158,7 @@ The Exasol driver will log it's version and the Exasol JDBC driver's version whe
 This will load the Exasol driver and print a message like this to the log:
 
 ```
-2022-01-18 10:55:38,634 INFO driver.exasol :: Loading Exasol Metabase driver 0.2.0, Exasol JDBC driver: 7.1.4
+INFO driver.exasol :: Loading Exasol Metabase driver 1.0.7, Exasol JDBC driver: 25.2.4
 ```
 
 ### Exasol JDBC Driver Not Available
@@ -158,10 +166,10 @@ This will load the Exasol driver and print a message like this to the log:
 If Database Type "Exasol" is not available in the "Add Database" dialog and Metabase logs the following message at startup, the Exasol JDBC driver is not available.
 
 ```
-2022-05-30 09:50:38,237 INFO plugins.dependencies :: Metabase cannot initialize plugin Metabase Exasol Driver due to required dependencies. Metabase requires the Exasol JDBC driver in order to connect to Exasol databases, but we can't ship it as part of the driver due to licensing restrictions. See https://github.com/exasol/metabase-driver for more details.
+INFO plugins.dependencies :: Metabase cannot initialize plugin Metabase Exasol Driver due to required dependencies. Metabase requires the Exasol JDBC driver in order to connect to Exasol databases, but we can't ship it as part of the driver due to licensing restrictions. See https://github.com/exasol/metabase-driver for more details.
 
-2022-05-30 09:50:38,237 INFO plugins.dependencies :: Metabase Exasol Driver dependency {:class com.exasol.jdbc.EXADriver} satisfied? false
-2022-05-30 09:50:38,237 INFO plugins.dependencies :: Plugins with unsatisfied deps: ["Metabase Exasol Driver"]
+INFO plugins.dependencies :: Metabase Exasol Driver dependency {:class com.exasol.jdbc.EXADriver} satisfied? false
+INFO plugins.dependencies :: Plugins with unsatisfied deps: ["Metabase Exasol Driver"]
 ```
 
 Please download the latest Exasol JDBC driver from the [Exasol download page](https://www.exasol.com/portal/display/DOWNLOAD/) and copy `exajdbc.jar` to `$METABASE_DIR/plugins`.
@@ -171,7 +179,7 @@ Please download the latest Exasol JDBC driver from the [Exasol download page](ht
 If you can't open an Exasol database in Metabase and Metabase outputs the following log messages:
 
 ```
-2022-05-30 09:51:49,181 ERROR driver.impl :: Error loading driver namespace
+ERROR driver.impl :: Error loading driver namespace
 clojure.lang.ExceptionInfo: Could not locate metabase/driver/exasol__init.class, metabase/driver/exasol.clj or metabase/driver/exasol.cljc on classpath. {:classloader #object[clojure.lang.DynamicClassLoader 0x2b6a0ea9 "clojure.lang.DynamicClassLoader@2b6a0ea9"], :classpath-urls (), :system-classpath ("metabase.jar")}
 ```
 
@@ -180,7 +188,7 @@ then please check if both the Exasol JDBC driver (`exajdbc.jar`) and the Exasol 
 ### Error Running Step `sync-fks`
 
 ```
-2025-07-31 15:03:46,666 WARN sync.util :: Error running step ''sync-fks'' for exasol Database 3 ''Exasol DB''
+WARN sync.util :: Error running step ''sync-fks'' for exasol Database 3 ''Exasol DB''
 clojure.lang.ExceptionInfo: Error preparing statement: insufficient privileges for accessing view EXA_DBA_CONSTRAINT_COLUMNS (Session: 1839167686659604481) {:driver :exasol, :type :driver, :sql ["SELECT" "  \"c\".\"REFERENCED_SCHEMA\" \"pk-table-schema\"," "  \"c\".\"REFERENCED_TABLE\" \"pk-table-name\"," "  \"c\".\"REFERENCED_COLUMN\" \"pk-column-name\"," "  \"c\".\"CONSTRAINT_SCHEMA\" \"fk-table-schema\"," "  \"c\".\"CONSTRAINT_TABLE\" \"fk-table-name\"," "  \"c\".\"COLUMN_NAME\" \"fk-column-name\"" "FROM" "  \"SYS\".\"EXA_DBA_CONSTRAINT_COLUMNS\" \"c\"" "WHERE" "  (\"c\".\"CONSTRAINT_TYPE\" = 'FOREIGN KEY')" "  AND (\"c\".\"REFERENCED_SCHEMA\" IS NOT NULL)" "  AND (\"c\".\"CONSTRAINT_SCHEMA\" IN (?, ?, ?, ?, ?, ?, ?))" "ORDER BY" "  \"fk-table-schema\" ASC," "  \"fk-table-name\" ASC"], :params ("MY_SCHEMA" "MY_SCHEMA_2)}
 ```
 
