@@ -176,3 +176,12 @@ clojure.lang.ExceptionInfo: Could not locate metabase/driver/exasol__init.class,
 ```
 
 then please check if both the Exasol JDBC driver (`exajdbc.jar`) and the Exasol driver (`exasol.metabase-driver.jar`) are installed in the `plugins` directory and restart Metabase.
+
+### Error Running Step `sync-fks`
+
+```
+2025-07-31 15:03:46,666 WARN sync.util :: Error running step ''sync-fks'' for exasol Database 3 ''Exasol DB''
+clojure.lang.ExceptionInfo: Error preparing statement: insufficient privileges for accessing view EXA_DBA_CONSTRAINT_COLUMNS (Session: 1839167686659604481) {:driver :exasol, :type :driver, :sql ["SELECT" "  \"c\".\"REFERENCED_SCHEMA\" \"pk-table-schema\"," "  \"c\".\"REFERENCED_TABLE\" \"pk-table-name\"," "  \"c\".\"REFERENCED_COLUMN\" \"pk-column-name\"," "  \"c\".\"CONSTRAINT_SCHEMA\" \"fk-table-schema\"," "  \"c\".\"CONSTRAINT_TABLE\" \"fk-table-name\"," "  \"c\".\"COLUMN_NAME\" \"fk-column-name\"" "FROM" "  \"SYS\".\"EXA_DBA_CONSTRAINT_COLUMNS\" \"c\"" "WHERE" "  (\"c\".\"CONSTRAINT_TYPE\" = 'FOREIGN KEY')" "  AND (\"c\".\"REFERENCED_SCHEMA\" IS NOT NULL)" "  AND (\"c\".\"CONSTRAINT_SCHEMA\" IN (?, ?, ?, ?, ?, ?, ?))" "ORDER BY" "  \"fk-table-schema\" ASC," "  \"fk-table-name\" ASC"], :params ("MY_SCHEMA" "MY_SCHEMA_2)}
+```
+
+Metabase logs this warning when the Exasol user for connecting to the database does not have permissions for reading view `SYS.EXA_DBA_CONSTRAINT_COLUMNS`. Metabase will also work without these permissions, but to benefit from information about foreign keys you should [grant](https://docs.exasol.com/db/latest/sql/grant.htm) the required permissions to the user.

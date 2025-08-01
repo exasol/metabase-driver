@@ -36,24 +36,35 @@ clojure -M --eval "(clojure-version)"
 clojure --version
 ```
 
+### Verify Correct Java Version
+
+Metabase uses Java 11 by default. Check which Java version is used by Clojure:
+
+```sh
+clojure -M --eval '(println "Java" (System/getProperty "java.version") "Clojure" (clojure-version))'
+# Only major java version:
+clojure -M --eval '(println (. (Runtime/version) major))'
+```
+
+If this reports another Java version, update `JAVA_HOME` and check again.
+
 ## Setup Development Environment
 
 1. Checkout Metabase at `$HOME/git/metabase` (= `$METABASE_DIR`) and build it:
 
     ```sh
-    cd $HOME/git
-    git clone https://github.com/metabase/metabase.git
-    cd metabase
-    git fetch --all --tags
-    export METABASE_VERSION=v0.48.0
-    git reset --hard
-    rm -vf target/patch_excluded_test_applied
-    git checkout "tags/${METABASE_VERSION}" -b "${METABASE_VERSION}-branch"
+    export METABASE_DIR=$HOME/git/metabase
+    export METABASE_VERSION=v0.50.36
+    git clone https://github.com/metabase/metabase.git $METABASE_DIR
+    git -C $METABASE_DIR fetch --all --tags
+    git -C $METABASE_DIR reset --hard
+    rm -vf $METABASE_DIR/target/patch_excluded_test_applied
+    git -C $METABASE_DIR checkout "tags/${METABASE_VERSION}" -b "${METABASE_VERSION}-branch"
     # Build (this will take ~15min)
-    ./bin/build.sh
+    $METABASE_DIR/bin/build.sh
     ```
 
-2. Download the Exasol JDBC driver from the [Download Portal](https://downloads.exasol.com/clients-and-drivers) and install it:
+2. Download the Exasol JDBC driver from the [Download Portal](https://downloads.exasol.com/clients-and-drivers) or get it from `~/.m2/repository/com/exasol/exasol-jdbc/$v/exasol-jdbc-$v.jar` and install it:
 
     ```sh
     cp exajdbc.jar "$METABASE_DIR/plugins"
@@ -119,7 +130,7 @@ export METABASE_EXASOL_DRIVER="$HOME/git/metabase-driver"
 cd $METABASE_EXASOL_DRIVER
 
 # Build driver
-clojure -X:build :project-dir "\"$(pwd)\""
+./scripts/build.sh
 
 # Install driver
 cp -v "$METABASE_EXASOL_DRIVER/target/exasol.metabase-driver.jar" "$METABASE_DIR/plugins/"
@@ -131,13 +142,21 @@ clojure -M:run
 
 ## Running Integration Tests
 
-You need to have metabase checked out next to this repository.
+### Preconditions
 
-Start Exasol docker container:
+* You need to have metabase checked out next to this repository.
 
-```sh
-docker run --publish 8563:8563 --publish 2580:2580 --publish 443:443 --detach --privileged --stop-timeout 120 exasol/docker-db:7.1.23
-```
+* Start Exasol docker container:
+   ```sh
+   docker run --publish 8563:8563 --publish 2580:2580 --publish 443:443 --detach --privileged --stop-timeout 120 exasol/docker-db:8.34.0
+   ```
+
+* Build frontend code required for running integration tests:
+   ```sh
+   cd $METABASE_DIR && yarn build-static-viz
+   ```
+
+### Running
 
 Start integration tests:
 
@@ -150,9 +169,17 @@ This script builds and installs the driver before running the integration tests.
 To run only a single tests or only tests in a namespace add arguments:
 
 ```sh
+# Run single test
 ./scripts/run-integration-tests.sh :only name.space/single-test
+# Run all tests in a name space
 ./scripts/run-integration-tests.sh :only name.space
+# Run tests from multiple namespaces
+./scripts/run-integration-tests.sh :only "[name.space1 name.space2]"
 ```
+
+### Evaluating Test Results
+
+When tests fail locally or in CI, search the log output for `ERROR in` or `FAIL in` to find test errors/failures.
 
 ### Using the REPL
 
@@ -208,19 +235,20 @@ Script `run-integration-tests.sh` automatically applies this patch when file `$M
 When the patch file has changed or you updated to a new Metabase release, do the following and re-run the integration tests with `run-integration-tests.sh`.
 
 ```sh
-cd $METABASE_DIR
-git reset --hard && rm -vf target/patch_excluded_test_applied
+export METABASE_DIR="$HOME/git/metabase"
+git -C $METABASE_DIR reset --hard && rm -fv $METABASE_DIR/target/patch_excluded_test_applied
 ```
 
 #### Applying Patch Fails
 
 If applying the patch fails after upgrading to a new Metabase version, follow these steps:
 
-1. Run `cd $METABASE_DIR && git reset --hard && rm -vf target/patch_excluded_test_applied`
-2. Remove the failed part from `exclude_tests.diff`
-3. Run integration tests `run-integration-tests.sh`. This will apply the patch.
-4. Modify Metabase tests to adapt them to Exasol
-5. Update patch by running `cd $METABASE_DIR && git diff > $METABASE_EXASOL_DRIVER/scripts/exclude_tests.diff`
+1. Run `export METABASE_DIR="$HOME/git/metabase" && export METABASE_EXASOL_DRIVER="$HOME/git/metabase-driver"`
+2. Run `git -C $METABASE_DIR reset --hard && rm -vf $METABASE_DIR/target/patch_excluded_test_applied`
+3. Remove the failed part from `exclude_tests.diff`
+4. Run integration tests `run-integration-tests.sh`. This will apply the patch.
+5. Modify Metabase tests to adapt them to Exasol
+6. Update patch by running `git -C $METABASE_DIR diff > $METABASE_EXASOL_DRIVER/scripts/exclude_tests.diff`
 
 ## Linting
 
@@ -228,13 +256,27 @@ If applying the patch fails after upgrading to a new Metabase version, follow th
 clojure -M:clj-kondo --lint src test --debug
 ```
 
+# Building a Release
+
+Releases are built using [release-droid](https://github.com/exasol/release-droid).
+
 # Troubleshooting
 
-## `FileNotFoundException: Could not locate metabase/test/data/exasol__init.class, metabase/test/data/exasol.clj or metabase/test/data/exasol.cljc on classpath.`
-
-Verify that `$METABASE_DIR/modules/drivers/exasol` is a symlink to the `metabase-driver` directory.
-
 ## Failing Integration Tests
+
+### Error `Javascript resource not found`
+
+Tests fail with the following error
+
+```
+Javascript resource not found: frontend_client/app/dist/lib-static-viz.bundle.js
+```
+
+then run
+
+```sh
+cd $METABASE_DIR && yarn build-static-viz
+```
 
 ### Different Decimal Point
 
@@ -253,3 +295,33 @@ Solution: run tests under Linux with English locale or pass arguments `-J-Duser.
 ### Time Dependent Tests
 
 Some Metabase integration tests depend on the current timestamp and will fail when the year changes. See [issue #14](https://github.com/exasol/metabase-driver/issues/14) for details.
+
+### Inconsistent Test Results in CI and Locally
+
+If a tests fails in CI and succeeds locally or vice versa, ensure you have a clean working copy of `$METABASE_DIR`:
+
+```sh
+export METABASE_DIR="$HOME/git/metabase"
+git -C $METABASE_DIR clean --no-quiet --force -d -x
+# Rebuild UI, required by integration tests.
+cd $METABASE_DIR && yarn build-static-viz
+```
+
+This will delete all ignored files.
+
+## Timeout During Build of Metabase
+
+Metabase build using script `./bin/build.sh` fails with a timeout in `yarn`:
+
+```
+...
+        Step "$ \"yarn\"" failed with error "Timed out after 900000 ms."
+What would you like to do?
+[T]ry this step again
+[F]ail -- pass the failure of this step to the parent step (which can be retried)
+[S]kip this step
+[R]EPL -- open a REPL so you can debug things
+[Q]uit the build script (or return to the top level if running from the REPL) [T/F/S/R/Q] t
+```
+
+Type `t` to try again. It should work at a second try.

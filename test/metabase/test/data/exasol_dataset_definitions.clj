@@ -35,7 +35,7 @@
      [0 "winter" winter-timestamp  winter-timestamp  winter-timestamp]
      [1 "summer" summer-timestamp  summer-timestamp  summer-timestamp]]]]))
 
-(tx/defdataset one-timestamp-per-day
+(tx/defdataset one-ts-per-day ; Dataset name + table name must be shorter than 30 chars, see assertion in metabase.test.data.interface/db-qualified-table-name
   "Test data for week aggregation bug https://github.com/exasol/metabase-driver/issues/59"
   (let [timestamps (map #(.plus (java.time.Instant/parse "2022-12-01T12:00:00.000Z") ^int % java.time.temporal.ChronoUnit/DAYS) (range 0 70))
         rows (map (fn [timestamp] [timestamp]) timestamps)]

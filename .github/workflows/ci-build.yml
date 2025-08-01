@@ -15,7 +15,7 @@ jobs:
       cancel-in-progress: true
     runs-on: ubuntu-latest
     env:
-      METABASE_TAG: v0.48.0
+      METABASE_TAG: v0.50.36
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
@@ -34,16 +34,16 @@ jobs:
       - name: Set up JDK 11
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: 'temurin'
           java-version: 11
 
       - name: Install clojure tools
-        uses: DeLaGuardo/setup-clojure@12.1
+        uses: DeLaGuardo/setup-clojure@13.4
         with:
           cli: '1.11.1.1262'
 
       - name: Cache Maven repository
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('metabase-driver/deps.edn', 'metabase/**/deps.edn') }}
@@ -51,7 +51,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Cache clj-kondo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: metabase-driver/.clj-kondo/.cache
           key: clj-kondo-cache-${{ hashFiles('metabase-driver/deps.edn') }}
@@ -62,6 +62,7 @@ jobs:
         run: |
           java --version
           echo Clojure: $(clojure -M --eval "(clojure-version)")
+          clojure -M --eval '(println "Java" (System/getProperty "java.version") "Clojure" (clojure-version))'
           clojure --version
           cd metabase-driver && clojure -M:clj-kondo --version
 

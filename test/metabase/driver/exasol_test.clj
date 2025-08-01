@@ -16,7 +16,7 @@
   (testing "Getting JDBC driver version succeeds"
     (is (not (str/blank? (exasol/get-jdbc-driver-version)))))
   (testing "Getting JDBC driver version returns expected value"
-    (is (= "7.1.20" (exasol/get-jdbc-driver-version)))))
+    (is (= "25.2.4" (exasol/get-jdbc-driver-version)))))
 
 (deftest text-equals-empty-string-test
   (mt/test-driver :exasol
@@ -206,7 +206,7 @@
   (testing "Verify that week aggregation correctly uses 'Start of week' setting"
     ; 2023-01-01 is a Sunday, 2023-01-02 is a Monday
     (mt/test-drivers #{:exasol}
-                     (mt/dataset exasol-dataset/one-timestamp-per-day
+                     (mt/dataset exasol-dataset/one-ts-per-day
                                  (letfn [(test-break-out [unit start-of-week-setting]
                                            (mt/with-temporary-setting-values [start-of-week start-of-week-setting]
                                              (->> (mt/mbql-query timestamps

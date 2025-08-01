@@ -39,13 +39,15 @@
 
 (def ^:private unsupported-features [:nested-fields :nested-field-columns :persist-models :persist-models-enabled :actions :actions/custom :convert-timezone :datetime-diff :now
                                      :native-requires-specified-collection :connection-impersonation :connection-impersonation-requires-role
-                                     :uploads :table-privileges])
+                                     :uploads :table-privileges
+                                     ; New in v0.50.x
+                                     :index-info :connection/multiple-databases :describe-fields :identifiers-with-spaces :uuid-type :temporal/requires-default-unit])
 
 (deftest database-supports?-test
   (testing "Driver supports setting timezone"
     (is (= true (driver/database-supports? :exasol :set-timezone nil))))
   (testing "Supported features"
-    (doseq [feature (apply disj driver/driver-features unsupported-features)]
+    (doseq [feature (apply disj driver/features unsupported-features)]
       (testing (format "Driver supports feature %s" feature)
         (is (= true (driver/database-supports? :exasol feature nil))))))
   (testing "Unsupported features"
@@ -90,9 +92,9 @@
 (deftest date-test
   (let [value :dummy-value]
     (doseq [[type expected] [[:minute          (sql/call :trunc (h2x/->timestamp value) (h2x/literal "mi"))]
-                             [:minute-of-hour  (sql/call :metabase.util.honey-sql-2/extract :minute [:metabase.util.honey-sql-2/typed (sql/call :cast value [:raw "timestamp"]) {:metabase.util.honeysql-extensions/database-type "timestamp"}])]
+                             [:minute-of-hour  (sql/call :metabase.util.honey-sql-2/extract :minute [:metabase.util.honey-sql-2/typed (sql/call :cast value [:raw "timestamp"]) {:database-type "timestamp"}])]
                              [:hour            (sql/call :trunc (h2x/->timestamp value) (h2x/literal "hh"))]
-                             [:hour-of-day     (sql/call :metabase.util.honey-sql-2/extract :hour [:metabase.util.honey-sql-2/typed (sql/call :cast value  [:raw "timestamp"]) {:metabase.util.honeysql-extensions/database-type "timestamp"}])]
+                             [:hour-of-day     (sql/call :metabase.util.honey-sql-2/extract :hour [:metabase.util.honey-sql-2/typed (sql/call :cast value  [:raw "timestamp"]) {:database-type "timestamp"}])]
                              [:day             (sql/call :trunc (h2x/->date value) (h2x/literal "dd"))]
                              [:day-of-month    (sql/call :metabase.util.honey-sql-2/extract :day (h2x/->timestamp value))]
                              [:month           (sql/call :trunc (h2x/->date value) (h2x/literal "month"))]
@@ -103,36 +105,22 @@
                              [:week-of-year    (sql/call :ceil (sql/call :/ (sql/call :+ (sql/call :- (sql/call :to_date (sql/call :trunc (h2x/->date (sql/call :trunc (h2x/->date value) (h2x/literal "day"))) (h2x/literal "dd"))) (sql/call :to_date (sql/call :trunc (h2x/->date (sql/call :trunc (h2x/->date value) (h2x/literal "day"))) (h2x/literal "year")))) [:inline 1]) [:inline 7]))]
                              [:day-of-year     (sql/call :+ (sql/call :- (sql/call :to_date (sql/call :trunc (h2x/->date value) (h2x/literal "dd"))) (sql/call :to_date (sql/call :trunc (h2x/->date value) (h2x/literal "year")))) [:inline 1])]
                              [:quarter-of-year (sql/call :/ (sql/call :+ (sql/call :metabase.util.honey-sql-2/extract :month (h2x/->timestamp (sql/call :trunc (h2x/->date value) (h2x/literal "q")))) [:inline 2]) [:inline 3])]
-                             [:day-of-week     [:metabase.util.honey-sql-2/typed (sql/call :cast (sql/call :to_char (h2x/->timestamp value) (h2x/literal "d")) [:raw "integer"]) {:metabase.util.honeysql-extensions/database-type "integer"}]]]]
+                             [:day-of-week     [:metabase.util.honey-sql-2/typed (sql/call :cast (sql/call :to_char (h2x/->timestamp value) (h2x/literal "d")) [:raw "integer"]) {:database-type "integer"}]]]]
       (testing (format "Date function %s" type)
         (is (= expected (sql.qp/date :exasol type value)))))))
 
 (deftest current-datetime-honeysql-form-test
-  (is (= [:metabase.util.honey-sql-2/typed [:raw "SYSTIMESTAMP"] {:metabase.util.honeysql-extensions/database-type "timestamp"}]
+  (is (= [:metabase.util.honey-sql-2/typed [:raw "SYSTIMESTAMP"] {:database-type "timestamp"}]
          (sql.qp/current-datetime-honeysql-form :exasol))))
 
 (deftest regex-match-first->honeysql-test
   (testing :regex-match-first
     (is (= (sql/call :regexp_substr "arg" "pattern") (sql.qp/->honeysql :exasol [:regex-match-first "arg" "pattern"])))))
 
-(deftest substring->honeysql-test
-  (testing "substring without length argument"
-    (is (= #honeysql.types.SqlCall {:args ["arg" 4], :name :substring} (sql.qp/->honeysql :exasol [:substring "arg" 4]))))
-  (testing "substring with length argument"
-    (is (= #honeysql.types.SqlCall {:args ["arg" 4 6], :name :substring} (sql.qp/->honeysql :exasol [:substring "arg" 4 6])))))
-
-(deftest concat->honeysql-test
-  (testing "concat with single argument"
-    (is (=  #honeysql.types.SqlCall {:args ["arg1"], :name :concat} (sql.qp/->honeysql :exasol [:concat "arg1"]))))
-  (testing "concat with two arguments"
-    (is (=  #honeysql.types.SqlCall {:args ["arg1" "arg2"], :name :concat} (sql.qp/->honeysql :exasol [:concat "arg1" "arg2"]))))
-  (testing "concat with three arguments"
-    (is (=  #honeysql.types.SqlCall {:args ["arg1" "arg2" "arg3"], :name :concat} (sql.qp/->honeysql :exasol [:concat "arg1" "arg2" "arg3"])))))
-
 (deftest add-interval-honeysql-form-test
   (let [hsql-form (h2x/literal "5")
         amount 42
-        timestamp-form  [:metabase.util.honey-sql-2/typed (sql/call :cast hsql-form [:raw "timestamp"]) {:metabase.util.honeysql-extensions/database-type "timestamp"}]]
+        timestamp-form  [:metabase.util.honey-sql-2/typed (sql/call :cast hsql-form [:raw "timestamp"]) {:database-type "timestamp"}]]
     (doseq [[unit expected expected-type] [[:second  (sql/call :+ timestamp-form (sql/call :numtodsinterval [:inline amount] (h2x/literal "second"))) "timestamp"]
                                            [:minute  (sql/call :+ timestamp-form (sql/call :numtodsinterval [:inline amount] (h2x/literal "minute"))) "timestamp"]
                                            [:hour    (sql/call :+ timestamp-form (sql/call :numtodsinterval [:inline amount] (h2x/literal "hour"))) "timestamp"]
@@ -142,7 +130,7 @@
                                            [:quarter (sql/call :+ timestamp-form (sql/call :numtoyminterval (sql/call :* [:inline amount] [:inline 3]) (h2x/literal "month"))) "timestamp"]
                                            [:year    (sql/call :+ timestamp-form (sql/call :numtoyminterval [:inline amount] (h2x/literal "year"))) "timestamp"]]]
       (testing (format "Add interval with unit %s" unit)
-        (let [complete-expected [:metabase.util.honey-sql-2/typed expected #:metabase.util.honeysql-extensions{:database-type expected-type}]]
+        (let [complete-expected [:metabase.util.honey-sql-2/typed expected {:database-type expected-type}]]
           (is (= complete-expected
                  (sql.qp/add-interval-honeysql-form :exasol hsql-form [:inline amount] unit))))))))
 
@@ -203,3 +191,25 @@
                                          "Unknown error messages are unchanged"]
                                         [nil nil]]]
       (is (= expected-message (driver/humanize-connection-error-message :exasol message))))))
+
+(deftest describe-fks-sql-test
+  (testing "Driver generates correct SQL statement for retrieving foreign keys without filter"
+    (is (= ["SELECT \"c\".\"REFERENCED_SCHEMA\" \"pk-table-schema\", \"c\".\"REFERENCED_TABLE\" \"pk-table-name\", \"c\".\"REFERENCED_COLUMN\" \"pk-column-name\", \"c\".\"CONSTRAINT_SCHEMA\" \"fk-table-schema\", \"c\".\"CONSTRAINT_TABLE\" \"fk-table-name\", \"c\".\"COLUMN_NAME\" \"fk-column-name\" FROM \"SYS\".\"EXA_DBA_CONSTRAINT_COLUMNS\" \"c\" WHERE (\"c\".\"CONSTRAINT_TYPE\" = 'FOREIGN KEY') AND (\"c\".\"REFERENCED_SCHEMA\" IS NOT NULL) ORDER BY \"fk-table-schema\" ASC, \"fk-table-name\" ASC"]
+           (sql-jdbc.sync/describe-fks-sql :exasol))))
+  (testing "Driver generates correct SQL statement for retrieving foreign keys with schema filter"
+    (is (= ["SELECT \"c\".\"REFERENCED_SCHEMA\" \"pk-table-schema\", \"c\".\"REFERENCED_TABLE\" \"pk-table-name\", \"c\".\"REFERENCED_COLUMN\" \"pk-column-name\", \"c\".\"CONSTRAINT_SCHEMA\" \"fk-table-schema\", \"c\".\"CONSTRAINT_TABLE\" \"fk-table-name\", \"c\".\"COLUMN_NAME\" \"fk-column-name\" FROM \"SYS\".\"EXA_DBA_CONSTRAINT_COLUMNS\" \"c\" WHERE (\"c\".\"CONSTRAINT_TYPE\" = 'FOREIGN KEY') AND (\"c\".\"REFERENCED_SCHEMA\" IS NOT NULL) AND (\"c\".\"CONSTRAINT_SCHEMA\" IN (?, ?)) ORDER BY \"fk-table-schema\" ASC, \"fk-table-name\" ASC"
+            "sch1"
+            "sch2"]
+           (sql-jdbc.sync/describe-fks-sql :exasol {:schema-names ["sch1" "sch2"]}))))
+  (testing "Driver generates correct SQL statement for retrieving foreign keys with table filter"
+    (is (= ["SELECT \"c\".\"REFERENCED_SCHEMA\" \"pk-table-schema\", \"c\".\"REFERENCED_TABLE\" \"pk-table-name\", \"c\".\"REFERENCED_COLUMN\" \"pk-column-name\", \"c\".\"CONSTRAINT_SCHEMA\" \"fk-table-schema\", \"c\".\"CONSTRAINT_TABLE\" \"fk-table-name\", \"c\".\"COLUMN_NAME\" \"fk-column-name\" FROM \"SYS\".\"EXA_DBA_CONSTRAINT_COLUMNS\" \"c\" WHERE (\"c\".\"CONSTRAINT_TYPE\" = 'FOREIGN KEY') AND (\"c\".\"REFERENCED_SCHEMA\" IS NOT NULL) AND (\"c\".\"CONSTRAINT_TABLE\" IN (?, ?)) ORDER BY \"fk-table-schema\" ASC, \"fk-table-name\" ASC"
+            "tab2"
+            "tab2"]
+           (sql-jdbc.sync/describe-fks-sql :exasol {:table-names ["tab2" "tab2"]}))))
+  (testing "Driver generates correct SQL statement for retrieving foreign keys with schema and table filter"
+    (is (= ["SELECT \"c\".\"REFERENCED_SCHEMA\" \"pk-table-schema\", \"c\".\"REFERENCED_TABLE\" \"pk-table-name\", \"c\".\"REFERENCED_COLUMN\" \"pk-column-name\", \"c\".\"CONSTRAINT_SCHEMA\" \"fk-table-schema\", \"c\".\"CONSTRAINT_TABLE\" \"fk-table-name\", \"c\".\"COLUMN_NAME\" \"fk-column-name\" FROM \"SYS\".\"EXA_DBA_CONSTRAINT_COLUMNS\" \"c\" WHERE (\"c\".\"CONSTRAINT_TYPE\" = 'FOREIGN KEY') AND (\"c\".\"REFERENCED_SCHEMA\" IS NOT NULL) AND (\"c\".\"CONSTRAINT_SCHEMA\" IN (?, ?)) AND (\"c\".\"CONSTRAINT_TABLE\" IN (?, ?)) ORDER BY \"fk-table-schema\" ASC, \"fk-table-name\" ASC"
+            "sch1"
+            "sch2"
+            "tab2"
+            "tab2"]
+           (sql-jdbc.sync/describe-fks-sql :exasol {:schema-names ["sch1" "sch2"] :table-names ["tab2" "tab2"]})))))
