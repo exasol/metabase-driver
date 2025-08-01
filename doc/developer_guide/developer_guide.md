@@ -54,7 +54,7 @@ If this reports another Java version, update `JAVA_HOME` and check again.
 
     ```sh
     export METABASE_DIR=$HOME/git/metabase
-    export METABASE_VERSION=v0.50.36
+    export METABASE_VERSION=v0.51.9.5
     git clone https://github.com/metabase/metabase.git $METABASE_DIR
     git -C $METABASE_DIR fetch --all --tags
     git -C $METABASE_DIR reset --hard

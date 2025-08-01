@@ -14,7 +14,6 @@
             [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
             [metabase.driver.sql.query-processor :as sql.qp]
             [metabase.driver.sql.query-processor.empty-string-is-null :as sql.qp.empty-string-is-null]
-            [metabase.driver.sql.util.unprepare :as unprepare]
             [metabase.util.honey-sql-2 :as h2x]
             [metabase.util.i18n :refer [trs]])
   (:import (java.sql Connection)))
@@ -63,9 +62,10 @@
                               :nested-field-columns   false
                               :schemas                true
                               :uploads                false
-                              :foreign-keys           true
+                              :metadata/keys-constraints true
                               :describe-fks           true
-                              }]
+                              :test/time-type         false
+                              :test/timestamptz-type  false}]
   (defmethod driver/database-supports? [:exasol feature] [_ _ _] supported?))
 
 (defmethod sql.qp/quote-style :exasol
@@ -328,15 +328,15 @@
   #{"EXA_STATISTICS"
     "SYS"})
 
-(defmethod unprepare/unprepare-value [:exasol java.time.OffsetDateTime]
+(defmethod sql.qp/inline-value [:exasol java.time.OffsetDateTime]
   [_ t]
   (format "timestamp '%s'" (t/format "yyyy-MM-dd HH:mm:ss.SSS" t)))
 
-(defmethod unprepare/unprepare-value [:exasol java.time.ZonedDateTime]
+(defmethod sql.qp/inline-value [:exasol java.time.ZonedDateTime]
   [_ t]
   (format "timestamp '%s'" (t/format "yyyy-MM-dd HH:mm:ss.SSS" t)))
 
-; Required to support features :foreign-keys and :describe-fks
+; Required to support features :metadata/keys-constraints and :describe-fks
 (defmethod sql-jdbc.sync/describe-fks-sql :exasol
   [driver & {:keys [schema-names table-names]}]
   (sql/format {:select [[:c.REFERENCED_SCHEMA :pk-table-schema]

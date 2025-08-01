@@ -1,104 +1,8 @@
-diff --git a/test/metabase/api/dashboard_test.clj b/test/metabase/api/dashboard_test.clj
-index c7eacf1e72..159de5e5d0 100644
---- a/test/metabase/api/dashboard_test.clj
-+++ b/test/metabase/api/dashboard_test.clj
-@@ -4544,90 +4544,7 @@
-                          (format "/dashboard/%s/dashcard/%s/card/%s/query/%s?format_rows=%s"                                   dashboard-id dashcard-id card-id (name export-format) apply-formatting?))
-                         ((get output-helper export-format)))))))))))
- 
--(deftest dependent-metadata-test
--  (mt/with-temp
--    [Dashboard           {dashboard-id :id}  {}
--     Dashboard           {link-dash :id}     {}
--     Card                {link-card :id}     {:dataset_query (mt/mbql-query reviews)
--                                              :database_id (mt/id)}
--     Card                {card-id-1 :id}     {:dataset_query (mt/mbql-query products)
--                                              :database_id (mt/id)}
--     Card                {card-id-2 :id}     {:dataset_query
--                                              {:type     :native
--                                               :native   {:query "SELECT COUNT(*) FROM people WHERE {{id}} AND {{name}} AND {{source}} /* AND {{user_id}} */"
--                                                          :template-tags
--                                                          {"id"      {:name         "id"
--                                                                      :display-name "Id"
--                                                                      :type         :dimension
--                                                                      :dimension    [:field (mt/id :people :id) nil]
--                                                                      :widget-type  :id
--                                                                      :default      nil}
--                                                           "name"    {:name         "name"
--                                                                      :display-name "Name"
--                                                                      :type         :dimension
--                                                                      :dimension    [:field (mt/id :people :name) nil]
--                                                                      :widget-type  :category
--                                                                      :default      nil}
--                                                           "source"  {:name         "source"
--                                                                      :display-name "Source"
--                                                                      :type         :dimension
--                                                                      :dimension    [:field (mt/id :people :source) nil]
--                                                                      :widget-type  :category
--                                                                      :default      nil}
--                                                           "user_id" {:name         "user_id"
--                                                                      :display-name "User"
--                                                                      :type         :dimension
--                                                                      :dimension    [:field (mt/id :orders :user_id) nil]
--                                                                      :widget-type  :id
--                                                                      :default      nil}}}
--                                               :database (mt/id)}
--                                              :query_type :native
--                                              :database_id (mt/id)}
--     DashboardCard       {dashcard-id-1 :id} {:dashboard_id dashboard-id,
--                                              :card_id card-id-1
--                                              :visualization_settings {:column_settings
--                                                                       {"[\"name\", 0]" ;; FE reference that must be json formatted
--                                                                        {:click_behavior {:type :link
--                                                                                          :linkType "dashboard"
--                                                                                          :targetId link-dash}}}}}
--     DashboardCard       _                   {:dashboard_id dashboard-id,
--                                              :card_id card-id-2
--                                              :visualization_settings {:click_behavior {:type :link
--                                                                                        :linkType "question"
--                                                                                        :targetId link-card}}}
--     Card                {series-id-1 :id}   {:name "Series Card 1"
--                                              :dataset_query (mt/mbql-query checkins)
--                                              :database_id (mt/id)}
--     Card                {series-id-2 :id}   {:name "Series Card 2"
--                                              :dataset_query (mt/mbql-query venues)
--                                              :database_id (mt/id)}
--     DashboardCardSeries _                   {:dashboardcard_id dashcard-id-1,
--                                              :card_id series-id-1
--                                              :position 0}
--     DashboardCardSeries _                   {:dashboardcard_id dashcard-id-1,
--                                              :card_id series-id-2
--                                              :position 1}]
--    (is (=?
--         {:fields (sort-by :id
--                           [{:id (mt/id :people :id)}
--                            {:id (mt/id :orders :user_id)}
--                            {:id (mt/id :people :source)}
--                            {:id (mt/id :people :name)}])
--          :tables (sort-by :id [{:id (mt/id :categories)}
--                                {:id (mt/id :users)}
--                                {:id (mt/id :checkins)}
--                                {:id (mt/id :reviews)}
--                                {:id (mt/id :products)
--                                 :fields sequential?}
--                                {:id (mt/id :venues)}])
--          :cards [{:id link-card}]
--          :databases [{:id (mt/id) :engine string?}]
--          :dashboards [{:id link-dash}]}
--         (-> (mt/user-http-request :crowberto :get 200 (str "dashboard/" dashboard-id "/query_metadata"))
--              ;; The output is so large, these help debugging
--             #_#_#_(update :fields #(map (fn [x] (select-keys x [:id])) %))
--                 (update :databases #(map (fn [x] (select-keys x [:id :engine])) %))
--               (update :tables #(map (fn [x] (select-keys x [:id :name])) %)))))))
-+; Test dependent-metadata-test failure unrelated to Exasol
- 
- (deftest dashboard-query-metadata-no-tables-test
-   (testing "Don't throw an error if users doesn't have access to any tables #44043"
 diff --git a/test/metabase/api/database_test.clj b/test/metabase/api/database_test.clj
-index f982bd19bd..c776c74345 100644
+index c07bf34a84..92de61572a 100644
 --- a/test/metabase/api/database_test.clj
 +++ b/test/metabase/api/database_test.clj
-@@ -463,64 +463,7 @@
+@@ -474,31 +474,7 @@
      (mt/user-http-request :crowberto :put expected-status-code (format "database/%d" (u/the-id db-or-id))
                            changes)))
  
@@ -126,45 +30,12 @@ index f982bd19bd..c776c74345 100644
 -                      :name         "Cam's Awesome Toucan Database"
 -                      :is_full_sync false
 -                      :features     (driver.u/features :h2 curr-db)}
--                     (into {} curr-db)))))))))
--
--    (testing "should be able to set `auto_run_queries`"
--      (testing "when creating a Database"
--        (is (= {:auto_run_queries false}
--               (select-keys (create-db-via-api! {:auto_run_queries false}) [:auto_run_queries]))))
--      (testing "when updating a Database"
--        (t2.with-temp/with-temp [Database {db-id :id} {:engine ::test-driver}]
--          (let [updates {:auto_run_queries false}]
--            (mt/user-http-request :crowberto :put 200 (format "database/%d" db-id) updates))
--          (is (= false
--                 (t2/select-one-fn :auto_run_queries Database, :id db-id))))))
--
--    (testing "should not be able to modify `cache_ttl` in OSS"
--      (with-redefs [premium-features/enable-cache-granular-controls? (constantly false)]
--        (t2.with-temp/with-temp [Database {db-id :id} {:engine ::test-driver}]
--          (let [updates {:cache_ttl 13}]
--            (mt/user-http-request :crowberto :put 200 (format "database/%d" db-id) updates))
--          (is (= nil
--                 (t2/select-one-fn :cache_ttl Database, :id db-id))))))
--
--    (testing "should be able to set and unset `cache_ttl` in EE"
--      (with-redefs [premium-features/enable-cache-granular-controls? (constantly true)]
--        (t2.with-temp/with-temp [Database {db-id :id} {:engine ::test-driver}]
--          (let [updates1 {:cache_ttl 1337}
--                updates2 {:cache_ttl nil}
--                updates1! (fn [] (mt/user-http-request :crowberto :put 200 (format "database/%d" db-id) updates1))
--                updates2! (fn [] (mt/user-http-request :crowberto :put 200 (format "database/%d" db-id) updates2))]
--            (updates1!)
--            (let [curr-db (t2/select-one [Database :cache_ttl], :id db-id)]
--              (is (= 1337 (:cache_ttl curr-db))))
--            (updates2!)
--            (let [curr-db (t2/select-one [Database :cache_ttl], :id db-id)]
--              (is (= nil (:cache_ttl curr-db))))))))))
+-                     (into {} curr-db)))))))))))
 +; https://github.com/exasol/metabase-driver/issues/81
  
- (deftest update-database-audit-log-test
-   (testing "Check that we get audit log entries that match the db when updating a Database"
-@@ -1416,73 +1359,7 @@
+ (deftest update-database-test-2
+   (testing "PUT /api/database/:id"
+@@ -1442,33 +1418,7 @@
    (with-redefs [h2/*allow-testing-h2-connections* true]
      (#'api.database/test-connection-details engine details)))
  
@@ -172,75 +43,35 @@ index f982bd19bd..c776c74345 100644
 -  (testing "POST /api/database/validate"
 -    (testing "Should require superuser permissions"
 -      (is (= "You don't have permissions to do that."
--             (api-validate-database {:user :rasta, :expected-status-code 403}
--                                    {:details {:engine :h2, :details (:details (mt/db))}}))))
+-             (api-validate-database! {:user :rasta, :expected-status-code 403}
+-                                     {:details {:engine :h2, :details (:details (mt/db))}}))))
 -
 -    (testing "Underlying `test-connection-details` function should work"
 -      (is (= (:details (mt/db))
--             (test-connection-details "h2" (:details (mt/db))))))
+-             (test-connection-details! "h2" (:details (mt/db))))))
 -
 -    (testing "Valid database connection details"
 -      (is (= (merge (:details (mt/db)) {:valid true})
--             (api-validate-database {:details {:engine :h2, :details (:details (mt/db))}}))))
+-             (api-validate-database! {:details {:engine :h2, :details (:details (mt/db))}}))))
 -
 -    (testing "invalid database connection details"
 -      (testing "calling test-connection-details directly"
 -        (is (= {:errors  {:db "check your connection string"}
 -                :message "Implicitly relative file paths are not allowed."
 -                :valid   false}
--               (test-connection-details "h2" {:db "ABC"}))))
+-               (test-connection-details! "h2" {:db "ABC"}))))
 -
 -      (testing "via the API endpoint"
 -        (is (= {:errors  {:db "check your connection string"}
 -                :message "Implicitly relative file paths are not allowed."
 -                :valid   false}
--               (api-validate-database {:details {:engine :h2, :details {:db "ABC"}}})))))))
--
--(deftest validate-database-test-2
--  (testing "POST /api/database/validate"
--    (let [call-count (atom 0)
--          ssl-values (atom [])
--          valid?     (atom false)]
--      (with-redefs [api.database/test-database-connection (fn [_ details & _]
--                                                            (swap! call-count inc)
--                                                            (swap! ssl-values conj (:ssl details))
--                                                            (if @valid? nil {:valid false}))]
--        (testing "with SSL enabled, do not allow non-SSL connections"
--          (#'api.database/test-connection-details "postgres" {:ssl true})
--          (is (= 1 @call-count))
--          (is (= [true] @ssl-values)))
--
--        (reset! call-count 0)
--        (reset! ssl-values [])
--
--        (testing "with SSL disabled, try twice (once with, once without SSL)"
--          (#'api.database/test-connection-details "postgres" {:ssl false})
--          (is (= 2 @call-count))
--          (is (= [true false] @ssl-values)))
--
--        (reset! call-count 0)
--        (reset! ssl-values [])
--
--        (testing "with SSL unspecified, try twice (once with, once without SSL)"
--          (#'api.database/test-connection-details "postgres" {})
--          (is (= 2 @call-count))
--          (is (= [true nil] @ssl-values)))
--
--        (reset! call-count 0)
--        (reset! ssl-values [])
--        (reset! valid? true)
--
--        (testing "with SSL disabled, but working try once (since SSL work we don't try without SSL)"
--          (is (= {:ssl true}
--                 (#'api.database/test-connection-details "postgres" {:ssl false})))
--          (is (= 1 @call-count))
--          (is (= [true] @ssl-values)))))))
+-               (api-validate-database! {:details {:engine :h2, :details {:db "ABC"}}})))))))
 +; https://github.com/exasol/metabase-driver/issues/81
  
- ;;; +----------------------------------------------------------------------------------------------------------------+
- ;;; |                      GET /api/database/:id/schemas & GET /api/database/:id/schema/:schema                      |
+ (deftest validate-database-test-2
+   (testing "POST /api/database/validate"
 diff --git a/test/metabase/driver/h2_test.clj b/test/metabase/driver/h2_test.clj
-index e07000ef23..27427d652f 100644
+index 45a53762a8..e71a56f098 100644
 --- a/test/metabase/driver/h2_test.clj
 +++ b/test/metabase/driver/h2_test.clj
 @@ -61,13 +61,7 @@
@@ -258,44 +89,31 @@ index e07000ef23..27427d652f 100644
  
  (deftest ^:parallel only-connect-when-non-malicious-properties
    (testing "Reject connection strings with malicious properties"
-diff --git a/test/metabase/driver/sql/parameters/substitute_test.clj b/test/metabase/driver/sql/parameters/substitute_test.clj
-index 58121dda9d..0c800f316b 100644
---- a/test/metabase/driver/sql/parameters/substitute_test.clj
-+++ b/test/metabase/driver/sql/parameters/substitute_test.clj
-@@ -993,7 +993,7 @@
- 
- (deftest e2e-parse-native-dates-test
-   (testing "Native dates should be parsed with the report timezone"
--    (mt/test-drivers (disj (sql-parameters-engines) :sqlite)
-+    (mt/test-drivers (disj (sql-parameters-engines) :sqlite :exasol)
-       (mt/with-report-timezone-id! "America/Los_Angeles"
-         (let [query {:database   (mt/id)
-                      :type       :native
 diff --git a/test/metabase/driver/sql_jdbc/connection_test.clj b/test/metabase/driver/sql_jdbc/connection_test.clj
-index ba6609f3d5..8e6703ad48 100644
+index 640f44499a..25218c6652 100644
 --- a/test/metabase/driver/sql_jdbc/connection_test.clj
 +++ b/test/metabase/driver/sql_jdbc/connection_test.clj
-@@ -115,6 +115,9 @@
-             (case driver/*driver*
+@@ -118,6 +118,9 @@
                :redshift
                (assoc details :additional-options "defaultRowFetchSize=1000")
-+              
+ 
 +              :exasol ;; Test fails when using a hostname other than localhost or 127.0.0.1 e.g. when the DB runs in a VM.
 +              (assoc details :additional-options "querytimeout=5")
++
+               :databricks
+               (assoc details :log-level 0)
  
-               (cond-> details
-                 ;; swap localhost and 127.0.0.1
 diff --git a/test/metabase/driver_test.clj b/test/metabase/driver_test.clj
-index 6b35385cf6..c8ebfbed5f 100644
+index 823944f5a9..bd6e12d4a1 100644
 --- a/test/metabase/driver_test.clj
 +++ b/test/metabase/driver_test.clj
-@@ -82,81 +82,9 @@
+@@ -83,82 +83,9 @@
                           :field-definitions [{:field-name "foo", :base-type :type/Text}]
                           :rows              [["bar"]]}]}))
  
 -(deftest can-connect-with-destroy-db-test
 -  (testing "driver/can-connect? should fail or throw after destroying a database"
--    (mt/test-drivers (mt/normal-drivers-without-feature :connection/multiple-databases)
+-    (mt/test-drivers (mt/normal-drivers-with-feature :test/dynamic-dataset-loading)
 -      (let [database-name (mt/random-name)
 -            dbdef         (basic-db-definition database-name)]
 -        (mt/dataset dbdef
@@ -324,24 +142,25 @@ index 6b35385cf6..c8ebfbed5f 100644
 -                                false))))))
 -            ;; clean up the database
 -            (t2/delete! :model/Database (u/the-id db))))))))
-+; Test can-connect-with-destroy-db-test is not relevant as Exasol does not support creating or dropping databases.
++; Test can-connect-with-destroy-db-test fails unrelated to Exasol
  
 -(deftest check-can-connect-before-sync-test
 -  (testing "Database sync should short-circuit and fail if the database at the connection has been deleted (metabase#7526)"
--    (mt/test-drivers (mt/normal-drivers-without-feature :connection/multiple-databases)
+-    (mt/test-drivers (mt/normal-drivers-with-feature :test/dynamic-dataset-loading)
 -      (let [database-name (mt/random-name)
 -            dbdef         (basic-db-definition database-name)]
 -        (mt/dataset dbdef
 -          (let [db (mt/db)
 -                cant-sync-logged? (fn []
--                                    (some?
--                                     (some
--                                      (fn [[log-level throwable message]]
--                                        (and (= log-level :warn)
--                                             (instance? clojure.lang.ExceptionInfo throwable)
--                                             (re-matches #"^Cannot sync Database ([\s\S]+): ([\s\S]+)" message)))
--                                      (mt/with-log-messages-for-level :warn
--                                        (#'task.sync-databases/sync-and-analyze-database*! (u/the-id db))))))]
+-                                    (mt/with-log-messages-for-level [messages :warn]
+-                                      (#'task.sync-databases/sync-and-analyze-database*! (u/the-id db))
+-                                      (some?
+-                                       (some
+-                                        (fn [{:keys [level e message]}]
+-                                          (and (= level :warn)
+-                                               (instance? clojure.lang.ExceptionInfo e)
+-                                               (re-matches #"^Cannot sync Database ([\s\S]+): ([\s\S]+)" message)))
+-                                        (messages)))))]
 -            (testing "sense checks before deleting the database"
 -              (testing "sense check 1: sync-and-analyze-database! should not log a warning"
 -                (is (false? (cant-sync-logged?))))
@@ -369,23 +188,23 @@ index 6b35385cf6..c8ebfbed5f 100644
 -                (mt/user-http-request :crowberto :post 422 (str "/database/" (u/the-id db) "/sync_schema"))))
 -            ;; clean up the database
 -            (t2/delete! :model/Database (u/the-id db))))))))
-+; Test check-can-connect-before-sync-test is not relevant as Exasol does not support creating or dropping databases.
++; Test check-can-connect-before-sync-test fails unrelated to Exasol
  
  (deftest supports-table-privileges-matches-implementations-test
    (mt/test-drivers (mt/normal-drivers-with-feature :table-privileges)
 diff --git a/test/metabase/query_processor/middleware/format_rows_test.clj b/test/metabase/query_processor/middleware/format_rows_test.clj
-index d363fd2526..257a3fac95 100644
+index 5978ac13ed..20f7624d29 100644
 --- a/test/metabase/query_processor/middleware/format_rows_test.clj
 +++ b/test/metabase/query_processor/middleware/format_rows_test.clj
-@@ -19,7 +19,7 @@
-   should be able to pass with a few tweaks. Some of them are excluded because they do not have a TIME data type and
-   can't load the `time-test-data` dataset; but that's not true of ALL of these. Please make sure you add a note
-   as to why a certain database is explicitly skipped if you skip it -- Cam"
--  #{:bigquery-cloud-sdk :oracle :mongo :redshift :sparksql :snowflake})
-+  #{:bigquery-cloud-sdk :oracle :mongo :redshift :sparksql :snowflake :exasol}) ; Exasol does not support TIME data type
- 
- (deftest format-rows-test
-   (mt/test-drivers (filter mt/supports-time-type? (mt/normal-drivers-except dbs-exempt-from-format-rows-tests))
+@@ -24,7 +24,7 @@
+ ;;; tweaks. Some of them are excluded because they do not have a TIME data type and can't load the `time-test-data`
+ ;;; dataset; but that's not true of ALL of these. Please make sure you add a note as to why a certain database is
+ ;;; explicitly skipped if you skip it -- Cam
+-(doseq [driver #{:bigquery-cloud-sdk :oracle :mongo :redshift :sparksql :snowflake}]
++(doseq [driver #{:bigquery-cloud-sdk :oracle :mongo :redshift :sparksql :snowflake :exasol}] ; Exasol does not support TIME data type
+   (defmethod driver/database-supports? [driver ::format-rows-test]
+     [_driver _feature _database]
+     false))
 diff --git a/test/metabase/query_processor/middleware/resolve_source_table_test.clj b/test/metabase/query_processor/middleware/resolve_source_table_test.clj
 index b78d1df0dd..beb3f1fbff 100644
 --- a/test/metabase/query_processor/middleware/resolve_source_table_test.clj
@@ -410,86 +229,130 @@ index b78d1df0dd..beb3f1fbff 100644
  (deftest ^:parallel validate-source-table-test
    (testing "Should throw an Exception if there's a `:source-table` in the query that IS NOT a positive int"
 diff --git a/test/metabase/query_processor_test/alternative_date_test.clj b/test/metabase/query_processor_test/alternative_date_test.clj
-index 8ebcdf186f..fea9f9bd59 100644
+index 3eec93581c..ae0e465211 100644
 --- a/test/metabase/query_processor_test/alternative_date_test.clj
 +++ b/test/metabase/query_processor_test/alternative_date_test.clj
-@@ -51,7 +51,7 @@
-                                            :query    {:source-table (str "card__" card-id)}}))))))))
+@@ -294,19 +294,8 @@
+    [(t/instant "2008-10-19T10:23:54Z")]
+    [(t/instant "2012-10-19T10:23:54Z")]])
  
- (deftest ^:parallel microseconds-test
--  (mt/test-drivers (disj (mt/normal-drivers) :sqlite)
-+  (mt/test-drivers (disj (mt/normal-drivers) :sqlite :exasol) ; Timestamp/timezone covered by Exasol specific tests.
-     (let [results (get {:sqlite #{[1 4 "2015-06-06 10:40:00"] [2 0 "2015-06-10 19:51:00"]}
-                         :oracle #{[1M 4M "2015-06-06T10:40:00Z"] [2M 0M "2015-06-10T19:51:00Z"]}}
-                        driver/*driver*
-@@ -200,7 +200,7 @@
-     (testing "return as dates"
-       (mt/test-drivers (-> (sql-jdbc.tu/normal-sql-jdbc-drivers)
-                            (conj :bigquery-cloud-sdk)
--                           (disj :sqlite :oracle :sparksql))
-+                           (disj :sqlite :oracle :sparksql :exasol)) ; Exasol does not support TIME data type
-         (is (= [[1 "foo" #t "2004-10-19T10:23:54" #t "2004-10-19" #t "10:23:54"]
-                 [2 "bar" #t "2008-10-19T10:23:54" #t "2008-10-19" #t "10:23:54"]
-                 [3 "baz" #t "2012-10-19T10:23:54" #t "2012-10-19" #t "10:23:54"]]
-@@ -267,7 +267,7 @@
-       (mt/dataset string-times
-         (testing "a datetime field"
-           ;; TODO: why does this fail on oracle? gives a NPE
--          (mt/test-drivers (disj (sql-jdbc.tu/normal-sql-jdbc-drivers) :oracle :sparksql)
-+          (mt/test-drivers (disj (sql-jdbc.tu/normal-sql-jdbc-drivers) :oracle :sparksql :exasol) ; Exasol does not support TIME data type
-             (is (= 1
-                    (->> (mt/run-mbql-query times
-                           {:filter [:= !day.ts "2008-10-19"]})
-@@ -282,7 +282,7 @@
-                         mt/rows
-                         count)))))
-         (testing "a date field"
--          (mt/test-drivers (disj (sql-jdbc.tu/normal-sql-jdbc-drivers) :oracle :sparksql)
-+          (mt/test-drivers (disj (sql-jdbc.tu/normal-sql-jdbc-drivers) :oracle :sparksql :exasol) ; Exasol does not support TIME data type
-             (is (= 1
-                    (->> (mt/run-mbql-query times
-                           {:filter [:= !day.d "2008-10-19"]})
+-;;; TODO -- instead of having 5 different hardcoded versions of the test, maybe we should make a `iso-8601-text-fields`
+-;;; multimethod with a `:default` implementation and different driver implementations as needed so third-party driver
+-;;; authors can pass this test too.
+-(deftest ^:parallel iso-8601-text-fields
+-  (testing "text fields with semantic_type :type/ISO8601DateTimeString"
+-    (testing "return as dates"
+-      (mt/test-drivers (mt/normal-drivers)
+-        (mt/dataset string-times
+-          (let [query (iso-8601-text-fields-query driver/*driver*)]
+-            (mt/with-native-query-testing-context query
+-              (is (= (iso-8601-text-fields-expected-rows driver/*driver*)
+-                     ;; string-times dataset has three text fields, ts, d, t for timestamp, date, and time
+-                     (mt/rows (qp/process-query query)))))))))))
++; Test iso-8601-text-fields fails with error
++; clojure.lang.ExceptionInfo: Error preparing statement: Feature not supported: SQL-Type TIME [line 2, column 256] (
+ 
+ (defmethod driver/database-supports? [::driver/driver ::iso-8601-test-fields-are-queryable]
+   [_driver _feature _database]
+@@ -342,18 +331,8 @@
+     {:filter [:= !day.ts "2008-10-19"]
+      :fields [$d $ts]}))
+ 
+-(deftest ^:parallel iso-8601-text-fields-should-be-queryable-datetime-test
+-  (testing "text fields with semantic_type :type/ISO8601DateTimeString"
+-    (testing "are queryable as dates"
+-      (mt/dataset string-times
+-        (testing "a datetime field"
+-          (mt/test-drivers (mt/normal-drivers-with-feature ::iso-8601-test-fields-are-queryable)
+-            (let [query (iso-8601-text-fields-should-be-queryable-datetime-test-query driver/*driver*)]
+-              (mt/with-native-query-testing-context query
+-                (is (= 1
+-                       (->> (qp/process-query query)
+-                            mt/rows
+-                            count)))))))))))
++; Test iso-8601-text-fields-should-be-queryable-datetime-test fails with error
++; Error preparing statement: Feature not supported: SQL-Type TIME [line 2, column 256]
+ 
+ (defmethod driver/database-supports? [::driver/driver ::parse-string-to-date]
+   [_driver _feature _database]
 diff --git a/test/metabase/query_processor_test/explicit_joins_test.clj b/test/metabase/query_processor_test/explicit_joins_test.clj
-index 4e27fd2ae6..7f27236a4b 100644
+index 507902de93..71d4127d25 100644
 --- a/test/metabase/query_processor_test/explicit_joins_test.clj
 +++ b/test/metabase/query_processor_test/explicit_joins_test.clj
-@@ -860,7 +860,7 @@
-                                         results))))))))))
+@@ -903,39 +903,8 @@
+                        int str str str str 2.0 2.0 u.date/temporal-str->iso8601-str]
+                       results))))))))))
  
- (deftest ^:parallel double-quotes-in-join-alias-test
+-(deftest ^:parallel double-quotes-in-join-alias-test
 -  (mt/test-drivers (mt/normal-drivers-with-feature :left-join)
-+  (mt/test-drivers (disj (mt/normal-drivers-with-feature :left-join) :exasol) ; Exasol does not support '.' in quoted identifiers: "Error executing query: '.' character is not allowed within quoted identifiers"
-     (testing "Make sure our we handle (escape) double quotes in join aliases. Make sure we prevent SQL injection (#20307)"
-       (let [expected-rows (mt/rows
-                            (mt/run-mbql-query venues
+-    (testing "Make sure our we handle (escape) double quotes in join aliases. Make sure we prevent SQL injection (#20307)"
+-      (let [expected-rows (mt/rows
+-                           (mt/run-mbql-query venues
+-                             {:joins [{:source-table $$categories
+-                                       :alias        "Cat"
+-                                       :condition    [:= $id $id]
+-                                       :fields       [&Cat.categories.id]}]
+-                              :order-by [[:asc $id] [:asc &Cat.categories.id]]
+-                              :limit 1}))]
+-        (is (= 1
+-               (count expected-rows)))
+-        ;; these normally get ESCAPED by [[metabase.util.honey-sql-2/identifier]] when they're compiled to SQL,
+-        ;; but some fussy databases such as Oracle don't even allow escaped double quotes in identifiers. So make sure
+-        ;; that we don't allow SQL injection AND things still work
+-        (doseq [evil-join-alias ["users.id\" AS user_id, u.* FROM categories LEFT JOIN users u ON 1 = 1; --"
+-                                 "users.id\\\" AS user_id, u.* FROM categories LEFT JOIN users u ON 1 = 1; --"
+-                                 "users.id\\u0022 AS user_id, u.* FROM categories LEFT JOIN users u ON 1 = 1; --"
+-                                 "users.id` AS user_id, u.* FROM categories LEFT JOIN users u ON 1 = 1; --"
+-                                 "users.id\\` AS user_id, u.* FROM categories LEFT JOIN users u ON 1 = 1; --"]]
+-          (testing (format "Join alias: `%s`" (pr-str evil-join-alias))
+-            (let [evil-query (mt/mbql-query
+-                               venues
+-                               {:joins [{:source-table $$categories
+-                                         :alias        evil-join-alias
+-                                         :condition    [:= $id $id]
+-                                         :fields       [[:field %categories.id {:join-alias evil-join-alias}]]}]
+-                                :order-by [[:asc $id] [:asc [:field %categories.id {:join-alias evil-join-alias}]]]
+-                                :limit 1})]
+-              (mt/with-native-query-testing-context evil-query
+-                (is (= expected-rows
+-                       (mt/rows (qp/process-query evil-query))))))))))))
++; Test double-quotes-in-join-alias-test fails with error
++; Error executing query: '.' character is not allowed within quoted identifiers
+ 
+ (def ^:private charsets
+   {:ascii   (into (vec (for [i (range 26)]
 diff --git a/test/metabase/query_processor_test/parameters_test.clj b/test/metabase/query_processor_test/parameters_test.clj
-index 81cad26525..4e2e9a8f5e 100644
+index fa4eca2656..2912387029 100644
 --- a/test/metabase/query_processor_test/parameters_test.clj
 +++ b/test/metabase/query_processor_test/parameters_test.clj
-@@ -348,6 +348,7 @@
-                         ;; These do not support ParameterMetadata.getParameterCount
-                         (remove #{:athena
-                                   :bigquery-cloud-sdk
-+                                  :exasol ; Fails with exception "Error preparing statement: object VENUES not found [line 4, column 2] (Session: 1779010379713609728) {:driver :exasol, :type :driver, :sql ["-- Metabase" "SELECT" "  *" "FROM" "  -- ?" "  VENUES" "WHERE" "  ? = price"], :params ["foobar" "foobar"]}"
-                                   :presto-jdbc
-                                   :redshift
-                                   :snowflake
-diff --git a/test/metabase/query_processor_test/remapping_test.clj b/test/metabase/query_processor_test/remapping_test.clj
-index 470e607e01..0b9edd7cd2 100644
---- a/test/metabase/query_processor_test/remapping_test.clj
-+++ b/test/metabase/query_processor_test/remapping_test.clj
-@@ -205,7 +205,8 @@
-   ;;
-   ;; Having a self-referencing FK is currently broken with the Redshift and Oracle backends. The issue related to fix
-   ;; this is https://github.com/metabase/metabase/issues/8510
--  (mt/test-drivers (disj (mt/normal-drivers-with-feature :foreign-keys) :redshift :oracle :vertica)
-+  ; Fails with AssertionError in metabase.test.data.interface/db-qualified-table-name because table name is longer than 30 chars. Unrelated to Exasol.
-+  (mt/test-drivers (disj (mt/normal-drivers-with-feature :foreign-keys) :redshift :oracle :vertica :exasol)
-     (mt/dataset test-data-self-referencing-user
-       (qp.store/with-metadata-provider (-> (lib.metadata.jvm/application-database-metadata-provider (mt/id))
-                                            (lib.tu/remap-metadata-provider (mt/id :users :created_by)
+@@ -396,23 +396,8 @@
+     [_driver _feature _database]
+     false))
+ 
+-(deftest ^:parallel better-error-when-parameter-mismatch
+-  (mt/test-drivers (->> (mt/normal-drivers-with-feature :native-parameters ::get-parameter-count)
+-                        (filter #(isa? driver/hierarchy % :sql)))
+-    (is (thrown-with-msg?
+-         Exception
+-         #"It looks like we got more parameters than we can handle, remember that parameters cannot be used in comments or as identifiers."
+-         (qp/process-query
+-          {:type       :native
+-           :native     {:query         "SELECT * FROM \n[[-- {{name}}]]\n VENUES [[WHERE {{name}} = price]]"
+-                        :template-tags {"name"
+-                                        {:name         "name"
+-                                         :display-name "Name"
+-                                         :type         :text}}}
+-           :database   (mt/id)
+-           :parameters [{:type   :category
+-                         :target [:variable [:template-tag "name"]]
+-                         :value "foobar"}]})))))
++; Test better-error-when-parameter-mismatch fails with error
++; Error preparing statement: object VENUES not found [line 4, column 2]
+ 
+ (deftest ^:parallel ignore-parameters-for-unparameterized-native-query-test
+   (testing "Parameters passed for unparameterized queries should get ignored"
 diff --git a/test/metabase/query_processor_test/timezones_test.clj b/test/metabase/query_processor_test/timezones_test.clj
-index 1b3c39c1a4..1ac0587913 100644
+index ef4f9a6fe1..9f9e0f1992 100644
 --- a/test/metabase/query_processor_test/timezones_test.clj
 +++ b/test/metabase/query_processor_test/timezones_test.clj
 @@ -24,6 +24,7 @@
@@ -501,41 +364,44 @@ index 1b3c39c1a4..1ac0587913 100644
      :sparksql
      :vertica})
 diff --git a/test/metabase/sync/sync_metadata/fields_test.clj b/test/metabase/sync/sync_metadata/fields_test.clj
-index 99819164dd..a19749abad 100644
+index 6e7735e452..fd4e96119a 100644
 --- a/test/metabase/sync/sync_metadata/fields_test.clj
 +++ b/test/metabase/sync/sync_metadata/fields_test.clj
-@@ -308,29 +308,5 @@
+@@ -309,33 +309,4 @@
       {:field-name "continent_id", :base-type :type/Integer :fk :continent}]
      [["Ghana" 1]]]])
  
 -(deftest sync-fks-and-fields-test
 -  (testing (str "[[sync-fields/sync-fields-for-table!]] and [[sync-fks/sync-fks-for-table!]] should sync fields and fks"
 -                "in the same way that [[sync-fields/sync-fields!]] and [[sync-fks/sync-fks!]] do")
--    (mt/test-drivers (mt/normal-drivers-with-feature :foreign-keys)
+-    (mt/test-drivers (mt/normal-drivers-with-feature :metadata/key-constraints)
 -      (mt/dataset country
 -        (let [tables (t2/select :model/Table :db_id (mt/id))]
--          (doseq [sync-fields-and-fks! [(fn []
--                                          (run! sync-fields/sync-fields-for-table! tables)
--                                          (run! sync-fks/sync-fks-for-table! tables))
--                                        (fn []
--                                          (sync-fields/sync-fields! (mt/db))
--                                          (sync-fks/sync-fks! (mt/db)))]]
--            ;; 1. delete the fields that were just synced
--            (t2/delete! :model/Field :table_id [:in (map :id tables)])
--            ;; 2. sync the metadata for each table
--            (sync-fields-and-fks!)
--            (let [continent-id-field (t2/select-one :model/Field :%lower.name "id" :table_id (mt/id :continent))]
--              (is (= #{{:name "name",         :semantic_type nil,      :fk_target_field_id nil}
--                       {:name "id",           :semantic_type :type/PK, :fk_target_field_id nil}
--                       {:name "continent_id", :semantic_type :type/FK, :fk_target_field_id (:id continent-id-field)}}
--                     (set (map #(into {} %)
--                               (t2/select [Field
--                                           [:%lower.name :name]
--                                           :semantic_type
--                                           :fk_target_field_id]
--                                          :table_id [:in (map :id tables)]))))))))))))
-+; Actual result contains too many rows, unrelated to Exasol
-+; describe-fks is already tested in metabase.driver-test/describe-fks-test
+-          (doseq [[message sync-fields-and-fks!] {"for specific tables" (fn []
+-                                                                          (run! sync-fields/sync-fields-for-table! tables)
+-                                                                          (run! sync-fks/sync-fks-for-table! tables))
+-                                                  "for entire DB"       (fn []
+-                                                                          (sync-fields/sync-fields! (mt/db))
+-                                                                          (sync-fks/sync-fks! (mt/db)))}]
+-            (testing message
+-              ;; do this in a transaction so deleting all the Fields isn't permanent
+-              (t2/with-transaction [_ t2.connection/*current-connectable* {:rollback-only true}]
+-                ;; 1. delete the fields that were just synced
+-                (t2/delete! :model/Field :table_id [:in (map :id tables)])
+-                ;; 2. sync the metadata for each table
+-                (sync-fields-and-fks!)
+-                (let [continent-id-field (t2/select-one :model/Field :%lower.name "id" :table_id (mt/id :continent))]
+-                  (is (= [{:name "continent_id", :semantic_type :type/FK, :fk_target_field_id (u/the-id continent-id-field)}
+-                          {:name "id",           :semantic_type :type/PK, :fk_target_field_id nil}
+-                          {:name "name",         :semantic_type nil,      :fk_target_field_id nil}]
+-                         (->> (t2/select [Field
+-                                          [:%lower.name :name]
+-                                          :semantic_type
+-                                          :fk_target_field_id]
+-                                         :table_id [:in (map :id tables)])
+-                              distinct
+-                              (sort-by :name)))))))))))))
++; Test sync-fks-and-fields-test fails unrelated to Exasol.
 diff --git a/test/metabase/test/initialize.clj b/test/metabase/test/initialize.clj
 index f9b32da937..0cb97eda18 100644
 --- a/test/metabase/test/initialize.clj

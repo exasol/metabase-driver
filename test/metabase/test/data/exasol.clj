@@ -9,6 +9,7 @@
             [metabase.test.data.sql-jdbc :as sql-jdbc.tx]
             [metabase.test.data.sql-jdbc.execute :as execute]
             [metabase.test.data.sql-jdbc.load-data :as load-data]
+            [metabase.query-processor-test.alternative-date-test :as alt-date-test]
             [metabase.util :as u]))
 
 (set! *warn-on-reflection* true)
@@ -32,10 +33,6 @@
   (connection-details))
 
 (defmethod tx/sorts-nil-first? :exasol [_ _] false)
-
-(defmethod tx/supports-time-type? :exasol [_] false)
-
-(defmethod tx/supports-timestamptz-type? :exasol [_] false)
 
 (defonce ^:private number-column-type
   "DECIMAL(36,0)")
@@ -81,9 +78,9 @@
 
 (defmethod tx/id-field-type :exasol [_] :type/Decimal)
 
-(defmethod load-data/load-data! :exasol
-  [driver dbdef tabledef]
-  (load-data/load-data-maybe-add-ids-chunked! driver dbdef tabledef))
+(defmethod load-data/row-xform :exasol
+  [_driver _dbdef tabledef]
+  (load-data/maybe-add-ids-xform tabledef))
 
 (defn- dbspec [& _]
   (sql-jdbc.conn/connection-details->spec :exasol (connection-details)))
@@ -119,7 +116,6 @@
   (u/ignore-exceptions
    (execute! "DROP SCHEMA \"%s\" CASCADE" schema-name)))
 
-#_{:clj-kondo/ignore [:deprecated-var]} ; method is deprecated but required for setting UTC timezone when loading test data
 (defmethod sql-jdbc.execute/set-timezone-sql :exasol
   [_]
   "ALTER SESSION SET TIME_ZONE = %s")
@@ -142,6 +138,32 @@
     (when (#{:count :cum-count} ag-type)
       {:base_type :type/Decimal}))))
 
+(defmethod tx/dataset-already-loaded? :exasol
+  [driver dbdef]
+  ;; check and make sure the first table in the dbdef has been created.
+  (let [tabledef       (first (:table-definitions dbdef))
+        ;; table-name should be something like test_data_venues
+        table-name     (tx/db-qualified-table-name (:database-name dbdef) (:table-name tabledef))]
+    (sql-jdbc.execute/do-with-connection-with-options
+     driver
+     (sql-jdbc.conn/connection-details->spec driver (connection-details))
+     {:write? false}
+     (fn [^java.sql.Connection conn]
+       (with-open [rset (.getTables (.getMetaData conn)
+                                    #_catalog        nil
+                                    #_schema-pattern session-schema
+                                    #_table-pattern  table-name
+                                    #_types          (into-array String ["TABLE"]))]
+         ;; if the ResultSet returns anything we know the table is already loaded.
+         (.next rset))))))
+
 ; Exasol does not allow creating or dropping databases, there is only one DB called "exasol-db"
 (defmethod sql.tx/drop-db-if-exists-sql :exasol [& _] nil)
 (defmethod sql.tx/create-db-sql         :exasol [& _] nil)
+
+; Expected values for test metabase.query-processor-test.alternative-date-test/microseconds-test
+; are different because of timezone issues.
+(defmethod alt-date-test/microseconds-test-expected-rows :exasol
+  [_driver]
+  [[1 4 "2015-06-06T12:40:00Z"]
+   [2 0 "2015-06-10T21:51:00Z"]])

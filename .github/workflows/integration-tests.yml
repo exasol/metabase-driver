@@ -9,7 +9,7 @@ on:
 jobs:
   matrix-integration-test:
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         exasol_version: ["7.1.30", "8.34.0"] # Must be supported by integration-test-docker-environment
         # See https://github.com/exasol/integration-test-docker-environment/tree/main/docker_db_config_template
@@ -19,7 +19,7 @@ jobs:
     name: "Build with Exasol ${{ matrix.exasol_version }}"
     runs-on: ubuntu-latest
     env:
-      METABASE_TAG: v0.50.36
+      METABASE_TAG: v0.51.9.5
     steps:
       - name: Free Disk Space
         run: |
